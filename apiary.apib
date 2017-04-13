@@ -9,9 +9,7 @@ This is a **MIS-related consumers  part** of API documentation for Ukrainian Hea
 * Global Medical Institutions and Doctors Registries
 * Partnership Relation Management (PRM) module that describes business relations between this 3 entities.
 
-
 * [eHealth API and issue tracker](https://github.com/ehealth-ua/api-spec)
-
 
 This API design in based on [Nebo #15 API Design Manifest](http://docs.apimanifest.apiary.io/).
 
@@ -23,12 +21,11 @@ Thus you will make sure that end-user understand from which context entities are
 
 If our API returns only one work context, you are free to hide context picker.
 
-
 ## Submitting Issues
 
 To submit issues you should use [Issue Tracking Repo](https://github.com/ehealth-ua/api-spec), issues in all other repositories are used to plan backlog and non-related issued will be closed.
 
-## oAuth UI [/api/oauth]
+## oAuth [/api/oauth]
 
 ### Show Login UI [GET /api/oauth/ui{?client_id,redirect_url,scope,response_type}]
 
@@ -39,7 +36,7 @@ User will see rendered login page, which structure differ by a list of requested
 For security purposes, we will set `X-Frame-Options: deny` header that will disallow opening this page in an iframe.
 
 + Parameters
-    + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request. Used to identify application developer.
+    + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
     + redirect_url: http://example.com/ (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
     + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space. Different login forms will be shown based on scopes that you requested.
     + response_type: code (enum, required) - Response type, only `code` is supported.
@@ -50,9 +47,7 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
             X-CSRF-Token: my-csrf-token
 
-## oAuth Tokens [/api/oauth/tokens]
-
-### Exchange oAuth Code Grant to Access Token [POST]
+### Exchange oAuth Code Grant to Access Token [POST /api/oauth/tokens]
 
 After obtaining oAuth Code Grant, it should be exchanged to an `access_token` **on your back-end**. 
 
@@ -70,8 +65,8 @@ Exposed client credentials may be blocked for a security reasons, you will need 
             X-CSRF-Token: my-csrf-token
 
     + Attributes (object)
-        + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request. Used to identify application developer.
-        + client_secret: `msp-001-secret-key` (string, required) - Medical Service Provider secret key issued upon integration request. Used to identify application developer.
+        + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
+        + client_secret: `mis-001-secret-key` (string, required) - Medical Information System secret key issued upon integration request. Used to identify application developer.
         + code: 299383828 (string, required) - oAuth code grant.
         + `grant_type`: authorization_code (string, fixed) - oAuth Grant Type. Currently only `authorization_code` is supported.
 
@@ -80,6 +75,101 @@ Exposed client credentials may be blocked for a security reasons, you will need 
         + meta (Response__Meta)
             + code: 201 (number)
         + data (Access_Token)
+            + msp_id: null (string, optional)
+
+### Use Refresh Token for Access Token extension [POST /api/oauth/tokens]
+
+Currently `access_token` and `refresh_token` are configured to have same lifetime, so we don't expect you to refresh it. 
+
+In future, you will be able to refresh access tokens to extend `access_token` lifetime.
+
++ Request (application/json)
+
+    + Headers
+
+            X-CSRF-Token: my-csrf-token
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
+        + client_secret: `mis-001-secret-key` (string, required) - Medical Information System secret key issued upon integration request. Used to identify application developer.
+        + refresh_token: `my-oauth-refresh-token` (string, required) - oAuth refresh token.
+        + `grant_type`: refresh_token (string, fixed) - oAuth Grant Type. Currently only `authorization_code` is supported.
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (Access_Token)
+            + msp_id: null (string, optional)
+
+### Set an oAuth Access Token Context [PATCH /api/oauth/tokens/{access_token}]
+
+Set a `:msp_id` context for user `:access_token`.
+
++ Parameters
+    + access_token: `my-oauth-token` (string, required) - oAuth access token.
+
++ Request (application/json)
+    + Attributes
+        + msp_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Access_Token)
+            + msp_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
+## OTP Verification [/api/otp_verifications]
+
+Method is used to verify that provided in declarartion request phone number is valid and is in service
+
+### Initialize OTP Verification [POST]
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (object)
+        + `phone_number`: `+380508887700` (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (OTP)
+
+### Complete OTP Verification [PATCH /api/otp_verifications/{phone_number}/actions/complete]
+
++ Parameters
+    + `phone_number`: `+380508887700` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (object)
+        + code: 395105 (number)
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (OTP)
+
+### Find Verifications by Phone Number [GET /api/otp_verifications/{phone_number}]
+
++ Parameters
+    + `phone_number`: `+380508887700` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (OTP)
 
 ## Declaration Requests [/api/declaration_requests]
 
@@ -133,9 +223,10 @@ Method returns shortened details, to obtain full information - get Declaration R
         + data (object)
             + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
             + include `Declaration_Request_Details_Public`
-            + plaintext_content: `Declaration content` (string, required)
+            + content: `Declaration content` (string, required)
             + active: false (boolean, required)
             + status: pending_verification (string, required)
+            + seed: hash (string) - Hash of previous block in declarations chain or other random component that should be signed with declaration.
 
 ### Create Declaration Request [POST]
 
@@ -151,19 +242,27 @@ This method is used to create Declaration Request (as part of Declaration creati
         + `declaration_request` (Declaration_Request_Public)
 
 + Response 201 (application/json)
-    + Attributes (Response_OK)
+    + Attributes (Response__Process_OK)
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
             + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
             + include `Declaration_Request_Public`
-            + plaintext_content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
             + `authentication_method` (`Authentication_Method`) - 
                 
                 Currently we support two authentifciation methods:
                 
                 * **OTP** - Preffered. One-time-password (usually sent via SMS). Masked phone number will be returned. By using this verification method you MUST approve Declaration Request by a OTP token that is sent to a patient mobile phone.
                 * **OFFLINE** - For patients that is not able to pass OTP verification method. By using this verification method you MUST upload required documents to links returned in response and approve Declaration Request after upload is completed.
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Unverified phone number` (string, required)
 
 ### Approve Declaration Request [PATCH /api/declaration_requests/{id}/actions/approve]
 
@@ -190,7 +289,7 @@ This method expects one of verification methods as it's parameters. Verification
         + data (object)
             + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
             + include `Declaration_Request_Public`
-            + plaintext_content: `Declaration content` (string, required) - Same as returned on creation stage.
+            + content: `Declaration content` (string, required) - Same as returned on creation stage.
             + active: false (boolean, required)
             + status: pending_verification (string, required)
 
@@ -212,9 +311,25 @@ Use this method to reject previously created Declaration Request.
         + meta (Response__Meta)
             + code: 200 (number)
 
+### Resend Authorization OTP on Declaration Request [POST /api/declaration_requests/{id}/actions/resend_otp]
+
+Use this method to resend sms on previously created Declaration Request.
+
++ Parameters
+    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+
 ### Sign Declaration Request [PATCH /api/declaration_requests/{id}/actions/sign]
 
-This method is used to sign Declaration Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_declaration_request` property. 
+This method is used to sign Declaration Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property. 
 All signature fields will be validated (including signer certificate authority).
 
 This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
@@ -236,15 +351,15 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
       "gender":"MALE",
       "email":"email@example.com",
       "tax_id":"3126509816",
-      "national_id":"CC7150985243",
       "secret":"secret",
       "documents":[
          {
             "type":"PASSPORT",
-            "number":"120518",
-            "issue_date":"2015-04-07T00:00:00.000Z",
-            "expiry_date":"2015-04-07T00:00:00.000Z",
-            "issued_by":"DMSU"
+            "number":"120518"
+         },
+         {
+            "type":"NATIONAL_ID",
+            "number":"D736810"
          }
       ],
       "addresses":[
@@ -295,13 +410,14 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
          "tax_id":"3126509816",
          "documents":[
             {
-               "type":"PASSPORT",
-               "number":"120518",
-               "issue_date":"2015-04-07T00:00:00.000Z",
-               "expiry_date":"2015-04-07T00:00:00.000Z",
-               "issued_by":"DMSU"
+                "type":"PASSPORT",
+                "number":"120518"
+            },
+            {
+                "type":"NATIONAL_ID",
+                "number":"D736810"
             }
-         ],
+        ],
          "phones":[
             {
                "type":"MOBILE",
@@ -385,7 +501,7 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
       "id":"d290f1ee-6c54-4b01-90e6-d701748f0851"
    },
    "scope":"family doctor",
-   "plaintext_content":"Declaration content"
+   "content":"Declaration content"
 }
 ```
 
@@ -399,13 +515,11 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + `signed_declaration_request`: `MIIWmAYJKoZIhvcNAQcCoIIWiTCCFoUCAQExCzAJBgUrDgMCGgUAMIISuwYJKoZIhvcNAQcBoIISrASCEqh7XHJ0ZjFcYW5zaVxhbnNpY3BnMTI1Mlxjb2NvYXJ0ZjE1MDRcY29jb2FzdWJydGY4MTANCntcZm9udHRibFxmMFxmc3dpc3NcZmNoYXJzZXQwIEhlbHZldGljYTt9DQp7XGNvbG9ydGJsO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1NTtccmVkNzBcZ3JlZW41M1xibHVlOTY7XHJlZDI0OVxncmVlbjI0OVxibHVlMjUxO30NCntcKlxleHBhbmRlZGNvbG9ydGJsOztcY3NzcmdiXGMzNDUxMFxjMjc4NDNcYzQ1MDk4O1xjc3NyZ2JcYzk4MDM5XGM5ODAzOVxjOTg4MjQ7fQ0KXG1hcmdsMTQ0MFxtYXJncjE0NDBcdmlld3cxMDgwMFx2aWV3aDg0MDBcdmlld2tpbmQwDQpcZGVmdGFiNzIwDQpccGFyZFxwYXJkZWZ0YWI3MjBccGFydGlnaHRlbmZhY3RvcjANCg0KXGYwXGZzMjggXGNmMiBcY2IzIFxleHBuZDBcZXhwbmR0dzBca2VybmluZzANClx7XA0KICAgImlkIjoiYjA3NWYxNDgiLFwNCiAgICJzdGFydF9kYXRlIjoiMjAxNy0wMy0wMlQxMDo0NToxNi4wMDBaIixcDQogICAiZW5kX2RhdGUiOiIyMDE3LTAzLTAyVDEwOjQ1OjE2LjAwMFoiLFwNCiAgICJwZXJzb24iOlx7XA0KICAgICAgImZpcnN0X25hbWUiOiJcdWMwXHUxMDU1IFx1MTA3NyBcdTEwOTAgXHUxMDg4IFx1MTA4NiAiLFwNCiAgICAgICJsYXN0X25hbWUiOiJcdWMwXHUxMDMwIFx1MTA3NCBcdTEwNzIgXHUxMDg1IFx1MTA4NiBcdTEwNzQgIixcDQogICAgICAic2blic Vjb25kX25hbWUiOiJcdWMwXHUxMDUyIFx1MTA4MCBcdTEwODIgXHUxMDg2IFx1MTA4MyBcdTEwNzIgXHUxMDgxIFx1MTA4NiBcdTEwNzQgXHUxMDgwIFx1MTA5NSAiLFwNCiAgICAgICJiaXJ0aF9kYXRlIjoiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIixcDQogICAgICAiYmlydGhfcGxhY2UiOiJcdWMwXHUxMDQyIFx1MTExMCBcdTEwODUgXHUxMDg1IFx1MTA4MCBcdTEwOTQgXHUxMTAzICwgXHUxMDU5IFx1MTA4MiBcdTEwODggXHUxMDcyIFx1MTExMSBcdTEwODUgXHUxMDcyICIsXA0KICAgICAgImdlbmRlciI6Ik1BTEUiLFwNCiAgICAgICJlbWFpbCI6ImVtYWlsQGV4YW1wbGUuY29tIixcDQogICAgICAidGF4X2lkIjoiMzEyNjUwOTgxNiIsXA0KICAgICAgIm5hdGlvbmFsX2lkIjoiQ0M3MTUwOTg1MjQzIixcDQogICAgICAic2VjcmV0Ijoic2VjcmV0IixcDQogICAgICAiZG9jdW1lbnRzIjpbXA0KICAgICAgICAgXHtcDQogICAgICAgICAgICAidHlwZSI6IlBBU1NQT1JUIixcDQogICAgICAgICAgICAibnVtYmVyIjoiMTIwNTE4IixcDQogICAgICAgICAgICAiaXNzdWVfZGF0ZSI6IjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIsXA0KICAgICAgICAgICAgImV4cGlyeV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAiaXNzdWVkX2J5IjoiRE1TVSJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImFkZHJlc3NlcyI6W1wNCiAgICAgICAgIFx7XA0KICAgICAgICAgICAgInR5cGUiOiJSRVNJREVOQ0UiLFwNCiAgICAgICAgICAgICJjb3VudHJ5IjoiVUEiLFwNCiAgICAgICAgICAgICJhcmVhIjoiXHVjMFx1MTA0NiBcdTEwODAgXHUxMDkwIFx1MTA4NiBcdTEwODQgXHUxMDgwIFx1MTA4OCBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAicmVnaW9uIjoiXHVjMFx1MTA0MSBcdTEwNzcgXHUxMDg4IFx1MTA3NiBcdTEwODAgXHUxMDk1IFx1MTExMCBcdTEwNzQgXHUxMDg5IFx1MTEwMCBcdTEwODIgXHUxMDgwIFx1MTA4MSAiLFwNCiAgICAgICAgICAgICJjaXR5IjoiXHVjMFx1MTA1MCBcdTEwODAgXHUxMTExIFx1MTA3NCAiLFwNCiAgICAgICAgICAgICJjaXR5X3R5cGUiOiJDSVRZIixcDQogICAgICAgICAgICAic3RyZWV0IjoiXHVjMFx1MTA3NCBcdTEwOTEgXHUxMDgzIC4gXHUxMDUzIFx1MTExMCBcdTEwNzggXHUxMDgwIFx1MTA4NSBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAiYnVpbGRpbmciOiIxNSIsXA0KICAgICAgICAgICAgImFwYXJ0bWVudCI6IjIzIixcDQogICAgICAgICAgICAiemlwIjoiMDIwOTAiXA0KICAgICAgICAgXH1cDQogICAgICBdLFwNCiAgICAgICJwaG9uZXMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiTU9CSUxFIixcDQogICAgICAgICAgICAibnVtYmVyIjoiKzM4MDUwMzQxMDg3MCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiU01TIixcDQogICAgICAgICAgICAicGhvbmVfbnVtYmVyIjoiKzM4MDUwODg4NzcwMCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImVtZXJnZW5jeV9jb250YWN0Ijpce1wNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIixcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgImNvbmZpZGFudF9wZXJzb24iOlx7XA0KICAgICAgICAgInJlbGF0aW9uX3R5cGUiOiJ0cnVzdGVlIixcDQogICAgICAgICAiZmlyc3RfbmFtZSI6Ilx1YzBcdTEwNTUgXHUxMDc3IFx1MTA5MCBcdTEwODggXHUxMDg2ICIsXA0KICAgICAgICAgImxhc3RfbmFtZSI6Ilx1YzBcdTEwMzAgXHUxMDc0IFx1MTA3MiBcdTEwODUgXHUxMDg2IFx1MTA3NCAiLFwNCiAgICAgICAgICJzZWNvbmRfbmFtZSI6Ilx1YzBcdTEwNTIgXHUxMDgwIFx1MTA4MiBcdTEwODYgXHUxMDgzIFx1MTA3MiBcdTEwODEgXHUxMDg2IFx1MTA3NCBcdTEwODAgXHUxMDk1ICIsXA0KICAgICAgICAgImJpcnRoX2RhdGUiOiIxOTkxLTA4LTE5VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICJiaXJ0aF9wbGFjZSI6Ilx1YzBcdTEwNDIgXHUxMTEwIFx1MTA4NSBcdTEwODUgXHUxMDgwIFx1MTA5NCBcdTExMDMgLCBcdTEwNTkgXHUxMDgyIFx1MTA4OCBcdTEwNzIgXHUxMTExIFx1MTA4NSBcdTEwNzIgIixcDQogICAgICAgICAiZ2VuZGVyIjoiTUFMRSIsXA0KICAgICAgICAgInRheF9pZCI6IjMxMjY1MDk4MTYiLFwNCiAgICAgICAgICJkb2N1bWVudHMiOltcDQogICAgICAgICAgICBce1wNCiAgICAgICAgICAgICAgICJ0eXBlIjoiUEFTU1BPUlQiLFwNCiAgICAgICAgICAgICAgICJudW1iZXIiOiIxMjA1MTgiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAgICAiZXhwaXJ5X2RhdGUiOiIyMDE1LTA0LTA3VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZWRfYnkiOiJETVNVIlwNCiAgICAgICAgICAgIFx9XA0KICAgICAgICAgXSxcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgInJlbmV3YWxfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicGF0aWVudF9zaWduZWQiOnRydWUsXA0KICAgICAgImRpc2Nsb3N1cmVfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicHJvY2Vzc19kYXRhX2NvbnNlbnQiOnRydWVcDQogICBcfSxcDQogICAiZW1wbG95ZWUiOlx7XA0KICAgICAgImlkIjoiZDI5MGYxZWUtNmM1NC00YjAxLTkwZTYtZDcwMTc0OGYwODUxIixcDQogICAgICAidGl0bGUiOiJcdWMwXHUxMDgzIFx1MTExMCBcdTEwODIgXHUxMDcyIFx1MTA4OCAiLFwNCiAgICAgICJwYXJ0eSI6XHtcDQogICAgICAgICAiaWQiOiJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLFwNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIlwNCiAgICAgIFx9XA0KICAgXH0sXA0KICAgIm1zcCI6XHtcDQogICAgICAiaWQiOiJkMjkwZjFlZSIsXA0KICAgICAgIm5hbWUiOiJcdWMwXHUxMDUwIFx1MTA4MyBcdTExMTAgXHUxMDg1IFx1MTExMCBcdTEwODIgXHUxMDcyICBcdTEwNDEgXHUxMDg2IFx1MTA4OCBcdTEwODAgXHUxMDg5ICIsXA0KICAgICAgInNob3J0X05hbWUiOiJcdWMwXHUxMDQxIFx1MTA4NiBcdTEwODggXHUxMDgwIFx1MTA4OSAiLFwNCiAgICAgICJ0eXBlIjoiXHVjMFx1MTA2MCBcdTEwNTQgXHUxMDU1ICIsXA0KICAgICAgImVkcnBvdSI6IjU0MzIzNDU0MzIiXA0KICAgXH0sXA0KICAgInNjb3BlIjoiZmFtaWx5IGRvY3RvciIsXA0KICAgInBsYWludGV4dF9jb250ZW50IjoiRGVjbGFyYXRpb24gY29udGVudCJcDQpcfX2gggIuMIICKjCCAZOgAwIBAgIJANj0sC/v0hWYMA0GCSqGSIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBLQ1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0NTczM1oXDTE3MDQyNjE0NTczM1owGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMuqrxE/0txT+ZVRKU1O85a8eaaUAOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0GA1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+CaflnzBJBgNVHSMEQjBAgBTET2SwL5UfUMKDyhuBGCA+Cafln6EdpBswGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY9LAv79IVmDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IVS28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjnw87JzkAy5KLDTiotQl8eknkd1bR3nIWINemck3GeGYkR8giG3gkNxz6ky1+63ZcoJkEiS46aneDhmS6BdH0V2G/3delos8+ZMYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQDFA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTcwMzI4MTE1NDEwWjAjBgkqhkiG9w0BCQQxFgQU5NSvVRVYHz5tG1GW8gXrjHSnLj8wUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEgYCdqnN8gGXw9OUmtxOvQQgHK5Ni/4/2WQWj7rxERh5AI6rhXs/hh3DNS5Z5mN6wO8z47SQuedbsMQ5hf6+9BbKhXD7WKeU+DtGyfa1ner5/ubz6BeVvuT98D4PrzHlqNSpe/7AirrA70QVO9kPoFSmGtBG6JjaqaCZBYbvF9InPRw==` (string, required)
+        + `signed_content`: `MIIWmAYJKoZIhvcNAQcCoIIWiTCCFoUCAQExCzAJBgUrDgMCGgUAMIISuwYJKoZIhvcNAQcBoIISrASCEqh7XHJ0ZjFcYW5zaVxhbnNpY3BnMTI1Mlxjb2NvYXJ0ZjE1MDRcY29jb2FzdWJydGY4MTANCntcZm9udHRibFxmMFxmc3dpc3NcZmNoYXJzZXQwIEhlbHZldGljYTt9DQp7XGNvbG9ydGJsO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1NTtccmVkNzBcZ3JlZW41M1xibHVlOTY7XHJlZDI0OVxncmVlbjI0OVxibHVlMjUxO30NCntcKlxleHBhbmRlZGNvbG9ydGJsOztcY3NzcmdiXGMzNDUxMFxjMjc4NDNcYzQ1MDk4O1xjc3NyZ2JcYzk4MDM5XGM5ODAzOVxjOTg4MjQ7fQ0KXG1hcmdsMTQ0MFxtYXJncjE0NDBcdmlld3cxMDgwMFx2aWV3aDg0MDBcdmlld2tpbmQwDQpcZGVmdGFiNzIwDQpccGFyZFxwYXJkZWZ0YWI3MjBccGFydGlnaHRlbmZhY3RvcjANCg0KXGYwXGZzMjggXGNmMiBcY2IzIFxleHBuZDBcZXhwbmR0dzBca2VybmluZzANClx7XA0KICAgImlkIjoiYjA3NWYxNDgiLFwNCiAgICJzdGFydF9kYXRlIjoiMjAxNy0wMy0wMlQxMDo0NToxNi4wMDBaIixcDQogICAiZW5kX2RhdGUiOiIyMDE3LTAzLTAyVDEwOjQ1OjE2LjAwMFoiLFwNCiAgICJwZXJzb24iOlx7XA0KICAgICAgImZpcnN0X25hbWUiOiJcdWMwXHUxMDU1IFx1MTA3NyBcdTEwOTAgXHUxMDg4IFx1MTA4NiAiLFwNCiAgICAgICJsYXN0X25hbWUiOiJcdWMwXHUxMDMwIFx1MTA3NCBcdTEwNzIgXHUxMDg1IFx1MTA4NiBcdTEwNzQgIixcDQogICAgICAic2blic Vjb25kX25hbWUiOiJcdWMwXHUxMDUyIFx1MTA4MCBcdTEwODIgXHUxMDg2IFx1MTA4MyBcdTEwNzIgXHUxMDgxIFx1MTA4NiBcdTEwNzQgXHUxMDgwIFx1MTA5NSAiLFwNCiAgICAgICJiaXJ0aF9kYXRlIjoiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIixcDQogICAgICAiYmlydGhfcGxhY2UiOiJcdWMwXHUxMDQyIFx1MTExMCBcdTEwODUgXHUxMDg1IFx1MTA4MCBcdTEwOTQgXHUxMTAzICwgXHUxMDU5IFx1MTA4MiBcdTEwODggXHUxMDcyIFx1MTExMSBcdTEwODUgXHUxMDcyICIsXA0KICAgICAgImdlbmRlciI6Ik1BTEUiLFwNCiAgICAgICJlbWFpbCI6ImVtYWlsQGV4YW1wbGUuY29tIixcDQogICAgICAidGF4X2lkIjoiMzEyNjUwOTgxNiIsXA0KICAgICAgIm5hdGlvbmFsX2lkIjoiQ0M3MTUwOTg1MjQzIixcDQogICAgICAic2VjcmV0Ijoic2VjcmV0IixcDQogICAgICAiZG9jdW1lbnRzIjpbXA0KICAgICAgICAgXHtcDQogICAgICAgICAgICAidHlwZSI6IlBBU1NQT1JUIixcDQogICAgICAgICAgICAibnVtYmVyIjoiMTIwNTE4IixcDQogICAgICAgICAgICAiaXNzdWVfZGF0ZSI6IjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIsXA0KICAgICAgICAgICAgImV4cGlyeV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAiaXNzdWVkX2J5IjoiRE1TVSJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImFkZHJlc3NlcyI6W1wNCiAgICAgICAgIFx7XA0KICAgICAgICAgICAgInR5cGUiOiJSRVNJREVOQ0UiLFwNCiAgICAgICAgICAgICJjb3VudHJ5IjoiVUEiLFwNCiAgICAgICAgICAgICJhcmVhIjoiXHVjMFx1MTA0NiBcdTEwODAgXHUxMDkwIFx1MTA4NiBcdTEwODQgXHUxMDgwIFx1MTA4OCBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAicmVnaW9uIjoiXHVjMFx1MTA0MSBcdTEwNzcgXHUxMDg4IFx1MTA3NiBcdTEwODAgXHUxMDk1IFx1MTExMCBcdTEwNzQgXHUxMDg5IFx1MTEwMCBcdTEwODIgXHUxMDgwIFx1MTA4MSAiLFwNCiAgICAgICAgICAgICJjaXR5IjoiXHVjMFx1MTA1MCBcdTEwODAgXHUxMTExIFx1MTA3NCAiLFwNCiAgICAgICAgICAgICJjaXR5X3R5cGUiOiJDSVRZIixcDQogICAgICAgICAgICAic3RyZWV0IjoiXHVjMFx1MTA3NCBcdTEwOTEgXHUxMDgzIC4gXHUxMDUzIFx1MTExMCBcdTEwNzggXHUxMDgwIFx1MTA4NSBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAiYnVpbGRpbmciOiIxNSIsXA0KICAgICAgICAgICAgImFwYXJ0bWVudCI6IjIzIixcDQogICAgICAgICAgICAiemlwIjoiMDIwOTAiXA0KICAgICAgICAgXH1cDQogICAgICBdLFwNCiAgICAgICJwaG9uZXMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiTU9CSUxFIixcDQogICAgICAgICAgICAibnVtYmVyIjoiKzM4MDUwMzQxMDg3MCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiU01TIixcDQogICAgICAgICAgICAicGhvbmVfbnVtYmVyIjoiKzM4MDUwODg4NzcwMCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImVtZXJnZW5jeV9jb250YWN0Ijpce1wNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIixcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgImNvbmZpZGFudF9wZXJzb24iOlx7XA0KICAgICAgICAgInJlbGF0aW9uX3R5cGUiOiJ0cnVzdGVlIixcDQogICAgICAgICAiZmlyc3RfbmFtZSI6Ilx1YzBcdTEwNTUgXHUxMDc3IFx1MTA5MCBcdTEwODggXHUxMDg2ICIsXA0KICAgICAgICAgImxhc3RfbmFtZSI6Ilx1YzBcdTEwMzAgXHUxMDc0IFx1MTA3MiBcdTEwODUgXHUxMDg2IFx1MTA3NCAiLFwNCiAgICAgICAgICJzZWNvbmRfbmFtZSI6Ilx1YzBcdTEwNTIgXHUxMDgwIFx1MTA4MiBcdTEwODYgXHUxMDgzIFx1MTA3MiBcdTEwODEgXHUxMDg2IFx1MTA3NCBcdTEwODAgXHUxMDk1ICIsXA0KICAgICAgICAgImJpcnRoX2RhdGUiOiIxOTkxLTA4LTE5VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICJiaXJ0aF9wbGFjZSI6Ilx1YzBcdTEwNDIgXHUxMTEwIFx1MTA4NSBcdTEwODUgXHUxMDgwIFx1MTA5NCBcdTExMDMgLCBcdTEwNTkgXHUxMDgyIFx1MTA4OCBcdTEwNzIgXHUxMTExIFx1MTA4NSBcdTEwNzIgIixcDQogICAgICAgICAiZ2VuZGVyIjoiTUFMRSIsXA0KICAgICAgICAgInRheF9pZCI6IjMxMjY1MDk4MTYiLFwNCiAgICAgICAgICJkb2N1bWVudHMiOltcDQogICAgICAgICAgICBce1wNCiAgICAgICAgICAgICAgICJ0eXBlIjoiUEFTU1BPUlQiLFwNCiAgICAgICAgICAgICAgICJudW1iZXIiOiIxMjA1MTgiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAgICAiZXhwaXJ5X2RhdGUiOiIyMDE1LTA0LTA3VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZWRfYnkiOiJETVNVIlwNCiAgICAgICAgICAgIFx9XA0KICAgICAgICAgXSxcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgInJlbmV3YWxfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicGF0aWVudF9zaWduZWQiOnRydWUsXA0KICAgICAgImRpc2Nsb3N1cmVfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicHJvY2Vzc19kYXRhX2NvbnNlbnQiOnRydWVcDQogICBcfSxcDQogICAiZW1wbG95ZWUiOlx7XA0KICAgICAgImlkIjoiZDI5MGYxZWUtNmM1NC00YjAxLTkwZTYtZDcwMTc0OGYwODUxIixcDQogICAgICAidGl0bGUiOiJcdWMwXHUxMDgzIFx1MTExMCBcdTEwODIgXHUxMDcyIFx1MTA4OCAiLFwNCiAgICAgICJwYXJ0eSI6XHtcDQogICAgICAgICAiaWQiOiJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLFwNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIlwNCiAgICAgIFx9XA0KICAgXH0sXA0KICAgIm1zcCI6XHtcDQogICAgICAiaWQiOiJkMjkwZjFlZSIsXA0KICAgICAgIm5hbWUiOiJcdWMwXHUxMDUwIFx1MTA4MyBcdTExMTAgXHUxMDg1IFx1MTExMCBcdTEwODIgXHUxMDcyICBcdTEwNDEgXHUxMDg2IFx1MTA4OCBcdTEwODAgXHUxMDg5ICIsXA0KICAgICAgInNob3J0X05hbWUiOiJcdWMwXHUxMDQxIFx1MTA4NiBcdTEwODggXHUxMDgwIFx1MTA4OSAiLFwNCiAgICAgICJ0eXBlIjoiXHVjMFx1MTA2MCBcdTEwNTQgXHUxMDU1ICIsXA0KICAgICAgImVkcnBvdSI6IjU0MzIzNDU0MzIiXA0KICAgXH0sXA0KICAgInNjb3BlIjoiZmFtaWx5IGRvY3RvciIsXA0KICAgInBsYWludGV4dF9jb250ZW50IjoiRGVjbGFyYXRpb24gY29udGVudCJcDQpcfX2gggIuMIICKjCCAZOgAwIBAgIJANj0sC/v0hWYMA0GCSqGSIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBLQ1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0NTczM1oXDTE3MDQyNjE0NTczM1owGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMuqrxE/0txT+ZVRKU1O85a8eaaUAOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0GA1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+CaflnzBJBgNVHSMEQjBAgBTET2SwL5UfUMKDyhuBGCA+Cafln6EdpBswGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY9LAv79IVmDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IVS28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjnw87JzkAy5KLDTiotQl8eknkd1bR3nIWINemck3GeGYkR8giG3gkNxz6ky1+63ZcoJkEiS46aneDhmS6BdH0V2G/3delos8+ZMYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQDFA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTcwMzI4MTE1NDEwWjAjBgkqhkiG9w0BCQQxFgQU5NSvVRVYHz5tG1GW8gXrjHSnLj8wUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEgYCdqnN8gGXw9OUmtxOvQQgHK5Ni/4/2WQWj7rxERh5AI6rhXs/hh3DNS5Z5mN6wO8z47SQuedbsMQ5hf6+9BbKhXD7WKeU+DtGyfa1ner5/ubz6BeVvuT98D4PrzHlqNSpe/7AirrA70QVO9kPoFSmGtBG6JjaqaCZBYbvF9InPRw==` (string, required)
         + `signed_content_encoding`: base64 (string, required)
 
-+ Response 201 (application/json)
++ Response 200 (application/json)
     + Attributes (Response__Process_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
         + data (`Declaration_Request_Public`)
             + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
             + active: true (boolean, required) - Should be defined on the client side.
@@ -433,9 +547,58 @@ Service returns verification code in exchange for uploaded file.
 
             PDF CONTENT
 
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + data
+          + `verification_code`: SzFxGfAg_Zj
+
+## Declarations [/api/declarations]
+
+### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,active,starting_after,ending_before,limit}]
+
+Use this method to obrain list of Declarations for an `empolee_id` and legal_entity_id. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
+
+Method returns shortened details, to obtain full information - get Declaration Details by it's ID.
+
++ Parameters
+    + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - `user_id` of a Doctor.
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - MSP ID.
+    + active: true (boolean, optional)
+        + Default: true
+    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+        + Default: 50
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Declaration_Request_Short`])
+
+### Get Declaration by ID [GET /api/declarations/{id}]
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + verification code: SzFxGfAg_Zj
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + include `Declaration_Request_Details_Public`
+            + active: true (boolean, required)
 
 ## Employees [/api/employees]
 
@@ -446,7 +609,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /legal_entities/{legal_entity_id}/employees{?status,type,limit,starting_after,ending_before}]
+### Get Employees List [GET /employees{?legal_entity_id,division_id,status,type,limit,starting_after,ending_before}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -456,6 +619,7 @@ Method returns shortened details, to obtain full information - get Employee it b
 
 + Parameters
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + status: ACTIVE (enum, optional)
         - ACTIVE
         - INACTIVE
@@ -464,7 +628,7 @@ Method returns shortened details, to obtain full information - get Employee it b
         - DOCTOR
         - HR
         - ACCOUNTANT
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
@@ -478,7 +642,7 @@ Method returns shortened details, to obtain full information - get Employee it b
     + Attributes (Response_Collection)
         + data (array[`Employee_Short`])
 
-### Get Employee Details [GET /legal_entities/{legal_entity_id}/employees/{employee_id}]
+### Get Employee Details [GET /employees/{employee_id}]
 
 Response structure differs depending on employee type:
 
@@ -496,7 +660,6 @@ Response structure differs depending on employee type:
 * Doctor info
 
 + Parameters
-    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
     + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
@@ -509,8 +672,42 @@ Response structure differs depending on employee type:
     + Attributes (Response_OK)
         + data (Employee_Request)
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+            + division (Division_Short)
+            + `legal_entity` (`Legal_Entity_Short`)
 
-### Create or Update Employee via Employee Request [POST /employee_requests]
+### Update Employee [PATCH /employees/{employee_id}]
+
+Use this method change employee status or to update:
+* Person info
+* Employee info
+* Doctor Info
+
+This method does not require changes confirmation by the employee and should be limit by scopes
+
+The following fields can't be changed:
+* employee_type
+* tax_id
+* email
+
++ Parameters
+    + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (`Employee_Update`)
+    
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Employee_Request)
+            + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
+## Employee Requests [/api/employee_requests]
+
+### Create or Update Employee via Employee Request [POST]
 
 Employee_Request consist of the three mandatory parts:
 * Person info
@@ -537,41 +734,51 @@ For changes to take effect employee must confirm the changes
 
 
 + Response 200 (application/json)
-    + Attributes (Response_OK)
+    + Attributes (Response__Process_OK)
         + meta (Response__Meta)
             + code: 201 (number)
         + data (Employee_Request_Short)
 
-### Update employee [PATCH /legal_entities/{legal_entity_id}/employees/{employee_id}]
-
-Use this method change employee status or to update:
-* Person info
-* Employee info
-* Doctor Info
-
-This method does not require changes confirmation by the employee and should be limit by scopes
-
-The following fields can't be changed:
-* employee_type
-* tax_id
-* email
+### Get Employee Requests List [GET /api/employee_requests{?legal_entity_id,status,limit,starting_after,ending_before}]
 
 + Parameters
-    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-    + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + status: VERIFICATION_EXP (enum, optional)
+        - DECLINED
+        - VERIFICATION_EXP
+        + Default: VERIFICATION_EXP
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
 + Request (application/json)
 
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
-    + Attributes (`Employee_Update`)
-    
+
 + Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (Employee_Request)
-            + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + Attributes (Response_Collection)
+        + data (array[`Employee_Request_Short`])
+
+### Get Employee Request by ID [GET /api/employee_requests/{id}]
+
+This service should be used with `access_token` authetification method.
+
++ Parameters
+
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+
++ Request
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM (string, optional) -- the Authorization is optional if `token` is passed
+
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (Employee_Request_Details)
 
 ## Persons [/api/persons]
 
@@ -588,7 +795,7 @@ Method returns only **requested** parameters, birth place and second name in add
     + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
@@ -672,7 +879,6 @@ It returns:
     + Attributes (Response_Collection)
         + data (array)
             + (object)
-                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
                 + include `Legal_Entity_Short`
 
 ### Get Legal Entity by ID [GET /api/legal_entities/{id}]
@@ -696,7 +902,7 @@ It returns:
                 - DECLINED
                 - VERIFICATION_EXP
 
-### Create/Update Legal Entity [POST]
+### Create/Update Legal Entity [PUT]
 
 Use this method to register a new Legal Entity.
 
@@ -722,6 +928,15 @@ Optional:
         + `signed_legal_entity_request`: `...` (string, required)
         + `signed_content_encoding`: base64 (string, required)
 
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include `Legal_Entity_Request_Public`
+            + status: VERIFIED (enum, required)
+                - VERIFIED
+                - DECLINED
+                - VERIFICATION_EXP
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -753,7 +968,6 @@ Optional:
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Legal_Entity_Short`
 
 # Data Structures
@@ -823,7 +1037,6 @@ Optional:
 + gender: MALE, FEMALE (enum[string], required)
 + email: email@example.com (string, optional)
 + tax_id: 3126509816 (string, optional)
-+ national_id: CC7150985243 (string, optional) - Record ID in national registry (biometric passport ID)
 + secret: secret (string, required)
 + documents (array[Document], optional)
 + addresses (array[Address], optional)
@@ -899,27 +1112,33 @@ Optional:
 + licenses (array[Medical_License], required)
 + education (array[Medical_Education], required)
 
-### `Doctor_Full`
-+ include `Doctor`
-+ status: PENDING_APPROVAL, APPROVED, DECLINED
-+ is_active: true (boolean, required)
-+ name: Іванов Іван ванович (string)
-
-### `Doctor_Update`
-+ include `Doctor`
-+ is_active: true (boolean, optional)
-+ status (enum, optional)
-    - pending_approval
-    - approved
-    - declined
-
 ## Declarations
 ### Declaration
-+ person_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
-+ doctor_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
-+ msp_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
++ person_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851`m (string, required)
++ `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851`m (string, required)
 + scope (enum, required)
     - family_doctor
++ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ signed_at: `2017-03-02T10:45:16.000Z` (string, required)
++ status (enum, optional)
+    - active
+    - closed
+
+### `crud_Declaration_patch`
++ status (enum, optional)
+    - active
+    - closed
+
+### `crud_Declaration_get`
++ include `Declaration`
++ inserted_at: `1991-08-19T00:00:00.000Z` (string, required)
++ inserted_by: `userid` (string, required)
++ updated_at: `1991-08-19T00:00:00.000Z` (string, required)
++ updated_by: `userid` (string, required)
 
 ### `Declaration_Request_Public`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required) - Should be defined on the client side.
@@ -930,7 +1149,8 @@ Optional:
     + disclosure_consent: true (boolean)
     + process_data_consent: true (boolean)
 + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
-+ division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider identifier.
++ division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
++ `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
 + scope (enum, required)
     - family doctor
 
@@ -943,18 +1163,12 @@ Optional:
     + disclosure_consent: true (boolean)
     + process_data_consent: true (boolean)
 + employee (Employee_Minimal)
-+ legal_entity(`Medical_Service_Provider`)
++ `legal_entity` (`Medical_Service_Provider`)
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ division (`Division_Details`)
 + scope (enum, required)
     - family doctor
 
-### `Declaration_Request`
-+ include `Person`
-+ person_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, optional)
-+ doctor_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
-+ legal_entity_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
-+ scope (enum, required)
-    - family doctor
 
 ### `Declaration_Request_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -962,33 +1176,20 @@ Optional:
 + end_date: `2017-03-02T10:45:16.000Z` (string, required)
 + person (Person_Minimal)
 + employee (Employee_Minimal)
-+ legal_entity(`MSP_Short`)
-
-### `Declaration_Request_Full`
-+ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ person (Person_Minimal)
-+ employee (Employee_Minimal)
-+ legal_entity(`MSP_Short`)
++ `legal_entity` (`MSP_Short`)
++ division (`Division_Short`)
 
 ### `Declaration_Details`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2017-03-02T10:45:16.000Z` (string, required)
 + person(`Person_Short`)
-+ doctor (object)
-    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-    + name: `Григорій Квітка Основ'яненко`
-+ legal_entity(`MSP_Details`)
++ employee (`Employee_Short`)
++ division (`Division_Short`)
++ `legal_entity` (MSP_Details)
 + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
-### `Declaration_Full`
-+ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ Include `Declaration`
-+ created_at: `2017-03-02T10:45:16.000Z` (string, optional)
-+ modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
 ### `Declaration_Report`
 + date: `2017-03-02` (string, required)
@@ -1007,7 +1208,6 @@ Optional:
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE, FEMALE (enum[string], required)
 + tax_id: 3126509816 (string, optional)
-+ national_id: CC7150985243 (string, optional)
 + email: email@example.com (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
@@ -1016,11 +1216,59 @@ Optional:
 + include `Party_Short`
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE, FEMALE (enum[string], required)
-+ national_id: CC7150985243 (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 
+### `crud_party`
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ gender: MALE, FEMALE (enum[string], required)
++ tax_id: 3126509816 (string, required)
++ documents (array[Document], optional)
++ phones (array[Phone], optional)
+
+
+### `crud_party_post`
++ include `crud_party`
+
+### `crud_party_get`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ include `crud_party`
++ inserted_at: `1991-08-19T00:00:00.000Z` (string, required)
++ inserted_by: `userid` (string, required)
++ updated_at: `1991-08-19T00:00:00.000Z` (string, required)
++ updated_by: `userid` (string, required)
+
 ## Employees
+### `crud_employee`
++ party_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ employee_type: doctor (enum)
+    - doctor
+    - hr
+    - admin
+    - owner
+    - accountant
++ position (key_value, required)
++ start_date: 2017-02-28 (string, required)
++ end_date: 2017-02-28 (string, optional)
++ active: true (boolean, required)
++ status: pending_verification (enum, required)
+
+### `crud_employee_get`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ include `crud_employee`
++ inserted_at: `1991-08-19T00:00:00.000Z` (string, required)
++ inserted_by: `userid` (string, required)
++ updated_at: `1991-08-19T00:00:00.000Z` (string, required)
++ updated_by: `userid` (string, required)
+
+### `crud_employee_post`
++ include `crud_employee`
+
 ### `Employee`
 + user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1029,19 +1277,19 @@ Optional:
     - hr
     - admin
     - owner
-+ title: лікар (string, required)
-+ speciality: Педіатрія (enum)
-    - Загальна практика - сімейна медицина
-    - Педіатрія
-    - Підліткова терапія
-    - Терапія
+    - accountant
++ position: лікар (string, required)
++ speciality: Педіатр (enum)
+    - Сімейний лікар
+    - Педіатр
+    - Терапевт
 + employee_details (DoctorNew, optional)
 + start_date: 2017-02-28 (string, required)
 + expiry_date: 2017-02-28 (string, optional)
 
 ### `Employee_Minimal`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ title: лікар (string, required)
++ position: лікар (string, required)
 + party (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + include `Party_Short`
@@ -1051,7 +1299,7 @@ Optional:
 ### `Employee_Request`
 + legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ title: лікар (string, required)
++ position: лікар (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + active: true (boolean, required)
@@ -1060,13 +1308,14 @@ Optional:
     - doctor
     - hr
     - admin
+    - accountant
 + party (Party_Request)
 + doctor (DoctorNew, optional)
 
 ### `Employee_Update`
 + legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ title: лікар (string, required)
++ position: лікар (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + active: true (boolean, required)
@@ -1080,7 +1329,9 @@ Optional:
 + inserted_at: `2018-03-02T10:45:16.000Z` (string, required)
 
 ### `Employee_Request_Details`
-+ include `Employee_Request_Short`
++ include `Employee_Request`
++ division (`Division_Short`)
++ `legal_entity` (`Legal_Entity_Short`)
 
 ### `Employee_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1090,36 +1341,94 @@ Optional:
     - hr
     - admin
     - owner
+    - accountant
 + active: true (boolean, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + include `Party_Short`
-
-### `Employee_Full`
-+ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ Include `Employee`
-+ is_active: true (boolean, required)
-+ status: approved (enum)
-    - approved
-    - pending_approval
-    - closed
-+ created_at: `2017-03-02T10:45:16.000Z` (string, optional)
-+ modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
-
-### `Employee_Details`
-+ include Employee_Full
-+ include user
-
++ division (`Division_Short`)
++ `legal_entity` (`Legal_Entity_Short`)
++ doctor (DoctorNew_Short)
 
 ## `Legal_Entities`
-### `Legal_Entity_Short`
+
+### `crud_legal_entity`
 + name: Клініка Борис (string, required)
-+ short_Name: Борис (string, required)
++ short_name: Борис (string, required)
 + type (enum, required)
     - MSP
     - MIS
++ edrpou: 5432345432 (string, required)
++ addresses (array[Address], required)
++ phones (array[Phone], required)
++ email: email@example.com (array[Email], required)
++ active: true (boolean)
++ public_name: Клініка Борис (string, required)
++ kved: 86.1 (array, required)
++ status: VERIFIED (enum, required)
+    - VERIFIED
+    - NOT_VERIFIED
++ owner_property_type: state (enum, required)
+    - STATE
+    - PRIVATE
++ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
+    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
+    - АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
+    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
+
+### `crud_legal_entity_get`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ include `crud_legal_entity`
++ inserted_at: `1991-08-19T00:00:00.000Z` (string, required)
++ inserted_by: `userid` (string, required)
++ updated_at: `1991-08-19T00:00:00.000Z` (string, required)
++ updated_by: `userid` (string, required)
+
+### `crud_legal_entity_post`
++ include `crud_legal_entity`
+
+### `crud_legal_entity_patch`
++ name: Клініка Борис (string, optional)
++ short_name: Борис (string, optional)
++ type (enum, optional)
+    - MSP
+    - MIS
++ addresses (array[Address], optional)
++ phones (array[Phone], optional)
++ email: email@example.com (array[Email], optional)
++ active: true (boolean)
++ public_name: Клініка Борис (string, optional)
++ status: VERIFIED (enum, optional)
+    - VERIFIED
+    - NOT_VERIFIED
++ owner_property_type: state (enum, optional)
+    - STATE
+    - PRIVATE
++ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, optional)
+    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
+    - АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
+    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
+
+### `Legal_Entity_Short`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ name: Клініка Борис (string, required)
++ short_name: Борис (string, required)
++ type (enum, required)
+    - MSP
+    - MIS
++ edrpou: 5432345432 (string, required)
++ status: VERIFIED (enum, required)
+    - VERIFIED
+    - DECLINED
+    - VERIFICATION_EXP
 + owner_property_type: state (enum, required)
     - state
     - private
@@ -1130,41 +1439,12 @@ Optional:
     - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
     - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
     - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
-+ edrpou: 5432345432 (string, required)
-+ status: VERIFIED (enum, required)
-    - VERIFIED
-    - DECLINED
-    - VERIFICATION_EXP
 
 ## `Legal_Entity_Requests`
-### `Legal_Entity_Request_Short`
-+ name: Клініка Борис (string, required)
-+ short_Name: Борис (string, required)
-+ type (enum, required)
-    - MIS
-    - MSP
-+ `owner_property_type`: state (enum, required)
-    - state
-    - private
-+ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
-    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
-    - АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
-    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
-+ edrpou: 5432345432 (string, required)
-+ status: BASIC_VERIFICATION (enum, required)
-    - BASIC_VERIFICATION
-    - ADD_VER_EXP
-    - ADD_VERIFICATION
-    - CANCELED
-    - DECLINED
-    - APPROVED
 
 ### `Legal_Entity_Request_Public`
 + name: Клініка Борис (string, required)
-+ short_Name: Борис (string, optional)
++ short_name: Борис (string, optional)
 + public_name: Борис (string, optional)
 + legal_form (enum, required)
 + type (enum, required)
@@ -1183,18 +1463,11 @@ Optional:
 + edrpou: 5432345432 (string, required)
 + kved: 86.1 (array, required)
 + services (array[Medical_Service], required)
-+ licenses (array[MSP_License], required)
-+ accreditation (array[MSP_Accreditation], required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
-+ founders (array, required)
-    + (object)
-        + One Of
-            + founder (Founder_Person)
-            + founder (Founder_Legal_Entity)
 + owner (Owner)
-+ divisions (array[Division])
++ divisions (array[`crud_division_get`])
 + `medical_service_provider` (MSP)
 
 ## `Divisions`
@@ -1203,18 +1476,31 @@ Optional:
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
++ type: clinic (enum, required)
+    - clinic
+    - ambulant_clinic
+    - fap
 
-## `Founders`
-### `Founder_Person`
-+ first_name: Петро (string, required)
-+ last_name: Іванов (string, required)
-+ second_name: Миколайович (string, optional)
-+ tax_id: 3015492563 (string, required)
+### `Division_Details`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ include Division
 
-### `Founder_Legal_Entity`
-+ name: Борис (string, required)
-+ addresses (array[Address], required)
-+ edrpou: 31865420 (string, required)
+### `Division_Short`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ type: clinic (enum, required)
+    - clinic
+    - ambulant_clinic
+    - fap
++ mountain_group: `group1` (string, optional)
+
+### `crud_division_get`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ include `Division`
++ mountain_group: `group1` (string, optional)
++ active: true (boolean, required)
 
 ## `Owners`
 ### `Owner`
@@ -1230,9 +1516,25 @@ Optional:
 + phones (array[Phone], optional)
 
 ## `Medical_Service_Providers`
+
+### `crud_msp`
++ `legal_entity_id`: 5432345432 (string, required)
++ accreditation (MSP_Accreditation, required)
++ licenses (array[MSP_License], optional)
+
+### `crud_msp_get`
++ include `crud_msp`
+
+### `crud_msp_post`
++ include `crud_msp`
+
+### `crud_msp_patch`
++ accreditation (MSP_Accreditation, required)
++ licenses (array[MSP_License], optional)
+
 ### `Medical_Service_Provider`
 + name: Клініка Борис (string, required)
-+ short_Name: Борис (string, required)
++ short_name: Борис (string, required)
 + legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
     - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
     - АКЦІОНЕРНЕ ТОВАРИСТВО
@@ -1240,17 +1542,18 @@ Optional:
     - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
     - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
     - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
 + licenses (array[MSP_License], optional)
-+ accreditation (array[MSP_Accreditation], required)
-+ addresses (array[Address], optional)
-+ phones (array[Phone], optional)
++ accreditation (MSP_Accreditation, required)
++ addresses (array[Address], required)
++ phones (array[Phone], required)
 + email: `email@example.com` (string, required)
 
 ### `MSP_Short`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
 + name: Клініка Борис (string, required)
-+ short_Name: Борис (string, required)
++ short_name: Борис (string, required)
 + legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
     - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
     - АКЦІОНЕРНЕ ТОВАРИСТВО
@@ -1262,8 +1565,8 @@ Optional:
 
 ### `MSP_Details`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
-+ name: Клініка Борис (string, required)
-+ short_Name: Борис (string, required)
++ name: Клініка ЦПМСД №1 (string, required)
++ short_Name: ЦПМСД №1 (string, required)
 + legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
     - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
     - АКЦІОНЕРНЕ ТОВАРИСТВО
@@ -1271,24 +1574,15 @@ Optional:
     - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
     - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
     - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
 + addresses (array[Address], optional
 + created_at: `2017-02-28T15:12:54.000Z` (string, optional)
 + modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
 
-### `MSP_Response`
-+ id: d290f1ee-6c54-4b01-90e6-d701748f0851
-+ include Medical_Service_Provider
-+ created_at: `2017-02-28T15:12:54.000Z` (string, optional)
-+ modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
-
 ### `MSP`
-+ mountain_group: 'група 1' (enum, required)
-    - група 1
-    - група 2
-    - група 3
 + licenses (array[MSP_License], optional)
-+ accreditation (array[MSP_Accreditation], required)
++ accreditation (MSP_Accreditation, required)
 
 ## `Medical_Services`
 ### `Medical_Service`
@@ -1312,29 +1606,19 @@ Optional:
 + gender: MALE, FEMALE (enum[string], required)
 + email: email@example.com (string, required)
 + tax_id: 3126509816 (string, optional)
-+ national_id: CC7150985243 (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 + public_key:FDSAF768ASD6F78A6FD87ADS6FA8DS7F678A678DF (string, required)
-
-### `user_full`
-+ include user
-+ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
-+ created_at: `2017-02-28T15:12:54.000Z` (string, optional)
-+ modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
-+ is_active: true (boolean, required)
-+ status: approved (enum)
-    - approved
-    - pending_approval
-    - closed
 
 ### Address
 + type: RESIDENCE, REGISTRATION (enum[string], required)
 + country: UA (enum[string], required)
 + area: Житомирська (string, optional)
 + region: Бердичівський (string, optional)
-+ city: Київ (string, required)
-+ city_type: CITY (enum[string], required)
++ settlement: Київ (string, optional)
++ settlement_type: CITY (enum[string], optional)
++ settlement_id: 43432432 (string, required)
++ street_type: STREET, BOULEVARD, AVENUE (enum[string], optional)
 + street: `вул. Ніжинська` (string, optional)
 + building: 15 (string, required)
 + apartment: 23 (string, optional)
@@ -1344,12 +1628,17 @@ Optional:
 + type: MOBILE, LANDLINE (enum[string], required)
 + number: `+380503410870` (string, required)
 
+### Email
++ type: PERSONAL, PUBLIC (enum[string], required)
++ email: `email@example.com` (string, required)
+
 ### Document
 + type: PASSPORT (enum[string], required)
+    - PASSPORT
+    - NATIONAL_ID
+    - BIRTH_CERTIFICATE
+    - TEMPORARY_CERTIFICATE
 + number: 120518 (string, required)
-+ issue_date: `2015-04-07T00:00:00.000Z`
-+ expiry_date: `2015-04-07T00:00:00.000Z`
-+ issued_by: DMSU
 
 ### `Medical_Certificate`
 + name: Диплом доктора медицини (string, required)
@@ -1391,7 +1680,7 @@ Optional:
 + category: друга (enum, required)
     - друга
     - перша
-    - вища
+    - не акредитований
 + issued_date: 2017-02-28 (string, required) - дата видачі
 + expiry_date: 2017-02-28 (string, optional)
 + order_no: fd123443 (string, required) - номер наказу МОЗ
@@ -1403,21 +1692,34 @@ Optional:
 + issued_by: Кваліфікацйна комісія (string, optional)
 + issued_date: 2017-02-28 (string, required)
 + expiry_date: 2017-02-28 (string, optional)
++ kved: 86.1 (string, optional)
++ what_licensed: реалізація наркотичних засобів (string, optional)
+
+### `key_value`
++ id
++ name
+
+## OTPs
+### OTP
++ id: 4 (string, required)
++ `phone_number`: `+380508887700` (string, required)
++ `check_digit`: 5 (number, required) - Check digit that will be first in sent OTP code. Can be validated as checksum by [Verhoeff algorithm](https://en.wikipedia.org/wiki/Verhoeff_algorithm).
+
 
 ## DoctorsNew
 ### DoctorNew
-+ education (array[Education], required)
-+ qualification (array[Qualification], optional)
-+ speciality: Педіатрія (enum, required)
-    - Терапевт
-    - Педіатр
-    - Сімейний лікар
-+ professional_level (ProfessionalLevel, required)
-+ academic_degree (AcademicDegree, optional)
++ education (array[Education], required)  - освіта
++ qualification (array[Qualification], optional) - підвищення кваліфікації
++ speciality (array[Speciality], required)
 + science_degree (ScienceDegree, optional)
-+ specialization (string, optional)
-+ working_hours (string, optional)
 
+### `DoctorNew_Short`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ speciality (array[Speciality], required)
+
+### `crud_DoctorNew_get`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ include (DoctorNew)
 
 ### Education
 + country: UA (enum[string], required)
@@ -1432,38 +1734,18 @@ Optional:
     - Магістр
 + speciality: Педіатр (string, required)
 
-### AcademicDegree
-+ country: UA (enum[string], required)
-+ city: Київ (string, required)
-+ degree (enum, required)
-    - Старший дослідник
-    - Доцент
-    - Професор
-+ institution_name: Академія Богомольця (string, required)
-+ certificate_number: DD123543 (string, required)
-+ speciality: Педіатр (string, required)
-+ issued_date: 2017-02-28 (string, required)
 
 ### ScienceDegree
 + country: UA (enum[string], required)
 + city: Київ (string, required)
 + degree (enum, required)
     - Доктор філософії
+    - Кандидат наук
     - Доктор наук
 + institution_name: Академія Богомольця (string, required)
 + diploma_number: DD123543 (string, required)
 + speciality: Педіатр (string, required)
-+ diploma_topic: `Супер педіатр та де його шукати` (string, required)
 + issued_date: 2017-02-28 (string, required)
-
-### WorkExperience
-+ country: UA (enum[string], required)
-+ city: Київ (string, required)
-+ work_place: `Житомирська обласна лікарня` (string, required)
-+ work_position: `Директор лікарні` (string, required)
-+ start_date: 2017-02-28 (string, required)
-+ finish_date: 2018-02-28 (string, required)
-+ work_experience: 1 (number, required) - count of work experience years
 
 ### Qualification
 + type (enum, required)
@@ -1475,19 +1757,33 @@ Optional:
     - Стажування
 + institution_name: Академія Богомольця (string, required)
 + speciality: Педіатр (string, required)
-+ issued_date: 2017-02-28 (string, required)
++ issued_date: 2017-02-28 (string, required) - дата отримання сертифікату
++ certificate_number: 2017-02-28 (string, required)
 
-### ProfessionalLevel
-+ degree (enum, required)
+### Speciality
++ speciality: Педіатрія (enum, required) - спеціальність
+    - Терапевт
+    - Педіатр
+    - Сімейний лікар
++ speciality_officio: true (boolean, required) - спеціальність за посадою
++ level: Перша категорія (enum, required) - кваліфікаційна категорія
     - Друга категорія
     - Перша категорія
     - Вища категорія
 + qualification_type (enum, required)
     - Присвоєння
     - Підтвердження
-+ institution_name: Академія Богомольця (string, required)
-+ issued_date: 2017-02-28 (string, required)
++ attestation_name: Академія Богомольця (string, required) - орган що видав
++ attestation_date: 2017-02-28 (string, required) - дата отримання
++ valid_to_date: 2020-02-28 (string, required) - дата дії до
++ certificate_number: AB/21331 (string, required)
 
 ### Affordance
 + action (string, required) - Affordance action.
 + url (string, required)
+
+## Global Parameters and Products 
+### `Global_Parameters`
++ term: 30 (string, required) - термін дії декларації
++ term_unit: DAYS (enum, required) - одиниця виміру терміну дії
++ adult_age: 18 (string, required) - вік повноліття
