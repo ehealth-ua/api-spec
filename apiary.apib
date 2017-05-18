@@ -880,7 +880,6 @@ It returns:
     + `edrpou`: `341086` (string, optional)
     + type: MSP (enum, optional)
         - MSP
-        - MIS
         + Default: MSP
     + owner_property: state (enum, optional)
         - state
@@ -1127,6 +1126,91 @@ This method to create the division info by ID.
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
+
+## UAdresses [/api/uaddresses]
+API for searching Ukrainian Addresses
+
+### List Of Addresses By Search Params [GET /api/uaddresses/addresses{?settlement_name,settlement_id,street_name,street_type,street_number,postal_code,region,district}]
++ Parameters
+    + settlement_name: Новосілки (string) - city name
+    + settlement_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - Settlement id, if this parameter
+        exists, [settlement_name, region, district] will be ignored
+    + street_name: `Єрмоленка Володимира` (string, optional) - street name
+    + street_type: вулиця (enum, optional)
+        - вулиця
+        - провулок
+        - бульвар
+        - проспект
+        - узвіз
+    + street_number: 67 (string, optional) - building number
+    + postal_code: 03027 (string, optional) - postal code
+    + region: Київ (string, optional) - Province name
+    + district: `Києво-Святошинський` (string, optional) - Administrative district of province
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array[`Response_Street`])
+
+### List Of Cities By Search Params [GET /api/uaddresses/settlements{?settlement_name,region,district}]
++ Parameters
+    + settlement_name: Новосілки (string, optional) - Name of searching settlement
+    + region: Київ (string, required) - Province name
+    + district: `Києво-Святошинський` (string, optional) - Administrative district of province
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array[`Response_Settlement`])
+
+### List Of Regions By Search Params [GET /api/uaddresses/regions{?region}]
++ Parameters
+    + region: Київ (string, optional) - Province name
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array[`Response_Region`])
+
+### List Of Districts By Search Params [GET /api/uaddresses/districts{?region,region_id,district}]
++ Parameters
+    + region: Київ (string) - Province name
+    + district: `Києво-Святошинський` (string, optional) - Administrative district of province
+    + region_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - if this parameter exists, 
+        [settlement_name, region, district] will be ignored
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array[`Response_District`])
+
+### Districts by Region [GET /api/uaddresses/details/region/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?district}]
+
++ Parameters
+    + district: `Києво-Святошинський` (string, optional) - Filter by district name
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array[`Response_District_Short`])
+
+### Settlements by district [GET /api/uaddresses/details/district/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?settlement_name}]
+
+Get list of cities by district
+
++ Parameters
+    + settlement_name: `Київ` (string, optional) - Filter by settlement name
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array[`Response_Settlement_Short`])
 
 # Data Structures
 ## Responses
@@ -1516,7 +1600,6 @@ This method to create the division info by ID.
 + short_name: Борис (string, required)
 + type (enum, required)
     - MSP
-    - MIS
 + edrpou: 5432345432 (string, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
@@ -1557,7 +1640,6 @@ This method to create the division info by ID.
 + public_name: Клініка Борис (string, required)
 + type (enum, optional)
     - MSP
-    - MIS
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
 + email: email@example.com (array[Email], optional)
@@ -1585,7 +1667,6 @@ This method to create the division info by ID.
 + public_name: Клініка Борис (string, required)
 + type (enum, required)
     - MSP
-    - MIS
 + edrpou: 5432345432 (string, required)
 + status: VERIFIED (enum, required)
     - VERIFIED
@@ -1610,7 +1691,6 @@ This method to create the division info by ID.
 + public_name: Борис (string, optional)
 + legal_form (enum, required)
 + type (enum, required)
-    - MIS
     - MSP
 + `owner_property_type`: state (enum, required)
     - state
@@ -1642,7 +1722,6 @@ This method to create the division info by ID.
 + public_name: Борис (string, optional)
 + legal_form (enum, required)
 + type (enum, required)
-    - MIS
     - MSP
 + `owner_property_type`: state (enum, required)
     - state
@@ -2022,3 +2101,51 @@ This method to create the division info by ID.
 + `verification_request_expiration`: `30` (string, required) - термін дії заявки на верифікацію декларації
 + adult_age: `18` (string, required) - вік повноліття
 + billing_date: `2` (string, required) - дата біллінгу (1-28)
+
+## UAddresses
+### `Response_Street`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string) - Address ID
++ region: Київ (string) -  Region name
++ district: `Києво-Святошинський` (string) - District name
++ settlement_name: Новосілки (string) - City name
++ street_type: вул (string) - Type of street
++ street_name: `Єрмоленка Володимира` (string) - Street name
++ street_number: 67 (string) - Number of building
++ postal_code: 03027 (string) - Postal code
+
+### `Response_Settlement_Short`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - Settlement ID
++ settlement_name: Новосілки (string) - City name
+
+### `Response_Settlement`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - Settlement ID
++ region: Київ (string) -  Region name
++ district: `Києво-Святошинський` (string) - District name
++ settlement_name: Новосілки (string) - City name
+
+### `Response_Region`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - Region ID
++ region: Київ (string) -  Region name
+
+### `Response_District_Short`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - District ID
++ district: `Києво-Святошинський` (string) - District name
+
+### `Response_District`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - District ID
++ region: Київ (string) -  Region name
++ district: `Києво-Святошинський` (string) - District name
+
+### `Create_Settlement`
++ region: Київ (string, required) -  Region name
++ district: `Києво-Святошинський` (string, required) - District name
++ settlement_name: Новосілки (string, required) - City name
+
+### `Create_Street`
++ region: Київ (string, required) -  Region name
++ district: `Києво-Святошинський` (string, required) - District name
++ settlement_name: Новосілки (string, required) - City name
++ street_type: вул (string, required) - Type of street
++ street_name: `Єрмоленка Володимира` (string, required) - Street name
++ street_number: 67 (string, required) - Number of building
++ postal_code: 02140 (string, required) - Postal code
