@@ -129,7 +129,7 @@ Each dictionary is an object that contains *{key}*:*{value}* pairs where:
 * ***{key}*** is a dictionary record
 * ***{value}*** is a dictionary record description
 
-### Get dectionaries [GET]
+### Get dictionaries [GET]
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -625,7 +625,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /api/employees{?legal_entity_id,division_id,status,type,limit,starting_after,ending_before}]
+### Get Employees List [GET /api/employees{?division_id,status,type,limit,starting_after,ending_before}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -634,7 +634,6 @@ We suggest to use `status` filter to limit response size. Eg. you MAY want to li
 Method returns shortened details, to obtain full information - get Employee it by ID.
 
 + Parameters
-    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + status: ACTIVE (enum, optional)
         - ACTIVE
@@ -758,10 +757,9 @@ For changes to take effect employee must confirm the changes
             + inserted_at: `2017-05-05T14:09:59.232112` (string, required)
             + updated_at: `2017-05-05T14:09:59.232112` (string, required)
 
-### Get Employee Requests List [GET /api/employee_requests{?legal_entity_id,status,limit,starting_after,ending_before}]
+### Get Employee Requests List [GET /api/employee_requests{?status,limit,starting_after,ending_before}]
 
 + Parameters
-    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
     + status: NEW (enum, optional)
         - NEW
         - REJECTED
@@ -1871,17 +1869,6 @@ Get list of cities by district
 + scopes: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - scopes that assigned to access token
 
 ## Shared
-### `user`
-+ first_name: Петро (string, required)
-+ last_name: Іванов (string, required)
-+ second_name: Миколайович (string, optional)
-+ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
-+ gender: MALE, FEMALE (enum[string], required)
-+ email: email@example.com (string, required)
-+ tax_id: 3126509816 (string, optional)
-+ documents (array[Document], optional)
-+ phones (array[Phone], optional)
-+ public_key:FDSAF768ASD6F78A6FD87ADS6FA8DS7F678A678DF (string, required)
 
 ### Address
 + type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`
@@ -2130,3 +2117,16 @@ Get list of cities by district
 + street_name: `Єрмоленка Володимира` (string, required) - Street name
 + street_number: 67 (string, required) - Number of building
 + postal_code: 02140 (string, required) - Postal code
+
+## Users
+### User (object)
++ email: `john@example.com` (string, required) - User email.
+
+### `User_Data` (User)
++ settings (object) - User settings.
++ priv_settings (object) - User private settings.
+
+### `User_Response` (User_Data)
++ id: `user-1380df72-275a-11e7-93ae-92361f002671` (string) - Internal user ID, a UUID string.
++ `created_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
