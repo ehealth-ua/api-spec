@@ -271,6 +271,8 @@ This method is used to create Declaration Request (as part of Declaration creati
                 
                 * **OTP** - Preffered. One-time-password (usually sent via SMS). Masked phone number will be returned. By using this verification method you MUST approve Declaration Request by a OTP token that is sent to a patient mobile phone.
                 * **OFFLINE** - For patients that is not able to pass OTP verification method. By using this verification method you MUST upload required documents to links returned in response and approve Declaration Request after upload is completed.
+            + urgent (object, required)
+                + documents (array[`media_content`], required)
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -931,26 +933,26 @@ Use this method to register a new Legal Entity.
 
 Method receives signed message (pkcs7) including signed content, digital signature and signer public key. 
 All signature fields will be validated (including signer certificate authority).
-
+There is a [**dummy method**](##dummy-for-legal-entity) that describes the latest legal entity data model and can be used as documentation.
 Signed content MUST consists of JSON object with Legal Entity data:
 
 ```
 {
-  "name": "Клініка Адоніс2",
-  "short_name": "Адоніс2",
-  "public_name": "Адоніс2",
+  "name": "Клініка Адоніс21",
+  "short_name": "Адоніс21",
+  "public_name": "Адоніс21",
   "type": "MSP",
   "owner_property_type": "STATE",
-  "legal_form": "ПІДПРИЄМЕЦЬ",
-  "edrpou": "387823231",
+  "legal_form": "140",
+  "edrpou": "38782323",
   "kveds": [
     "86.10"
   ],
   "addresses": [
     {
-      "type": "RESIDENCE",
+      "type": "REGISTRATION",
       "country": "UA",
-      "area": "Житомирська",
+      "area": "Волинська область",
       "region": "Бердичівський",
       "settlement": "Київ",
       "settlement_type": "CITY",
@@ -968,16 +970,16 @@ Signed content MUST consists of JSON object with Legal Entity data:
       "number": "+380503410870"
     }
   ],
-  "email": "email@example.com",
+  "email": "sp.virny+100@gmail.com",
   "owner": {
     "first_name": "Петро",
     "last_name": "Іванов",
     "second_name": "Миколайович",
-    "tax_id": "3015492563",
-    "birth_date": "1991-08-19T00:00:00.000Z",
+    "tax_id": "3015492565",
+    "birth_date": "1985-06-16",
     "birth_place": "Вінниця, Україна",
-    "gender": "MALE",
-    "email": "email@example.com",
+    "gender": "FEMALE",
+    "email": "sp.virny+100@gmail.com",
     "documents": [
       {
         "type": "PASSPORT",
@@ -990,29 +992,29 @@ Signed content MUST consists of JSON object with Legal Entity data:
         "number": "+380503410870"
       }
     ],
-    "position": "Голова правління"
+    "position": "P1"
   },
   "medical_service_provider": {
     "licenses": [
       {
         "license_number": "fd123443",
         "issued_by": "Кваліфікацйна комісія",
-        "issued_date": "1991-08-19T00:00:00.000Z",
-        "expiry_date": "2001-08-19T00:00:00.000Z",
-        "kved": "86.10",
+        "issued_date": "1991-08-19",
+        "expiry_date": "1991-08-19",
+        "active_from_date": "1991-08-19",
         "what_licensed": "реалізація наркотичних засобів"
       }
     ],
     "accreditation": {
-      "category": "ПЕРША",
-      "issued_date": "1991-08-19T00:00:00.000Z",
-      "expiry_date": "2001-08-19T00:00:00.000Z",
+      "category": "FIRST",
+      "issued_date": "1991-08-19",
+      "expiry_date": "1991-08-19",
       "order_no": "fd123443",
-      "order_date": "1991-08-19T00:00:00.000Z"
+      "order_date": "1991-08-19"
     }
   },
   "security": {
-    "redirect_uri": "redirect_uri"
+    "redirect_uri": "http://example2.com"
   },
   "public_offer": {
     "consent": true,
@@ -1415,6 +1417,10 @@ Get list of cities by district
 ### `declaration_request_patch`
 + id: `73FF38F0-A873-4DB4-A47A-CC0F3D7A6D6A` (string, required)
 + status: `pending` (string, required)
+
+### `media_content`
++ type: `PASSPORT` (string, required)
++ url: `https://google.com.ua` (string, required)
 
 ## Declarations
 ### Declaration
