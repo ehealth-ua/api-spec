@@ -1327,7 +1327,8 @@ Get list of cities by district
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
-+ birth_place: `Вінниця, Україна` (string, required)
++ birth_country: `Україна` (string, required)
++ birth_settlement: `Вінниця` (string, required)
 + gender: MALE, FEMALE (enum[string], required)
 + email: email@example.com (string, optional)
 + tax_id: 3126509816 (string, optional)
@@ -1338,11 +1339,15 @@ Get list of cities by district
 + `authentication_methods` (array[Authentication_Method], optional)
 
 ### `Confidant_Person`
++ relation_type: PRIMARY (enum, required)
+    - PRIMARY
+    - SECONDARY
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
-+ birth_place: `Вінниця, Україна` (string, required)
++ birth_country: `Україна` (string, required)
++ birth_settlement: `Вінниця` (string, required)
 + gender: MALE, FEMALE (enum[string], required)
 + tax_id: 3126509816 (string, optional)
 + documents (array[Document], optional)
@@ -1358,10 +1363,8 @@ Get list of cities by district
 + include `Person`
 + emergency_contact (object)
     + include `Emergency_Contact`
-+ confidant_person (object, optional) - Should be set if this Person is disabled, underage, etc.
-    + relation_type: trustee (enum)
-        - trustee
-    + include `Confidant_Person`
++ `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
+
 
 ### `Person_Full`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1808,7 +1811,7 @@ Get list of cities by district
 ### `crud_msp`
 + `legal_entity_id`: 5432345432 (string, required)
 + accreditation (MSP_Accreditation, required)
-+ licenses (array[MSP_License], optional)
++ licenses (array[MSP_License], required)
 
 ### `crud_msp_get`
 + include `crud_msp`
@@ -1818,7 +1821,7 @@ Get list of cities by district
 
 ### `crud_msp_patch`
 + accreditation (MSP_Accreditation, required)
-+ licenses (array[MSP_License], optional)
++ licenses (array[MSP_License], required)
 
 ### `Medical_Service_Provider`
 + name: Клініка Борис (string, required)
@@ -1826,7 +1829,7 @@ Get list of cities by district
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
-+ licenses (array[MSP_License], optional)
++ licenses (array[MSP_License], required)
 + accreditation (MSP_Accreditation, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
@@ -1851,7 +1854,7 @@ Get list of cities by district
 + modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
 
 ### `MSP`
-+ licenses (array[MSP_License], optional)
++ licenses (array[MSP_License], required)
 + accreditation (MSP_Accreditation, required)
 
 ## `Ukr_med_registries`
@@ -1910,6 +1913,9 @@ Get list of cities by district
 
 ### Document
 + type: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
++ identifies: PERSON (enum, required)
+    - PERSON
+    - RELATIONSHIP
 + number: 120518 (string, required)
 
 ### `Medical_Certificate`
