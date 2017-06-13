@@ -1131,30 +1131,7 @@ This method to create the division info by ID.
 ## UAdresses [/api/uaddresses]
 API for searching Ukrainian Addresses
 
-### List Of Addresses By Search Params [GET /api/uaddresses/addresses{?settlement_name,settlement_id,street_name,street_type,street_number,postal_code,region,district}]
-+ Parameters
-    + settlement_name: Новосілки (string) - city name
-    + settlement_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - Settlement id, if this parameter
-        exists, [settlement_name, region, district] will be ignored
-    + street_name: `Єрмоленка Володимира` (string, optional) - street name
-    + street_type: вулиця (enum, optional)
-        - вулиця
-        - провулок
-        - бульвар
-        - проспект
-        - узвіз
-    + street_number: 67 (string, optional) - building number
-    + postal_code: 03027 (string, optional) - postal code
-    + region: Київ (string, optional) - Province name
-    + district: `Києво-Святошинський` (string, optional) - Administrative district of province
-
-+ Response 200 (application/json)
-    + Attributes (Response_Collection)
-        + meta (Response__Meta)
-            + code: 200 (number)
-        + data (array[`Response_Street`])
-
-### List Of Cities By Search Params [GET /api/uaddresses/settlements{?settlement_name,region,district}]
+### List Of Settlements By Search Params [GET /api/uaddresses/search/settlements{?settlement_name,region,district}]
 + Parameters
     + settlement_name: Новосілки (string, optional) - Name of searching settlement
     + region: Київ (string, required) - Province name
@@ -1166,7 +1143,7 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_Settlement`])
 
-### List Of Regions By Search Params [GET /api/uaddresses/regions{?region}]
+### List Of Regions By Search Params [GET /api/uaddresses/search/regions{?region}]
 + Parameters
     + region: Київ (string, optional) - Province name
 
@@ -1176,12 +1153,11 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_Region`])
 
-### List Of Districts By Search Params [GET /api/uaddresses/districts{?region,region_id,district}]
+### List Of Districts By Search Params [GET /api/uaddresses/search/districts{?region,region_id,district}]
 + Parameters
     + region: Київ (string) - Province name
     + district: `Києво-Святошинський` (string, optional) - Administrative district of province
-    + region_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - if this parameter exists, 
-        [settlement_name, region, district] will be ignored
+    + region_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -1189,10 +1165,10 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_District`])
 
-### Districts by Region [GET /api/uaddresses/details/region/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?district}]
+### Districts by Region [GET /api/uaddresses/details/region/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name}]
 
 + Parameters
-    + district: `Києво-Святошинський` (string, optional) - Filter by district name
+    + name: `Києво-Святошинський` (string, optional) - Filter by district name
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -1200,12 +1176,10 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_District_Short`])
 
-### Settlements by district [GET /api/uaddresses/details/district/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?settlement_name}]
-
-Get list of cities by district
+### Settlements by district [GET /api/uaddresses/details/district/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name}]
 
 + Parameters
-    + settlement_name: `Київ` (string, optional) - Filter by settlement name
+    + name: `Київ` (string, optional) - Filter by settlement name
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -1461,6 +1435,7 @@ Get list of cities by district
     + patient_signed: true (boolean)
     + disclosure_consent: true (boolean)
     + process_data_consent: true (boolean)
+    + service_location_consent: true (boolean, required)
 + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
 + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
@@ -2089,12 +2064,21 @@ Get list of cities by district
 ### `Response_Settlement`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - Settlement ID
 + region: Київ (string) -  Region name
-+ district: `Києво-Святошинський` (string) - District name
++ district: `Києво-Святошинський` (string, optional) - District name
 + settlement_name: Новосілки (string) - City name
++ type: VILLAGE (enum, optional) - Settlement type Dictionary SETTLEMENT_TYPE
+    - CITY
+    - VILLAGE
+    - SETTLEMENT
+    - TOWNSHIP
++ parent_settlement: НОВОВОЛИНСЬК (string, optional) - Parent settlement
++ koatuu: 0724582601 (string, optional) - KOATUU code
++ mountain_group: false (boolean)
 
 ### `Response_Region`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - Region ID
-+ region: Київ (string) -  Region name
++ koatuu: 0700000000 (string, optional) - KOATUU code
++ name: ВОЛИНСЬКА (string) -  Region name
 
 ### `Response_District_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - District ID
@@ -2103,6 +2087,7 @@ Get list of cities by district
 ### `Response_District`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - District ID
 + region: Київ (string) -  Region name
++ koatuu: 0720500000 (string, optional) - KOATUU code
 + district: `Києво-Святошинський` (string) - District name
 
 ### `Create_Settlement`
