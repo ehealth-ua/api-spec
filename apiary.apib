@@ -135,7 +135,7 @@ Each dictionary is an object that contains *{key}*:*{value}* pairs where:
     + Attributes (Response_OK)
         + data (array[`Dictionary`])
 
-## OTP Verification [/api/otp_verifications]
+## OTP Verification - TDB [/api/otp_verifications]
 
 Method is used to verify that provided in declarartion request phone number is valid and is in service
 
@@ -187,7 +187,7 @@ Method is used to verify that provided in declarartion request phone number is v
     + Attributes (Response_OK)
         + data (OTP)
 
-## Declaration Requests [/api/declaration_requests]
+## Declaration Requests - TBD [/api/declaration_requests]
 
 [Declaration Request]() is a life-cycle entity that is used to perform operations on [Declarations]().
 
@@ -480,7 +480,6 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
          {
             "license_number":"fd123443",
             "kved":[
-
             ],
             "issued_by":"Кваліфікацйна комісія",
             "issued_date":"2017",
@@ -570,7 +569,7 @@ Service returns verification code in exchange for uploaded file.
         + data
           + `verification_code`: SzFxGfAg_Zj
 
-## Declarations [/api/declarations]
+## Declarations - TBD [/api/declarations]
 
 ### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,active,starting_after,ending_before,limit}]
 
@@ -627,7 +626,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /api/employees{?division_id,status,type,limit,starting_after,ending_before}]
+### Get Employees List [GET /api/employees{?edrpou,tax_id,party_id,legal_entity_id,division_id,status,employee_type,limit,starting_after,ending_before}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -636,12 +635,15 @@ We suggest to use `status` filter to limit response size. Eg. you MAY want to li
 Method returns shortened details, to obtain full information - get Employee it by ID.
 
 + Parameters
+    + edrpou: 12345678 (string, optional)
+    + tax_id: 1234567898 (string, optional)
+    + party_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
-    + status: ACTIVE (enum, optional)
-        - ACTIVE
-        - INACTIVE
-        + Default: ACTIVE
-    + type: DOCTOR (string, optional) - `Dictionary: EMPLOYEE_TYPE`
+    + status: APPROVED (enum, optional)
+        - NEW
+        - APPROVED
+    + employee_type: DOCTOR (string, optional) 
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
@@ -684,24 +686,15 @@ Response structure differs depending on employee type:
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (Employee_Request)
-            + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+        + data (Employee_Response)
             + division (Division_Short)
             + `legal_entity` (`Legal_Entity_Short`)
 
-### Update Employee [PATCH /api/employees/{employee_id}]
+### Deactivate Employee - TBD [PATCH /api/employees/{employee_id}/action/deactivate]
 
-Use this method change employee status or to update:
-* Person info
-* Employee info
-* Doctor Info
+Use this method to deactivate employee.
+Update employee parameter is_active on false and end_date is now
 
-This method does not require changes confirmation by the employee and should be limit by scopes
-
-The following fields can't be changed:
-* employee_type
-* tax_id
-* email
 
 + Parameters
     + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -711,9 +704,7 @@ The following fields can't be changed:
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
-    + Attributes (`Employee_Update`)
-    
+
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (Employee_Request)
@@ -802,7 +793,7 @@ This service should be used with `access_token` authetification method.
         + urgent (object, optional)
             + user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
-## Persons [/api/persons]
+## Persons - TBD [/api/persons]
 
 ### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,starting_after,ending_before,limit}]
 
@@ -871,10 +862,11 @@ It returns:
 
 ## Legal Entities [/api/legal_entities]
 
-### Get Legal Entities [GET /api/legal_entities{?edrpou,type,owner_property,status,starting_after,ending_before,limit}]
+### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,type,owner_property,status,starting_after,ending_before,limit}]
 
 + Parameters
     + `edrpou`: `341086` (string, optional)
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
     + type: MSP (enum, optional)
         - MSP
         + Default: MSP
@@ -1120,8 +1112,14 @@ This method to create the division info by ID.
     + Attributes (Response_OK)
         + data (`crud_division_get`)
 
-### Remove division [DELETE /api/divisions/{id}]
+### Deactivate division [PATCH /api/divisions/{id}/actions/deactivate]
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+
+### Activate division [PATCH /api/divisions/{id}/actions/activate]
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
@@ -1493,12 +1491,6 @@ API for searching Ukrainian Addresses
 + scope (enum, required)
     - family doctor
 
-### `Declaration_Report`
-+ date: `2017-03-02` (string, required)
-+ declarations_total: 100 (number, required)
-+ declarations_created: 10 (number, required)
-+ declarations_closed: 2 (number, required)
-
 ## Party
 ### `Party_Short`
 + first_name: Петро (string, required)
@@ -1514,8 +1506,18 @@ API for searching Ukrainian Addresses
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 
+### `Party_Response`
++ id:`b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ include `Party_Short`
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ gender: MALE (string, required) - `Dictionary GENDER`
++ tax_id: 3126509816 (string, optional)
++ documents (array[Document], optional)
++ phones (array[Phone], optional)
+
 ### `Party_Update`
 + include `Party_Short`
++ tax_id: 3126509816 (string, required)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE(string, required) - `Dictionary GENDER`
 + documents (array[Document], optional)
@@ -1552,7 +1554,7 @@ API for searching Ukrainian Addresses
 + position: P1 (string, required) - `Dictionary POSITION`
 + start_date: 2017-02-28 (string, required)
 + end_date: 2017-02-28 (string, optional)
-+ status: ACTIVE, INACTIVE (enum, required)
++ status: NEW, APPROVED (enum, required)
 + `Doctor` (DoctorNew, optional)
 + `status_reason`: `new_employee` (string, optional)
 
@@ -1587,6 +1589,28 @@ API for searching Ukrainian Addresses
     + email: email@example.com (string, optional)
     + phones (array[Phone], optional)
 
+### Employee_Response
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ position: P8 (string, required) - `Dictionary POSITION`
++ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2018-03-02T10:45:16.000Z` (string, optional)
++ status: NEW, APPROVED (enum, required)
++ is_active: true (boolean, required)
++ `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
++ party (Party_Response)
++ doctor (DoctorNew, optional)
+
+### `Employee_Update`
++ legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
++ position: лікар (string, required)
++ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2018-03-02T10:45:16.000Z` (string, optional)
++ status: NEW, APPROVED (enum, required)
++ is_active: false (boolean, required)
++ party (Party_Update)
++ doctor (DoctorNew, optional)
+
 ### `Employee_Request`
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 + employee_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
@@ -1596,16 +1620,6 @@ API for searching Ukrainian Addresses
 + status: NEW, REJECTED, APPROVED (enum, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (Party_Request)
-+ doctor (DoctorNew, optional)
-
-### `Employee_Update`
-+ legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
-+ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
-+ position: лікар (string, required)
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: ACTIVE, INACTIVE (enum, required)
-+ party (Party_Update)
 + doctor (DoctorNew, optional)
 
 ### `Employee_Request_Short`
@@ -1622,6 +1636,7 @@ API for searching Ukrainian Addresses
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
++ status: NEW, APPROVED (enum, required) - Employee status
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
@@ -1785,7 +1800,7 @@ API for searching Ukrainian Addresses
 
 ### `crud_msp`
 + `legal_entity_id`: 5432345432 (string, required)
-+ accreditation (MSP_Accreditation, required)
++ accreditation (MSP_Accreditation, optional)
 + licenses (array[MSP_License], required)
 
 ### `crud_msp_get`
@@ -1795,7 +1810,7 @@ API for searching Ukrainian Addresses
 + include `crud_msp`
 
 ### `crud_msp_patch`
-+ accreditation (MSP_Accreditation, required)
++ accreditation (MSP_Accreditation, optional)
 + licenses (array[MSP_License], required)
 
 ### `Medical_Service_Provider`
@@ -1805,7 +1820,7 @@ API for searching Ukrainian Addresses
 + public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
 + licenses (array[MSP_License], required)
-+ accreditation (MSP_Accreditation, required)
++ accreditation (MSP_Accreditation, optional)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: `email@example.com` (string, required)
@@ -1830,7 +1845,7 @@ API for searching Ukrainian Addresses
 
 ### `MSP`
 + licenses (array[MSP_License], required)
-+ accreditation (MSP_Accreditation, required)
++ accreditation (MSP_Accreditation, optional)
 
 ## `Ukr_med_registries`
 ### `ukr_med_registry`
@@ -1867,10 +1882,10 @@ API for searching Ukrainian Addresses
 ### Address
 + type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`
 + country: UA (enum[string], required) - `Dictionary COUNTRY`
-+ area: Житомирська (string, optional)
++ area: Житомирська (string)
 + region: Бердичівський (string, optional)
-+ settlement: Київ (string, optional)
-+ `settlement_type`: CITY (string, optional) - `Dictionary SETTLEMENT_TYPE`
++ settlement: Київ (string)
++ `settlement_type`: CITY (string) - `Dictionary SETTLEMENT_TYPE`
 + settlement_id: 43432432 (string, required)
 + `street_type`: STREET (string, optional) - `Dictionary STREET_TYPE`
 + street: `вул. Ніжинська` (string, optional)
@@ -1934,7 +1949,7 @@ API for searching Ukrainian Addresses
     - друга
     - перша
     - не акредитований
-+ issued_date: `2017-02-28` (string, required) - дата видачі
++ issued_date: `2017-02-28` (string, optional) - дата видачі
 + expiry_date: `2017-02-28` (string, optional)
 + order_no: fd123443 (string, required) - номер наказу МОЗ
 + order_date: `2017-02-28` (string, required) - дата наказу МОЗ
@@ -1956,14 +1971,50 @@ API for searching Ukrainian Addresses
 + `check_digit`: 5 (number, required) - Check digit that will be first in sent OTP code. Can be validated as checksum by [Verhoeff algorithm](https://en.wikipedia.org/wiki/Verhoeff_algorithm).
 
 ## Dashboards
-### RegionalStats
+### DeclarationStats
++ declarations_total: 100 (number, required)
++ declarations_created: 10 (number, required)
++ declarations_closed: 2 (number, required)
+
+### HistogramStats
++ interval (Interval, required)
++ period (MainStats, required)
++ total (MainStats, required)
+
+### Interval
++ from_date: `2017-02-01` (string, required)
++ to_date: `2017-02-30` (string, required)
+
+### MainStats
++ declarations_total: 100 (number, required)
++ declarations_created: 10 (number, required)
++ declarations_closed: 2 (number, required)
++ msps: 2 (number, required)
++ doctors: 15 (number, required)   
+
+### RegionReport
 + id: `asSbcy12sYs8c` (string, required)
-+ region_name: `Київ` (string, required)
-+ declarations: 10
-+ doctors: 5 (number, required)
-+ `medical_system_providers`: 2 (number, required)
-+ `declarations_signed`: 15 (number, required)
-+ `declarations_terminated`: 5 (number, required)
++ name: `Київ` (string, required)
+
+### SettlementReport
++ id: `asSbcy12sYs8c` (string, required)
++ name: `Київ` (string, required)
+
+### DivisionMap
++ id: `asSbcy12sYs8c` (string, required)
++ name: `Aдоніс` (string, required)
++ type: CLINIC, AMBULANT_CLINIC, FAP (enum, required)
++ address (Address, optional)
++ contacts (ContactInfo, optional)
++ coordinates (Location, optional)
+
+### ContactInfo
++ email: email@example.com (string, optional)
++ phones (array[Phone], optional)
+
+### Location
++ latitude: 30.1233 (number, required)
++ longitude: 50.32423 (number, required)
 
 ## DoctorsNew
 ### DoctorNew
@@ -1974,7 +2025,7 @@ API for searching Ukrainian Addresses
 
 ### `DoctorNew_Short`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
-+ speciality (array[Speciality], required)
++ specialities (array[Speciality], required)
 
 ### Education
 + country: UA (string, required) - `Dictionary COUNTRY`
