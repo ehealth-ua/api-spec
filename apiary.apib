@@ -44,7 +44,16 @@ Notes:
 
 ![oAuth Sequence](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgb0F1dGggRmxvdwoKQ2xpZW50IC0-IExvZ2luIFVJOiByZWRpcmVjdCB0bwANCSB3aXRoIGBjACoFX2lkYCwgYAAgCF91cmlgIGFuZCBgcmVzcG9uc2VfdHlwZT1jb2RlYCBxdWVyeSBwYXJhbXMKAEcJAGUNY29tcGxldGUgU2Vzc2lvbiBhdXRoIGZsb3cAJA1Vc2VyOiByZW5kZXIgcGFnZQCBEAZBcHByb3ZhbCAod2hpY2ggbGlzdHMgcmVxdWVzdGVkIHNjb3BlcykKVXNlcgCBXA5hADUFZQAbBwCBEA0Agh8FU2VydmVyOiBzZW5kIGBQT1NUIC9hcHBzYABWCAoAHAsAgjcOSFRUUCAyMDEsAIEVCmFuZCBMb2NhdGlvbiBoZWFkZXIAggMNAIMGBgCCdQt1c2VyIHRvIHVybCByZXR1cm5lZCBpbiBgAD4IYAA_CACDPQoAgSYSAIExBnRva2Vucz9ncmFudACDGAZhdXRob3JpegCBCwVfY29kZSAtIGV4Y2hhbmdlIGAAgzcGZnJvbQCDNgxldGVycyB0byBhbiBgYWNjZXNzXwBWBWAAgXsQAIIzDnRvcmUgcmVmcmVzaCAAgQcFAIIrEACBdggAJQZgACUHAFYHIChpbiBiYWNrLWVuZCEpAIRoBQCDDwYAdw0gdG8Agj8HIFVJCm5vdGUgb3ZlcgBMEAAmDihpbiBsb2NhbACBIQVhZ2UsIGNvb2tpZSwgZXRjLgBnBm1ha2VzIGFsbCBmdXR1AIFHBQCEWgVzAIYSB0F1aHQAgkQJOiBCZWFyZXIgPACCFgw-AIMlCQo&s=modern-blue)
 
-### Show Login UI [GET /accept{?client_id,redirect_uri,scope}]
+### Show Login UI [GET /sign-in{?client_id,redirect_uri,scope,email}]
+
+**Attention!**
+Use following HOSTs for oAuth 2.0 Authentication
+
+Env     | Host
+--------|-----
+DEMO    | http://auth.demo.ehealth.world
+PREPROD | https://auth.ehealth.world
+PROD    | https://auth.ehealth-ukraine.org
 
 You MUST redirect your users to this URL to obtain oAuth Code Grant (which is later exchanged to Access Token).
 
@@ -56,6 +65,7 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
     + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
     + redirect_uri: http://example.com/ (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
     + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space. Different login forms will be shown based on scopes that you requested.
+    + email: email@example.com
 
 + Response 200 (text/html; charset=UTF-8)
 
@@ -263,14 +273,12 @@ This method is used to create Declaration Request (as part of Declaration creati
             + code: 201 (number)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Declaration_Request_Public`
+            + include `Declaration_Request_Public_Response`
+            + employee (Employee_Minimal)
+            + `legal_entity` (`Medical_Service_Provider`)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + division (`Division_Details`)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
-            + `authentication_method` (`Authentication_Method`) - 
-                
-                Currently we support two authentifciation methods:
-                
-                * **OTP** - Preffered. One-time-password (usually sent via SMS). Masked phone number will be returned. By using this verification method you MUST approve Declaration Request by a OTP token that is sent to a patient mobile phone.
-                * **OFFLINE** - For patients that is not able to pass OTP verification method. By using this verification method you MUST upload required documents to links returned in response and approve Declaration Request after upload is completed.
             + urgent (object, required)
                 + documents (array[`media_content`], required)
 
@@ -532,7 +540,7 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + `signed_content`: `MIIWmAYJKoZIhvcNAQcCoIIWiTCCFoUCAQExCzAJBgUrDgMCGgUAMIISuwYJKoZIhvcNAQcBoIISrASCEqh7XHJ0ZjFcYW5zaVxhbnNpY3BnMTI1Mlxjb2NvYXJ0ZjE1MDRcY29jb2FzdWJydGY4MTANCntcZm9udHRibFxmMFxmc3dpc3NcZmNoYXJzZXQwIEhlbHZldGljYTt9DQp7XGNvbG9ydGJsO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1NTtccmVkNzBcZ3JlZW41M1xibHVlOTY7XHJlZDI0OVxncmVlbjI0OVxibHVlMjUxO30NCntcKlxleHBhbmRlZGNvbG9ydGJsOztcY3NzcmdiXGMzNDUxMFxjMjc4NDNcYzQ1MDk4O1xjc3NyZ2JcYzk4MDM5XGM5ODAzOVxjOTg4MjQ7fQ0KXG1hcmdsMTQ0MFxtYXJncjE0NDBcdmlld3cxMDgwMFx2aWV3aDg0MDBcdmlld2tpbmQwDQpcZGVmdGFiNzIwDQpccGFyZFxwYXJkZWZ0YWI3MjBccGFydGlnaHRlbmZhY3RvcjANCg0KXGYwXGZzMjggXGNmMiBcY2IzIFxleHBuZDBcZXhwbmR0dzBca2VybmluZzANClx7XA0KICAgImlkIjoiYjA3NWYxNDgiLFwNCiAgICJzdGFydF9kYXRlIjoiMjAxNy0wMy0wMlQxMDo0NToxNi4wMDBaIixcDQogICAiZW5kX2RhdGUiOiIyMDE3LTAzLTAyVDEwOjQ1OjE2LjAwMFoiLFwNCiAgICJwZXJzb24iOlx7XA0KICAgICAgImZpcnN0X25hbWUiOiJcdWMwXHUxMDU1IFx1MTA3NyBcdTEwOTAgXHUxMDg4IFx1MTA4NiAiLFwNCiAgICAgICJsYXN0X25hbWUiOiJcdWMwXHUxMDMwIFx1MTA3NCBcdTEwNzIgXHUxMDg1IFx1MTA4NiBcdTEwNzQgIixcDQogICAgICAic2blic Vjb25kX25hbWUiOiJcdWMwXHUxMDUyIFx1MTA4MCBcdTEwODIgXHUxMDg2IFx1MTA4MyBcdTEwNzIgXHUxMDgxIFx1MTA4NiBcdTEwNzQgXHUxMDgwIFx1MTA5NSAiLFwNCiAgICAgICJiaXJ0aF9kYXRlIjoiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIixcDQogICAgICAiYmlydGhfcGxhY2UiOiJcdWMwXHUxMDQyIFx1MTExMCBcdTEwODUgXHUxMDg1IFx1MTA4MCBcdTEwOTQgXHUxMTAzICwgXHUxMDU5IFx1MTA4MiBcdTEwODggXHUxMDcyIFx1MTExMSBcdTEwODUgXHUxMDcyICIsXA0KICAgICAgImdlbmRlciI6Ik1BTEUiLFwNCiAgICAgICJlbWFpbCI6ImVtYWlsQGV4YW1wbGUuY29tIixcDQogICAgICAidGF4X2lkIjoiMzEyNjUwOTgxNiIsXA0KICAgICAgIm5hdGlvbmFsX2lkIjoiQ0M3MTUwOTg1MjQzIixcDQogICAgICAic2VjcmV0Ijoic2VjcmV0IixcDQogICAgICAiZG9jdW1lbnRzIjpbXA0KICAgICAgICAgXHtcDQogICAgICAgICAgICAidHlwZSI6IlBBU1NQT1JUIixcDQogICAgICAgICAgICAibnVtYmVyIjoiMTIwNTE4IixcDQogICAgICAgICAgICAiaXNzdWVfZGF0ZSI6IjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIsXA0KICAgICAgICAgICAgImV4cGlyeV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAiaXNzdWVkX2J5IjoiRE1TVSJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImFkZHJlc3NlcyI6W1wNCiAgICAgICAgIFx7XA0KICAgICAgICAgICAgInR5cGUiOiJSRVNJREVOQ0UiLFwNCiAgICAgICAgICAgICJjb3VudHJ5IjoiVUEiLFwNCiAgICAgICAgICAgICJhcmVhIjoiXHVjMFx1MTA0NiBcdTEwODAgXHUxMDkwIFx1MTA4NiBcdTEwODQgXHUxMDgwIFx1MTA4OCBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAicmVnaW9uIjoiXHVjMFx1MTA0MSBcdTEwNzcgXHUxMDg4IFx1MTA3NiBcdTEwODAgXHUxMDk1IFx1MTExMCBcdTEwNzQgXHUxMDg5IFx1MTEwMCBcdTEwODIgXHUxMDgwIFx1MTA4MSAiLFwNCiAgICAgICAgICAgICJjaXR5IjoiXHVjMFx1MTA1MCBcdTEwODAgXHUxMTExIFx1MTA3NCAiLFwNCiAgICAgICAgICAgICJjaXR5X3R5cGUiOiJDSVRZIixcDQogICAgICAgICAgICAic3RyZWV0IjoiXHVjMFx1MTA3NCBcdTEwOTEgXHUxMDgzIC4gXHUxMDUzIFx1MTExMCBcdTEwNzggXHUxMDgwIFx1MTA4NSBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAiYnVpbGRpbmciOiIxNSIsXA0KICAgICAgICAgICAgImFwYXJ0bWVudCI6IjIzIixcDQogICAgICAgICAgICAiemlwIjoiMDIwOTAiXA0KICAgICAgICAgXH1cDQogICAgICBdLFwNCiAgICAgICJwaG9uZXMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiTU9CSUxFIixcDQogICAgICAgICAgICAibnVtYmVyIjoiKzM4MDUwMzQxMDg3MCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiU01TIixcDQogICAgICAgICAgICAicGhvbmVfbnVtYmVyIjoiKzM4MDUwODg4NzcwMCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImVtZXJnZW5jeV9jb250YWN0Ijpce1wNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIixcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgImNvbmZpZGFudF9wZXJzb24iOlx7XA0KICAgICAgICAgInJlbGF0aW9uX3R5cGUiOiJ0cnVzdGVlIixcDQogICAgICAgICAiZmlyc3RfbmFtZSI6Ilx1YzBcdTEwNTUgXHUxMDc3IFx1MTA5MCBcdTEwODggXHUxMDg2ICIsXA0KICAgICAgICAgImxhc3RfbmFtZSI6Ilx1YzBcdTEwMzAgXHUxMDc0IFx1MTA3MiBcdTEwODUgXHUxMDg2IFx1MTA3NCAiLFwNCiAgICAgICAgICJzZWNvbmRfbmFtZSI6Ilx1YzBcdTEwNTIgXHUxMDgwIFx1MTA4MiBcdTEwODYgXHUxMDgzIFx1MTA3MiBcdTEwODEgXHUxMDg2IFx1MTA3NCBcdTEwODAgXHUxMDk1ICIsXA0KICAgICAgICAgImJpcnRoX2RhdGUiOiIxOTkxLTA4LTE5VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICJiaXJ0aF9wbGFjZSI6Ilx1YzBcdTEwNDIgXHUxMTEwIFx1MTA4NSBcdTEwODUgXHUxMDgwIFx1MTA5NCBcdTExMDMgLCBcdTEwNTkgXHUxMDgyIFx1MTA4OCBcdTEwNzIgXHUxMTExIFx1MTA4NSBcdTEwNzIgIixcDQogICAgICAgICAiZ2VuZGVyIjoiTUFMRSIsXA0KICAgICAgICAgInRheF9pZCI6IjMxMjY1MDk4MTYiLFwNCiAgICAgICAgICJkb2N1bWVudHMiOltcDQogICAgICAgICAgICBce1wNCiAgICAgICAgICAgICAgICJ0eXBlIjoiUEFTU1BPUlQiLFwNCiAgICAgICAgICAgICAgICJudW1iZXIiOiIxMjA1MTgiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAgICAiZXhwaXJ5X2RhdGUiOiIyMDE1LTA0LTA3VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZWRfYnkiOiJETVNVIlwNCiAgICAgICAgICAgIFx9XA0KICAgICAgICAgXSxcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgInJlbmV3YWxfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicGF0aWVudF9zaWduZWQiOnRydWUsXA0KICAgICAgImRpc2Nsb3N1cmVfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicHJvY2Vzc19kYXRhX2NvbnNlbnQiOnRydWVcDQogICBcfSxcDQogICAiZW1wbG95ZWUiOlx7XA0KICAgICAgImlkIjoiZDI5MGYxZWUtNmM1NC00YjAxLTkwZTYtZDcwMTc0OGYwODUxIixcDQogICAgICAidGl0bGUiOiJcdWMwXHUxMDgzIFx1MTExMCBcdTEwODIgXHUxMDcyIFx1MTA4OCAiLFwNCiAgICAgICJwYXJ0eSI6XHtcDQogICAgICAgICAiaWQiOiJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLFwNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIlwNCiAgICAgIFx9XA0KICAgXH0sXA0KICAgIm1zcCI6XHtcDQogICAgICAiaWQiOiJkMjkwZjFlZSIsXA0KICAgICAgIm5hbWUiOiJcdWMwXHUxMDUwIFx1MTA4MyBcdTExMTAgXHUxMDg1IFx1MTExMCBcdTEwODIgXHUxMDcyICBcdTEwNDEgXHUxMDg2IFx1MTA4OCBcdTEwODAgXHUxMDg5ICIsXA0KICAgICAgInNob3J0X05hbWUiOiJcdWMwXHUxMDQxIFx1MTA4NiBcdTEwODggXHUxMDgwIFx1MTA4OSAiLFwNCiAgICAgICJ0eXBlIjoiXHVjMFx1MTA2MCBcdTEwNTQgXHUxMDU1ICIsXA0KICAgICAgImVkcnBvdSI6IjU0MzIzNDU0MzIiXA0KICAgXH0sXA0KICAgInNjb3BlIjoiZmFtaWx5IGRvY3RvciIsXA0KICAgInBsYWludGV4dF9jb250ZW50IjoiRGVjbGFyYXRpb24gY29udGVudCJcDQpcfX2gggIuMIICKjCCAZOgAwIBAgIJANj0sC/v0hWYMA0GCSqGSIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBLQ1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0NTczM1oXDTE3MDQyNjE0NTczM1owGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMuqrxE/0txT+ZVRKU1O85a8eaaUAOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0GA1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+CaflnzBJBgNVHSMEQjBAgBTET2SwL5UfUMKDyhuBGCA+Cafln6EdpBswGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY9LAv79IVmDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IVS28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjnw87JzkAy5KLDTiotQl8eknkd1bR3nIWINemck3GeGYkR8giG3gkNxz6ky1+63ZcoJkEiS46aneDhmS6BdH0V2G/3delos8+ZMYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQDFA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTcwMzI4MTE1NDEwWjAjBgkqhkiG9w0BCQQxFgQU5NSvVRVYHz5tG1GW8gXrjHSnLj8wUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEgYCdqnN8gGXw9OUmtxOvQQgHK5Ni/4/2WQWj7rxERh5AI6rhXs/hh3DNS5Z5mN6wO8z47SQuedbsMQ5hf6+9BbKhXD7WKeU+DtGyfa1ner5/ubz6BeVvuT98D4PrzHlqNSpe/7AirrA70QVO9kPoFSmGtBG6JjaqaCZBYbvF9InPRw==` (string, required)
+        + `signed_declaration_request`: `MIIWmAYJKoZIhvcNAQcCoIIWiTCCFoUCAQExCzAJBgUrDgMCGgUAMIISuwYJKoZIhvcNAQcBoIISrASCEqh7XHJ0ZjFcYW5zaVxhbnNpY3BnMTI1Mlxjb2NvYXJ0ZjE1MDRcY29jb2FzdWJydGY4MTANCntcZm9udHRibFxmMFxmc3dpc3NcZmNoYXJzZXQwIEhlbHZldGljYTt9DQp7XGNvbG9ydGJsO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1NTtccmVkNzBcZ3JlZW41M1xibHVlOTY7XHJlZDI0OVxncmVlbjI0OVxibHVlMjUxO30NCntcKlxleHBhbmRlZGNvbG9ydGJsOztcY3NzcmdiXGMzNDUxMFxjMjc4NDNcYzQ1MDk4O1xjc3NyZ2JcYzk4MDM5XGM5ODAzOVxjOTg4MjQ7fQ0KXG1hcmdsMTQ0MFxtYXJncjE0NDBcdmlld3cxMDgwMFx2aWV3aDg0MDBcdmlld2tpbmQwDQpcZGVmdGFiNzIwDQpccGFyZFxwYXJkZWZ0YWI3MjBccGFydGlnaHRlbmZhY3RvcjANCg0KXGYwXGZzMjggXGNmMiBcY2IzIFxleHBuZDBcZXhwbmR0dzBca2VybmluZzANClx7XA0KICAgImlkIjoiYjA3NWYxNDgiLFwNCiAgICJzdGFydF9kYXRlIjoiMjAxNy0wMy0wMlQxMDo0NToxNi4wMDBaIixcDQogICAiZW5kX2RhdGUiOiIyMDE3LTAzLTAyVDEwOjQ1OjE2LjAwMFoiLFwNCiAgICJwZXJzb24iOlx7XA0KICAgICAgImZpcnN0X25hbWUiOiJcdWMwXHUxMDU1IFx1MTA3NyBcdTEwOTAgXHUxMDg4IFx1MTA4NiAiLFwNCiAgICAgICJsYXN0X25hbWUiOiJcdWMwXHUxMDMwIFx1MTA3NCBcdTEwNzIgXHUxMDg1IFx1MTA4NiBcdTEwNzQgIixcDQogICAgICAic2blic Vjb25kX25hbWUiOiJcdWMwXHUxMDUyIFx1MTA4MCBcdTEwODIgXHUxMDg2IFx1MTA4MyBcdTEwNzIgXHUxMDgxIFx1MTA4NiBcdTEwNzQgXHUxMDgwIFx1MTA5NSAiLFwNCiAgICAgICJiaXJ0aF9kYXRlIjoiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIixcDQogICAgICAiYmlydGhfcGxhY2UiOiJcdWMwXHUxMDQyIFx1MTExMCBcdTEwODUgXHUxMDg1IFx1MTA4MCBcdTEwOTQgXHUxMTAzICwgXHUxMDU5IFx1MTA4MiBcdTEwODggXHUxMDcyIFx1MTExMSBcdTEwODUgXHUxMDcyICIsXA0KICAgICAgImdlbmRlciI6Ik1BTEUiLFwNCiAgICAgICJlbWFpbCI6ImVtYWlsQGV4YW1wbGUuY29tIixcDQogICAgICAidGF4X2lkIjoiMzEyNjUwOTgxNiIsXA0KICAgICAgIm5hdGlvbmFsX2lkIjoiQ0M3MTUwOTg1MjQzIixcDQogICAgICAic2VjcmV0Ijoic2VjcmV0IixcDQogICAgICAiZG9jdW1lbnRzIjpbXA0KICAgICAgICAgXHtcDQogICAgICAgICAgICAidHlwZSI6IlBBU1NQT1JUIixcDQogICAgICAgICAgICAibnVtYmVyIjoiMTIwNTE4IixcDQogICAgICAgICAgICAiaXNzdWVfZGF0ZSI6IjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIsXA0KICAgICAgICAgICAgImV4cGlyeV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAiaXNzdWVkX2J5IjoiRE1TVSJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImFkZHJlc3NlcyI6W1wNCiAgICAgICAgIFx7XA0KICAgICAgICAgICAgInR5cGUiOiJSRVNJREVOQ0UiLFwNCiAgICAgICAgICAgICJjb3VudHJ5IjoiVUEiLFwNCiAgICAgICAgICAgICJhcmVhIjoiXHVjMFx1MTA0NiBcdTEwODAgXHUxMDkwIFx1MTA4NiBcdTEwODQgXHUxMDgwIFx1MTA4OCBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAicmVnaW9uIjoiXHVjMFx1MTA0MSBcdTEwNzcgXHUxMDg4IFx1MTA3NiBcdTEwODAgXHUxMDk1IFx1MTExMCBcdTEwNzQgXHUxMDg5IFx1MTEwMCBcdTEwODIgXHUxMDgwIFx1MTA4MSAiLFwNCiAgICAgICAgICAgICJjaXR5IjoiXHVjMFx1MTA1MCBcdTEwODAgXHUxMTExIFx1MTA3NCAiLFwNCiAgICAgICAgICAgICJjaXR5X3R5cGUiOiJDSVRZIixcDQogICAgICAgICAgICAic3RyZWV0IjoiXHVjMFx1MTA3NCBcdTEwOTEgXHUxMDgzIC4gXHUxMDUzIFx1MTExMCBcdTEwNzggXHUxMDgwIFx1MTA4NSBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAiYnVpbGRpbmciOiIxNSIsXA0KICAgICAgICAgICAgImFwYXJ0bWVudCI6IjIzIixcDQogICAgICAgICAgICAiemlwIjoiMDIwOTAiXA0KICAgICAgICAgXH1cDQogICAgICBdLFwNCiAgICAgICJwaG9uZXMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiTU9CSUxFIixcDQogICAgICAgICAgICAibnVtYmVyIjoiKzM4MDUwMzQxMDg3MCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiU01TIixcDQogICAgICAgICAgICAicGhvbmVfbnVtYmVyIjoiKzM4MDUwODg4NzcwMCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImVtZXJnZW5jeV9jb250YWN0Ijpce1wNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIixcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgImNvbmZpZGFudF9wZXJzb24iOlx7XA0KICAgICAgICAgInJlbGF0aW9uX3R5cGUiOiJ0cnVzdGVlIixcDQogICAgICAgICAiZmlyc3RfbmFtZSI6Ilx1YzBcdTEwNTUgXHUxMDc3IFx1MTA5MCBcdTEwODggXHUxMDg2ICIsXA0KICAgICAgICAgImxhc3RfbmFtZSI6Ilx1YzBcdTEwMzAgXHUxMDc0IFx1MTA3MiBcdTEwODUgXHUxMDg2IFx1MTA3NCAiLFwNCiAgICAgICAgICJzZWNvbmRfbmFtZSI6Ilx1YzBcdTEwNTIgXHUxMDgwIFx1MTA4MiBcdTEwODYgXHUxMDgzIFx1MTA3MiBcdTEwODEgXHUxMDg2IFx1MTA3NCBcdTEwODAgXHUxMDk1ICIsXA0KICAgICAgICAgImJpcnRoX2RhdGUiOiIxOTkxLTA4LTE5VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICJiaXJ0aF9wbGFjZSI6Ilx1YzBcdTEwNDIgXHUxMTEwIFx1MTA4NSBcdTEwODUgXHUxMDgwIFx1MTA5NCBcdTExMDMgLCBcdTEwNTkgXHUxMDgyIFx1MTA4OCBcdTEwNzIgXHUxMTExIFx1MTA4NSBcdTEwNzIgIixcDQogICAgICAgICAiZ2VuZGVyIjoiTUFMRSIsXA0KICAgICAgICAgInRheF9pZCI6IjMxMjY1MDk4MTYiLFwNCiAgICAgICAgICJkb2N1bWVudHMiOltcDQogICAgICAgICAgICBce1wNCiAgICAgICAgICAgICAgICJ0eXBlIjoiUEFTU1BPUlQiLFwNCiAgICAgICAgICAgICAgICJudW1iZXIiOiIxMjA1MTgiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAgICAiZXhwaXJ5X2RhdGUiOiIyMDE1LTA0LTA3VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZWRfYnkiOiJETVNVIlwNCiAgICAgICAgICAgIFx9XA0KICAgICAgICAgXSxcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgInJlbmV3YWxfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicGF0aWVudF9zaWduZWQiOnRydWUsXA0KICAgICAgImRpc2Nsb3N1cmVfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicHJvY2Vzc19kYXRhX2NvbnNlbnQiOnRydWVcDQogICBcfSxcDQogICAiZW1wbG95ZWUiOlx7XA0KICAgICAgImlkIjoiZDI5MGYxZWUtNmM1NC00YjAxLTkwZTYtZDcwMTc0OGYwODUxIixcDQogICAgICAidGl0bGUiOiJcdWMwXHUxMDgzIFx1MTExMCBcdTEwODIgXHUxMDcyIFx1MTA4OCAiLFwNCiAgICAgICJwYXJ0eSI6XHtcDQogICAgICAgICAiaWQiOiJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLFwNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIlwNCiAgICAgIFx9XA0KICAgXH0sXA0KICAgIm1zcCI6XHtcDQogICAgICAiaWQiOiJkMjkwZjFlZSIsXA0KICAgICAgIm5hbWUiOiJcdWMwXHUxMDUwIFx1MTA4MyBcdTExMTAgXHUxMDg1IFx1MTExMCBcdTEwODIgXHUxMDcyICBcdTEwNDEgXHUxMDg2IFx1MTA4OCBcdTEwODAgXHUxMDg5ICIsXA0KICAgICAgInNob3J0X05hbWUiOiJcdWMwXHUxMDQxIFx1MTA4NiBcdTEwODggXHUxMDgwIFx1MTA4OSAiLFwNCiAgICAgICJ0eXBlIjoiXHVjMFx1MTA2MCBcdTEwNTQgXHUxMDU1ICIsXA0KICAgICAgImVkcnBvdSI6IjU0MzIzNDU0MzIiXA0KICAgXH0sXA0KICAgInNjb3BlIjoiZmFtaWx5IGRvY3RvciIsXA0KICAgInBsYWludGV4dF9jb250ZW50IjoiRGVjbGFyYXRpb24gY29udGVudCJcDQpcfX2gggIuMIICKjCCAZOgAwIBAgIJANj0sC/v0hWYMA0GCSqGSIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBLQ1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0NTczM1oXDTE3MDQyNjE0NTczM1owGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMuqrxE/0txT+ZVRKU1O85a8eaaUAOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0GA1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+CaflnzBJBgNVHSMEQjBAgBTET2SwL5UfUMKDyhuBGCA+Cafln6EdpBswGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY9LAv79IVmDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IVS28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjnw87JzkAy5KLDTiotQl8eknkd1bR3nIWINemck3GeGYkR8giG3gkNxz6ky1+63ZcoJkEiS46aneDhmS6BdH0V2G/3delos8+ZMYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQDFA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTcwMzI4MTE1NDEwWjAjBgkqhkiG9w0BCQQxFgQU5NSvVRVYHz5tG1GW8gXrjHSnLj8wUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEgYCdqnN8gGXw9OUmtxOvQQgHK5Ni/4/2WQWj7rxERh5AI6rhXs/hh3DNS5Z5mN6wO8z47SQuedbsMQ5hf6+9BbKhXD7WKeU+DtGyfa1ner5/ubz6BeVvuT98D4PrzHlqNSpe/7AirrA70QVO9kPoFSmGtBG6JjaqaCZBYbvF9InPRw==` (string, required)
         + `signed_content_encoding`: base64 (string, required)
 
 + Response 200 (application/json)
@@ -626,7 +634,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /api/employees{?edrpou,tax_id,party_id,legal_entity_id,division_id,status,employee_type,limit,starting_after,ending_before}]
+### Get Employees List [GET /api/employees{?tax_id,party_id,edrpou,legal_enyity_id,division_id,status,employee_type,limit,starting_after,ending_before}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -635,14 +643,15 @@ We suggest to use `status` filter to limit response size. Eg. you MAY want to li
 Method returns shortened details, to obtain full information - get Employee it by ID.
 
 + Parameters
-    + edrpou: 12345678 (string, optional)
-    + tax_id: 1234567898 (string, optional)
-    + party_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
-    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
+    + tax_id: 3015492561 (string, optional)
+    + party_id: 3015492561 (string, optional)
+    + edrpou: 38782323 (string, optional)
+    + `legal_enyity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + status: APPROVED (enum, optional)
         - NEW
         - APPROVED
+        - DISMISSED
     + employee_type: DOCTOR (string, optional) 
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
@@ -690,14 +699,24 @@ Response structure differs depending on employee type:
             + division (Division_Short)
             + `legal_entity` (`Legal_Entity_Short`)
 
-### Deactivate Employee - TBD [PATCH /api/employees/{employee_id}/action/deactivate]
+### Deactivate Employee - TBD [PATCH /api/employees/{id}/actions/deactivate]
 
 Use this method to deactivate employee.
-Update employee parameter is_active on false and end_date is now
+1. Revoke role from user
 
+2. Deactivate declarations
+
+3. Update employee parameters:
+ - if employee_type = OWNER
+is_active = false
+status not update
+ - if employee_type not OWNER
+is_active not update
+status = DISMISSED
+ - end_date is now
 
 + Parameters
-    + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
 
@@ -707,7 +726,7 @@ Update employee parameter is_active on false and end_date is now
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (Employee_Request)
+        + data (Employee_Response)
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 ## Employee Requests [/api/employee_requests]
@@ -862,21 +881,28 @@ It returns:
 
 ## Legal Entities [/api/legal_entities]
 
-### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,type,owner_property,status,starting_after,ending_before,limit}]
+### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,settlement_id,type,owner_property,status,mis_verified,nhs_verified,starting_after,ending_before,limit}]
+
+Use this method to get list of legal entities filtering by parameters.
+List consists of legal entities with parameter `is_active = true`.
 
 + Parameters
     + `edrpou`: `341086` (string, optional)
-    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
+    + `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
+    + settlement_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
     + type: MSP (enum, optional)
         - MSP
         + Default: MSP
     + owner_property: state (enum, optional)
         - state
         - private
-    + status: VERIFIED (enum, required)
+    + status: ACTIVE (enum, optional)
+        - ACTIVE
+        - CLOSED
+    + mis_verified: VERIFIED (enum, optional)
         - VERIFIED
-        - DECLINED
-        - VERIFICATION_EXP
+        - NOT_VERIFIED 
+    + `nhs_verified`: false (boolean, optional)
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
         + Default: 50
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
@@ -910,10 +936,13 @@ It returns:
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Legal_Entity_Request_Public_Short`
-            + status: VERIFIED (enum, required)
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+            + `mis_verified`: NOT_VERIFIED (enum, required)
+                - NOT_VERIFIED
                 - VERIFIED
-                - DECLINED
-                - VERIFICATION_EXP
+            + `nhs_verified`: false (boolean, required)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
                 + `client_id`: `client_id` (string, required)
@@ -922,6 +951,11 @@ It returns:
 ### Create/Update Legal Entity [PUT]
 
 Use this method to register a new Legal Entity.
+
+New Legal Entity is created with 
+status = ACTIVE
+mis_verified = NOT_VERIFIED (if legal entity IS NOT in ukr_med_registry) and VERIFIED (if legal entity IS in ukr_med_registry)
+nhs_verified = false
 
 Method receives signed message (pkcs7) including signed content, digital signature and signer public key. 
 All signature fields will be validated (including signer certificate authority).
@@ -1030,10 +1064,13 @@ Signed content MUST consists of JSON object with Legal Entity data:
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include Legal_Entity_Request_Public
-            + status: VERIFIED (enum, required)
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+            + `mis_verified`: NOT_VERIFIED (enum, required)
+                - NOT_VERIFIED
                 - VERIFIED
-                - DECLINED
-                - VERIFICATION_EXP
+            + `nhs_verified`: false (boolean, required)
         + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
@@ -1046,10 +1083,13 @@ Signed content MUST consists of JSON object with Legal Entity data:
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include Legal_Entity_Request_Public
-            + status: VERIFIED (enum, required)
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+            + `mis_verified`: NOT_VERIFIED (enum, required)
+                - NOT_VERIFIED
                 - VERIFIED
-                - DECLINED
-                - VERIFICATION_EXP
+            + `nhs_verified`: false (boolean, required)
         + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
@@ -1057,7 +1097,11 @@ Signed content MUST consists of JSON object with Legal Entity data:
                 + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
             + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
 
-### Update Legal Entity status [PATCH /api/legal_entities/{id}]
+### Verify Legal Entity by MIS [PATCH /api/legal_entities/{id}/actions/mis_verify]
+
+Use this method to verify legal entity by MIS.
+Available transition:
+`mis_verified` NOt_VERIFIED --> VERIFIED
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1068,16 +1112,58 @@ Signed content MUST consists of JSON object with Legal Entity data:
 
             Authorization: Bearer mF_9.B5f-4.1JqM
     
-    + Attributes (object)
-        + status: VERIFIED (enum, required)
-            - VERIFIED
-            - DECLINED
-            - VERIFICATION_EXP
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
             + include `Legal_Entity_Short`
+            
+
+### Verify Legal Entity by NHS [PATCH /api/legal_entities/{id}/actions/nhs_verify]
+
+Use this method to verify legal entity by NHS.
+Available transition:
+`nhs_verified` false --> true
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Legal_Entity_Short`
+            
+
+
+### Deactivate Legal Entity [PATCH /api/legal_entities/{id}/actions/deactivate]
+
+Use this method to deactivate msp.
+1. Deactivate emploees by legal entity
+
+2. Deactivate legal entity
+Update status on CLOSED
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object)
+            + include `Legal_Entity_Short`
+
 
 ## Divisions [/api/divisions]
 
@@ -1298,7 +1384,7 @@ API for searching Ukrainian Addresses
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
-+ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ birth_date: `1991-08-19` (string, required)
 + birth_country: `Україна` (string, required)
 + birth_settlement: `Вінниця` (string, required)
 + gender: MALE, FEMALE (enum[string], required)
@@ -1426,17 +1512,20 @@ API for searching Ukrainian Addresses
 + updated_by: `userid` (string, required)
 
 ### `Declaration_Request_Public`
++ person(`Person_Request`, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
+    + patient_signed: true (boolean) - Факт подписания заявки на декларацию.
+    + `process_disclosure_data_consent`: true (boolean) - Согласие на раскрытие персональных данных
++ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
++ division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
++ scope (enum, required)
+    - family doctor
+
+### `Declaration_Request_Public_Response`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required) - Should be defined on the client side.
 + end_date: `2017-03-02T10:45:16.000Z` (string, optional) - Will be defined on eHealth side if it's not set.
 + person(`Person_Request`, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
-    + renewal_consent: true (boolean)
-    + patient_signed: true (boolean)
-    + disclosure_consent: true (boolean)
-    + process_data_consent: true (boolean)
-    + service_location_consent: true (boolean, required)
-+ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
-+ division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
-+ `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
+    + patient_signed: true (boolean) - Факт подписания заявки на декларацию.
+    + `process_disclosure_data_consent`: true (boolean) - Согласие на раскрытие персональных данных
 + scope (enum, required)
     - family doctor
 
@@ -1444,10 +1533,8 @@ API for searching Ukrainian Addresses
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2017-03-02T10:45:16.000Z` (string, required)
 + person(`Person_Request`, required)
-    + renewal_consent: true (boolean)
-    + patient_signed: true (boolean)
-    + disclosure_consent: true (boolean)
-    + process_data_consent: true (boolean)
+    + patient_signed: true (boolean) - Факт подписания заявки на декларацию.
+    + `process_disclosure_data_consent`: true (boolean) - Согласие на раскрытие персональных данных
 + employee (Employee_Minimal)
 + `legal_entity` (`Medical_Service_Provider`)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1480,10 +1567,8 @@ API for searching Ukrainian Addresses
 + end_date: `2017-03-02T10:45:16.000Z` (string, required)
 + person(`Person_Request`, required)
     + id: `5fb57a5d-1457-430e-9678-c81cec72779f` (string)
-    + renewal_consent: true (boolean)
-    + patient_signed: true (boolean)
-    + disclosure_consent: true (boolean)
-    + process_data_consent: true (boolean)
+    + patient_signed: true (boolean) - Факт подписания заявки на декларацию.
+    + `process_disclosure_data_consent`: true (boolean) - Согласие на раскрытие персональных данных
 + employee (Employee_Minimal)
 + `legal_entity` (`Medical_Service_Provider`)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1594,7 +1679,7 @@ API for searching Ukrainian Addresses
 + position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: NEW, APPROVED (enum, required)
++ status: NEW, APPROVED, DISMISSED (enum, required)
 + is_active: true (boolean, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (Party_Response)
@@ -1606,7 +1691,7 @@ API for searching Ukrainian Addresses
 + position: лікар (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: NEW, APPROVED (enum, required)
++ status: NEW, APPROVED, DISMISSED (enum, required)
 + is_active: false (boolean, required)
 + party (Party_Update)
 + doctor (DoctorNew, optional)
@@ -1636,7 +1721,7 @@ API for searching Ukrainian Addresses
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
-+ status: NEW, APPROVED (enum, required) - Employee status
++ status: NEW, APPROVED, DISMISSED (enum, required) - Employee status
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
@@ -1702,10 +1787,13 @@ API for searching Ukrainian Addresses
 + public_name: Клініка Борис (string, required)
 + type: MSP (string, required)
 + edrpou: 5432345432 (string, required)
-+ status: VERIFIED (enum, required)
++ status: ACTIVE (enum, required)
+    - ACTIVE
+    - CLOSED
++ mis_verified: VERIFIED (enum, required)
     - VERIFIED
-    - DECLINED
-    - VERIFICATION_EXP
+    - NOT_VERIFIED
++ nhs_verified: false (boolean)
 + `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 
@@ -1971,11 +2059,7 @@ API for searching Ukrainian Addresses
 + `check_digit`: 5 (number, required) - Check digit that will be first in sent OTP code. Can be validated as checksum by [Verhoeff algorithm](https://en.wikipedia.org/wiki/Verhoeff_algorithm).
 
 ## Dashboards
-### DeclarationStats
-+ declarations_total: 100 (number, required)
-+ declarations_created: 10 (number, required)
-+ declarations_closed: 2 (number, required)
-
+Ву
 ### HistogramStats
 + interval (Interval, required)
 + period (MainStats, required)
@@ -1993,10 +2077,6 @@ API for searching Ukrainian Addresses
 + doctors: 15 (number, required)   
 
 ### RegionReport
-+ id: `asSbcy12sYs8c` (string, required)
-+ name: `Київ` (string, required)
-
-### SettlementReport
 + id: `asSbcy12sYs8c` (string, required)
 + name: `Київ` (string, required)
 
