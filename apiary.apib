@@ -145,7 +145,7 @@ Each dictionary is an object that contains *{key}*:*{value}* pairs where:
     + Attributes (Response_OK)
         + data (array[`Dictionary`])
 
-## OTP Verification - TDB [/api/otp_verifications]
+## OTP Verification [/api/verifications]
 
 Method is used to verify that provided in declarartion request phone number is valid and is in service
 
@@ -164,7 +164,7 @@ Method is used to verify that provided in declarartion request phone number is v
     + Attributes (Response__Process_OK)
         + data (OTP)
 
-### Complete OTP Verification [PATCH /api/otp_verifications/{phone_number}/actions/complete]
+### Complete OTP Verification [PATCH /api/verifications/{phone_number}/actions/complete]
 
 + Parameters
     + `phone_number`: `+380508887700` (string, required)
@@ -176,13 +176,13 @@ Method is used to verify that provided in declarartion request phone number is v
             Authorization: Bearer mF_9.B5f-4.1JqM
     
     + Attributes (object)
-        + code: 395105 (number)
+        + code: 3782 (number)
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (OTP)
 
-### Find Verifications by Phone Number [GET /api/otp_verifications/{phone_number}]
+### Find Verifications by Phone Number [GET /api/verifications/{phone_number}]
 
 + Parameters
     + `phone_number`: `+380508887700` (string, required)
@@ -197,7 +197,7 @@ Method is used to verify that provided in declarartion request phone number is v
     + Attributes (Response_OK)
         + data (OTP)
 
-## Declaration Requests - TBD [/api/declaration_requests]
+## Declaration Requests [/api/declaration_requests]
 
 [Declaration Request]() is a life-cycle entity that is used to perform operations on [Declarations]().
 
@@ -214,9 +214,9 @@ Method returns shortened details, to obtain full information - get Declaration R
 + Parameters
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
-    + status: new (enum, optional)
-        - new
-        - pending
+    + status: active (enum, optional)
+        - active
+        - pending_verification
     + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
@@ -248,11 +248,12 @@ Method returns shortened details, to obtain full information - get Declaration R
             + code: 201 (number)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Declaration_Request_Details_Public`
-            + content: `Declaration content` (string, required)
-            + active: false (boolean, required)
-            + status: pending_verification (string, required)
-            + seed: hash (string) - Hash of previous block in declarations chain or other random component that should be signed with declaration.
+            + include `Declaration_Request_Public_Response`
+            + employee (Employee_Minimal)
+            + `legal_entity` (`Medical_Service_Provider`)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + division (`Division_Details`)
+            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
 
 ### Create Declaration Request [POST]
 
@@ -274,13 +275,19 @@ This method is used to create Declaration Request (as part of Declaration creati
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Declaration_Request_Public_Response`
-            + employee (Employee_Minimal)
-            + `legal_entity` (`Medical_Service_Provider`)
+            + status: `NEW` (string, required)
+            + employee (Employee_Minimal, required)
+            + `legal_entity` (`Medical_Service_Provider`, required)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + division (`Division_Details`)
+            + division (`Division_Details`, required)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
             + urgent (object, required)
-                + documents (array[`media_content`], required)
+                + `authentication_method_current` (object, required)
+                    + type: `OTP` (enum, required)
+                        - OTP
+                        - OFFLINE
+                    + number: `+38093*****85` (string, required)
+                + documents (array[`media_content`], optional)
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -306,7 +313,7 @@ This method expects one of verification methods as it's parameters. Verification
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + verification_code: 354276 (string, required)
+        + verification_code: 2836 (number, optional) - required if authentication_method is OFFLINE
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -314,10 +321,13 @@ This method expects one of verification methods as it's parameters. Verification
             + code: 201 (number)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Declaration_Request_Public`
-            + content: `Declaration content` (string, required) - Same as returned on creation stage.
-            + active: false (boolean, required)
-            + status: pending_verification (string, required)
+            + include `Declaration_Request_Public_Response`
+            + status: `APPROVED` (string, required)
+            + employee (Employee_Minimal, required)
+            + `legal_entity` (`Medical_Service_Provider`, required)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + division (`Division_Details`, required)
+            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
 
 ### Reject Declaration Request [PATCH /api/declaration_requests/{id}/actions/reject]
 
@@ -352,6 +362,7 @@ Use this method to resend sms on previously created Declaration Request.
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
+        + data (OTP)
 
 ### Sign Declaration Request [PATCH /api/declaration_requests/{id}/actions/sign]
 
@@ -360,173 +371,203 @@ All signature fields will be validated (including signer certificate authority).
 
 This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
 
-Signed content MUST consists of JSON object with Declaration Request data and printout template returned on creation stage.
+Signed content MUST consists of JSON object with Declaration Request data and printout template returned on creation stage. Object `Data{}` that is returned by `Get Declaration request by ID`
 
 **Signed object example:**
 ```
 {
-   "id":"b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-   "start_date":"2017-03-02T10:45:16.000Z",
-   "end_date":"2017-03-02T10:45:16.000Z",
-   "person":{
-      "first_name":"Петро",
-      "last_name":"Іванов",
-      "second_name":"Миколайович",
-      "birth_date":"1991-08-19T00:00:00.000Z",
-      "birth_place":"Вінниця, Україна",
-      "gender":"MALE",
-      "email":"email@example.com",
-      "tax_id":"3126509816",
-      "secret":"secret",
-      "documents":[
-         {
-            "type":"PASSPORT",
-            "number":"120518"
-         },
-         {
-            "type":"NATIONAL_ID",
-            "number":"D736810"
-         }
+    "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+    "start_date": "2017-03-02",
+    "end_date": "2017-03-02",
+    "person": {
+      "first_name": "Петро",
+      "last_name": "Іванов",
+      "second_name": "Миколайович",
+      "birth_date": "1991-08-19",
+      "birth_country": "Україна",
+      "birth_settlement": "Вінниця",
+      "gender": "MALE",
+      "email": "email@example.com",
+      "tax_id": "3126509816",
+      "secret": "secret",
+      "documents": [
+        {
+          "type": "PASSPORT",
+          "number": "120518"
+        }
       ],
-      "addresses":[
-         {
-            "type":"RESIDENCE",
-            "country":"UA",
-            "area":"Житомирська",
-            "region":"Бердичівський",
-            "city":"Київ",
-            "city_type":"CITY",
-            "street":"вул. Ніжинська",
-            "building":"15",
-            "apartment":"23",
-            "zip":"02090"
-         }
+      "addresses": [
+        {
+          "type": "RESIDENCE",
+          "country": "UA",
+          "area": "Житомирська",
+          "region": "Бердичівський",
+          "settlement": "Київ",
+          "settlement_type": "CITY",
+          "settlement_id": "43432432",
+          "street_type": "STREET",
+          "street": "вул. Ніжинська",
+          "building": "15",
+          "apartment": "23",
+          "zip": "02090"
+        }
       ],
-      "phones":[
-         {
-            "type":"MOBILE",
-            "number":"+380503410870"
-         }
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380503410870"
+        }
       ],
-      "authentication_methods":[
-         {
-            "type":"OTP",
-            "phone_number":"+380508887700"
-         }
+      "authentication_methods": [
+        {
+          "type": "OTP",
+          "phone_number": "+380508887700"
+        }
       ],
-      "emergency_contact":{
-         "first_name":"Петро",
-         "last_name":"Іванов",
-         "second_name":"Миколайович",
-         "phones":[
-            {
-               "type":"MOBILE",
-               "number":"+380503410870"
-            }
-         ]
+      "emergency_contact": {
+        "first_name": "Петро",
+        "last_name": "Іванов",
+        "second_name": "Миколайович",
+        "phones": [
+          {
+            "type": "MOBILE",
+            "number": "+380503410870"
+          }
+        ]
       },
-      "confidant_person":{
-         "relation_type":"trustee",
-         "first_name":"Петро",
-         "last_name":"Іванов",
-         "second_name":"Миколайович",
-         "birth_date":"1991-08-19T00:00:00.000Z",
-         "birth_place":"Вінниця, Україна",
-         "gender":"MALE",
-         "tax_id":"3126509816",
-         "documents":[
+      "confidant_person": [
+        {
+          "relation_type": "PRIMARY",
+          "first_name": "Петро",
+          "last_name": "Іванов",
+          "second_name": "Миколайович",
+          "birth_date": "1991-08-19",
+          "birth_country": "Україна",
+          "birth_settlement": "Вінниця",
+          "gender": "MALE",
+          "tax_id": "3126509816",
+          "secret": "secret",
+          "documents_person": [
             {
-                "type":"PASSPORT",
-                "number":"120518"
-            },
-            {
-                "type":"NATIONAL_ID",
-                "number":"D736810"
+              "type": "PASSPORT",
+              "number": "120518"
             }
-        ],
-         "phones":[
+          ],
+          "documents_relationship": [
             {
-               "type":"MOBILE",
-               "number":"+380503410870"
+              "type": "PASSPORT",
+              "number": "120518"
             }
-         ]
-      },
-      "renewal_consent":true,
-      "patient_signed":true,
-      "disclosure_consent":true,
-      "process_data_consent":true
-   },
-   "employee":{
-      "id":"d290f1ee-6c54-4b01-90e6-d701748f0851",
-      "title":"лікар",
-      "party":{
-         "id":"b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-         "first_name":"Петро",
-         "last_name":"Іванов",
-         "second_name":"Миколайович",
-         "email":"email@example.com",
-         "phones":[
+          ],
+          "phones": [
             {
-               "type":"MOBILE",
-               "number":"+380503410870"
+              "type": "MOBILE",
+              "number": "+380503410870"
             }
-         ]
+          ]
+        }
+      ],
+      "patient_signed": false,
+      "process_disclosure_data_consent": true
+    },
+    "scope": "family doctor",
+    "employee": {
+      "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+      "position": "P6",
+      "party": {
+        "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+        "first_name": "Петро",
+        "last_name": "Іванов",
+        "second_name": "Миколайович",
+        "email": "email@example.com",
+        "phones": [
+          {
+            "type": "MOBILE",
+            "number": "+380503410870"
+          }
+        ]
       }
-   },
-   "msp":{
-      "name":"Клініка Борис",
-      "short_Name":"Борис",
-      "type":"ФОП",
-      "edrpou":"5432345432",
-      "services":[
-         {
-            "id":"",
-            "name":""
-         }
+    },
+    "legal_entity": {
+      "name": "Клініка Борис",
+      "short_name": "Борис",
+      "legal_form": "140",
+      "public_name": "ЦПМСД №1",
+      "edrpou": "5432345432",
+      "licenses": [
+        {
+          "license_number": "fd123443",
+          "issued_by": "Кваліфікацйна комісія",
+          "issued_date": "2017-02-28",
+          "expiry_date": "2017-02-28",
+          "active_from_date": "2017-02-28",
+          "what_licensed": "реалізація наркотичних засобів"
+        }
       ],
-      "licenses":[
-         {
-            "license_number":"fd123443",
-            "kved":[
-            ],
-            "issued_by":"Кваліфікацйна комісія",
-            "issued_date":"2017",
-            "expiry_date":"2017"
-         }
+      "accreditation": {
+        "category": "друга",
+        "issued_date": "2017-02-28",
+        "expiry_date": "2017-02-28",
+        "order_no": "fd123443",
+        "order_date": "2017-02-28"
+      },
+      "addresses": [
+        {
+          "type": "RESIDENCE",
+          "country": "UA",
+          "area": "Житомирська",
+          "region": "Бердичівський",
+          "settlement": "Київ",
+          "settlement_type": "CITY",
+          "settlement_id": "43432432",
+          "street_type": "STREET",
+          "street": "вул. Ніжинська",
+          "building": "15",
+          "apartment": "23",
+          "zip": "02090"
+        }
       ],
-      "accreditation":[
-         {
-            "certificate_number":"fd123443",
-            "issued_by":"Кваліфікацйна комісія",
-            "issued_date":"2017",
-            "expiry_date":"2017"
-         }
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380503410870"
+        }
       ],
-      "addresses":[
-         {
-            "type":"RESIDENCE",
-            "country":"UA",
-            "area":"Житомирська",
-            "region":"Бердичівський",
-            "city":"Київ",
-            "city_type":"CITY",
-            "street":"вул. Ніжинська",
-            "building":"15",
-            "apartment":"23",
-            "zip":"02090"
-         }
+      "email": "email@example.com",
+      "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"
+    },
+    "division": {
+      "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+      "legal_entity_id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+      "name": "Бориспільське відділення Клініки Борис",
+      "addresses": [
+        {
+          "type": "RESIDENCE",
+          "country": "UA",
+          "area": "Житомирська",
+          "region": "Бердичівський",
+          "settlement": "Київ",
+          "settlement_type": "CITY",
+          "settlement_id": "43432432",
+          "street_type": "STREET",
+          "street": "вул. Ніжинська",
+          "building": "15",
+          "apartment": "23",
+          "zip": "02090"
+        }
       ],
-      "phones":[
-         {
-            "type":"MOBILE",
-            "number":"+380503410870"
-         }
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380503410870"
+        }
       ],
-      "email":"email@example.com",
-      "id":"d290f1ee-6c54-4b01-90e6-d701748f0851"
-   },
-   "scope":"family doctor",
-   "content":"Declaration content"
+      "email": "email@example.com",
+      "type": "clinic",
+      "external_id": "3213213"
+    },
+    "content": "Declaration content"
+  }
 }
 ```
 
@@ -545,10 +586,7 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
-        + data (`Declaration_Request_Public`)
-            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
-            + active: true (boolean, required) - Should be defined on the client side.
-            + status: active (string, required)
+        + data (`Declaration_short`)
 
 ### Upload document copies for a Declaration Request [POST /media_content_storage/msp/declaration_requests/{id}/{filename}]
 
@@ -699,7 +737,8 @@ Response structure differs depending on employee type:
             + division (Division_Short)
             + `legal_entity` (`Legal_Entity_Short`)
 
-### Deactivate Employee - TBD [PATCH /api/employees/{id}/actions/deactivate]
+
+### Deactivate Employee [PATCH /api/employees/{id}/actions/deactivate]
 
 Use this method to deactivate employee.
 1. Revoke role from user
@@ -1144,7 +1183,7 @@ Available transition:
             
 
 
-### Deactivate Legal Entity [PATCH /api/legal_entities/{id}/actions/deactivate]
+### Deactivate Legal Entity - TBD [PATCH /api/legal_entities/{id}/actions/deactivate]
 
 Use this method to deactivate msp.
 1. Deactivate emploees by legal entity
@@ -1393,10 +1432,10 @@ API for searching Ukrainian Addresses
 + email: email@example.com (string, optional)
 + tax_id: 3126509816 (string, optional)
 + secret: secret (string, required)
-+ documents (array[Document], optional)
-+ addresses (array[Address], optional)
++ documents (array[Document], required)
++ addresses (array[Address], required)
 + phones (array[Phone], optional)
-+ `authentication_methods` (array[Authentication_Method], optional)
++ `authentication_methods` (array[Authentication_Method], required)
 
 ### `Confidant_Person`
 + relation_type: PRIMARY (enum, required)
@@ -1405,23 +1444,25 @@ API for searching Ukrainian Addresses
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
-+ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ birth_date: `1991-08-19` (string, required)
 + birth_country: `Україна` (string, required)
 + birth_settlement: `Вінниця` (string, required)
 + gender: MALE, FEMALE (enum[string], required)
 + tax_id: 3126509816 (string, optional)
-+ documents (array[Document], optional)
++ secret: `secret` (string, required)
++ documents_person (array[Document], required)
++ documents_relationship (array[Document], required)
 + phones (array[Phone], optional)
 
 ### `Emergency_Contact`
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
-+ phones (array[Phone], optional)
++ phones (array[Phone], required)
 
 ### `Person_Request`
 + include `Person`
-+ emergency_contact (object)
++ emergency_contact (object, required)
     + include `Emergency_Contact`
 + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
 
@@ -1448,19 +1489,30 @@ API for searching Ukrainian Addresses
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
-+ birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
++ birth_date: `1991-08-19` (string, required) - ISO Datetime.
 + tax_id: 3126509816 (string, optional)
-+ phone_number: `+380508887700` (string, optional)
-+ birth_place: Вінниця (string, required)
++ phones (array[Phone], required)
++ birth_country: UA (string, required)
++ birth_settlement: Вінниця (string, required)
 + merged_ids (array)
-    + (object)
-        + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
+        + `7bca069f-21e4-4546-90cf-b65e3f39d93d`
 
 ### `Authentication_Method`
 + type (enum, required)
     - OTP
     - OFFLINE
 + phone_number: `+380508887700` (string, optional)
+
+## `Merge_Candidates`
+### `Merge_Candidate`
++ id: `8aa4d353-a58f-45f6-b5ce-a89a9cc39391` (string, optional) - Unique record identifier
++ person_id: `50320ee5-2bca-472c-a1a0-28e2e003ec2a` (string, optional) - Merge candidate identifier
++ `master_person_id`: `cb553981-4b7f-45ec-8f73-f77faf2dcb22` (string, optional) - Master person identifier
++ status: NEW (enum, optional) - Record status
+        - NEW
+        - MERGED
++ inserted_at: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
++ updated_at: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
 
 ## Doctors
 ### Doctor
@@ -1494,8 +1546,8 @@ API for searching Ukrainian Addresses
 + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851`m (string, required)
 + scope (enum, required)
     - family_doctor
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
 + signed_at: `2017-03-02T10:45:16.000Z` (string, required)
 + status (enum, optional)
     - active
@@ -1515,28 +1567,28 @@ API for searching Ukrainian Addresses
 
 ### `Declaration_Request_Public`
 + person(`Person_Request`, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
-    + patient_signed: true (boolean) - Факт подписания заявки на декларацию.
-    + `process_disclosure_data_consent`: true (boolean) - Согласие на раскрытие персональных данных
+    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
+    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
 + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
 + scope (enum, required)
-    - family doctor
+    - family_doctor
 
 ### `Declaration_Request_Public_Response`
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required) - Should be defined on the client side.
-+ end_date: `2017-03-02T10:45:16.000Z` (string, optional) - Will be defined on eHealth side if it's not set.
++ start_date: `2017-03-02` (string, required) - Should be defined on the client side.
++ end_date: `2017-03-02` (string, required) - Will be defined on eHealth side if it's not set.
 + person(`Person_Request`, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
-    + patient_signed: true (boolean) - Факт подписания заявки на декларацию.
-    + `process_disclosure_data_consent`: true (boolean) - Согласие на раскрытие персональных данных
+    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
+    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
 + scope (enum, required)
     - family doctor
 
 ### `Declaration_Request_Details_Public`
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
 + person(`Person_Request`, required)
-    + patient_signed: true (boolean) - Факт подписания заявки на декларацию.
-    + `process_disclosure_data_consent`: true (boolean) - Согласие на раскрытие персональных данных
+    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
+    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
 + employee (Employee_Minimal)
 + `legal_entity` (`Medical_Service_Provider`)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1546,33 +1598,48 @@ API for searching Ukrainian Addresses
 
 ### `Declaration_Request_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
 + person (Person_Minimal)
 + employee (Employee_Minimal)
 + `legal_entity` (`MSP_Short`)
-+ division (`Division_Short`)
++ division (`Division_Short_List`)
+
+### `Declaration_short`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
++ signed_at: `2017-03-02T00:00:00.000Z` (string, required)
++ status (enum, required)
+    - active
+    - pending_verification
++ scope (enum, required)
+    - family doctor
++ person_id: `5fb57a5d-1457-430e-9678-c81cec72779f` (string, required)
++ `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ inserted_at: `2017-07-06T16:54:05.161571Z` (string, required)
 
 ### `Declaration_Details`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
 + person(`Person_Short`)
-+ employee (`Employee_Short`)
++ employee (`Employee_Declaration_Short`)
 + division (`Division_Short`)
 + `legal_entity` (MSP_Details)
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
 ### `Declaration_Details_Public`
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
 + person(`Person_Request`, required)
     + id: `5fb57a5d-1457-430e-9678-c81cec72779f` (string)
-    + patient_signed: true (boolean) - Факт подписания заявки на декларацию.
-    + `process_disclosure_data_consent`: true (boolean) - Согласие на раскрытие персональных данных
-+ employee (Employee_Minimal)
-+ `legal_entity` (`Medical_Service_Provider`)
+    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
+    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+    + `legal_entity` (`Medical_Service_Provider`)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + division (`Division_Details`)
 + scope (enum, required)
@@ -1688,13 +1755,11 @@ API for searching Ukrainian Addresses
 + doctor (DoctorNew, optional)
 
 ### `Employee_Update`
-+ legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 + position: лікар (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + status: NEW, APPROVED, DISMISSED (enum, required)
-+ is_active: false (boolean, required)
 + party (Party_Update)
 + doctor (DoctorNew, optional)
 
@@ -1731,6 +1796,20 @@ API for searching Ukrainian Addresses
     + include `Party_Short`
 + division (`Division_Short`)
 + `legal_entity` (`Legal_Entity_Short`)
++ doctor (DoctorNew_Short)
+
+### `Employee_Declaration_Short`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ position: P1 (string, required) - `Dictionary: POSITION`
++ `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
++ status: NEW, APPROVED, DISMISSED (enum, required) - Employee status
++ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2018-03-02T10:45:16.000Z` (string, optional)
++ party (object)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + include `Party_Short`
++ division_id: `4cffa825-8b5b-4cba-9a38-fb57733e14b2` (string, optional) - division identifier
++ `legal_entity`: `be3a154c-3e07-496d-9680-f22c443f5d0c` (string, required) - legal entity identifier
 + doctor (DoctorNew_Short)
 
 ## `Legal_Entities`
@@ -1854,8 +1933,17 @@ API for searching Ukrainian Addresses
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + include Division
 
+### `Division_Short_List`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ name: Бориспільське відділення Клініки Борис (string, required)
++ type: clinic (enum, required)
+    - clinic
+    - ambulant_clinic
+    - fap
+
 ### `Division_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ name: Бориспільське відділення Клініки Борис (string, required)
 + `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + type: clinic (enum, required)
     - clinic
@@ -1929,9 +2017,12 @@ API for searching Ukrainian Addresses
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
-+ addresses (array[Address], optional
-+ created_at: `2017-02-28T15:12:54.000Z` (string, optional)
-+ modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
++ status: `ACTIVE` (enum, required)
+    + ACTIVE
+    + CLOSED
++ email: `email@example.com` (string, required)
++ phones (array[Phone], required)
++ addresses (array[Address], optional)
 
 ### `MSP`
 + licenses (array[MSP_License], required)
@@ -1993,9 +2084,6 @@ API for searching Ukrainian Addresses
 
 ### Document
 + type: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
-+ identifies: PERSON (enum, required)
-    - PERSON
-    - RELATIONSHIP
 + number: 120518 (string, required)
 
 ### `Medical_Certificate`
@@ -2056,12 +2144,17 @@ API for searching Ukrainian Addresses
 
 ## OTPs
 ### OTP
-+ id: 4 (string, required)
-+ `phone_number`: `+380508887700` (string, required)
-+ `check_digit`: 5 (number, required) - Check digit that will be first in sent OTP code. Can be validated as checksum by [Verhoeff algorithm](https://en.wikipedia.org/wiki/Verhoeff_algorithm).
++ id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
++ status: `NEW` (enum, required)
+    - NEW
+    - CANCELED
+    - VERIFIED
+    - UNVERIFIED
++ `code_expired_at`: `2017-07-10T12:20:16.300597Z` (string, required)
++ active: true (boolean, required)
 
 ## Dashboards
-Ву
+
 ### HistogramStats
 + interval (Interval, required)
 + period (MainStats, required)
@@ -2102,7 +2195,7 @@ API for searching Ukrainian Addresses
 ### DoctorNew
 + educations (array[Education], required)  - освіта
 + qualifications (array[Qualification], optional) - підвищення кваліфікації
-+ specialities (array[Speciality], required)
++ specialities (array[Speciality], required)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
 + science_degree (ScienceDegree, optional)
 
 ### `DoctorNew_Short`
