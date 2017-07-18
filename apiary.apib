@@ -215,8 +215,10 @@ Method returns shortened details, to obtain full information - get Declaration R
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
     + status: active (enum, optional)
-        - active
-        - pending_verification
+        - NEW
+        - APPROVED
+        - SIGNED
+        - CANCELLED
     + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
@@ -301,7 +303,13 @@ This method is used to create Declaration Request (as part of Declaration creati
 
 Use this method to approve previously created Declaration Request.
 
-This method expects one of verification methods as it's parameters. Verification method is determined on Declaration Request creation stage. (See `authentication_method` field description.)
+In case if authentication_method is OTP, request example:
+```
+{
+  "verification_code": 3748
+}
+```
+In case if authentication_method is OFFLINE, request body should be empty.
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -313,7 +321,7 @@ This method expects one of verification methods as it's parameters. Verification
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + verification_code: 2836 (number, optional) - required if authentication_method is OFFLINE
+        + `verification_code`: 2836 (number, optional) - required if authentication_method is OTP
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -371,7 +379,8 @@ All signature fields will be validated (including signer certificate authority).
 
 This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
 
-Signed content MUST consists of JSON object with Declaration Request data and printout template returned on creation stage. Object `Data{}` that is returned by `Get Declaration request by ID`
+Signed content MUST consists of JSON object with Declaration Request data and printout template. Object that need to be signed is returned by `Get Declaration request by ID` response, JSON.Path: $.data
+The only field that can and must be changed is JSON.Path: `$.data.patient_signed`. It should be changed to `true`.
 
 **Signed object example:**
 ```
@@ -617,7 +626,7 @@ Service returns verification code in exchange for uploaded file.
 
 ## Declarations - TBD [/api/declarations]
 
-### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,active,starting_after,ending_before,limit}]
+### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,status,starting_after,ending_before,limit}]
 
 Use this method to obrain list of Declarations for an `empolee_id` and legal_entity_id. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -626,8 +635,8 @@ Method returns shortened details, to obtain full information - get Declaration D
 + Parameters
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - `user_id` of a Doctor.
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - MSP ID.
-    + active: true (boolean, optional)
-        + Default: true
+    + status: active (string, optional)
+        + Default: active
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
         + Default: 50
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
@@ -641,7 +650,7 @@ Method returns shortened details, to obtain full information - get Declaration D
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
-        + data (array[`Declaration_Request_Short`])
+        + data (array[`Declaration_short`])
 
 ### Get Declaration by ID [GET /api/declarations/{id}]
 
@@ -657,11 +666,9 @@ Method returns shortened details, to obtain full information - get Declaration D
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + meta (Response__Meta)
-            + code: 201 (number)
+            + code: 200 (number)
         + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Declaration_Details_Public`
-            + active: true (boolean, required)
+            + include `Declaration_Details`
 
 ## Employees [/api/employees]
 
@@ -1514,11 +1521,6 @@ API for searching Ukrainian Addresses
 + inserted_at: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
 + updated_at: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
 
-## Doctors
-### Doctor
-+ certificates (array[Medical_Certificate], optional)
-+ licenses (array[Medical_License], required)
-+ education (array[Medical_Education], required)
 
 ## DeclarationRequests
 ### `crud_Declaration_request_get`
@@ -1613,6 +1615,7 @@ API for searching Ukrainian Addresses
 + status (enum, required)
     - active
     - pending_verification
+    - terminated
 + scope (enum, required)
     - family doctor
 + person_id: `5fb57a5d-1457-430e-9678-c81cec72779f` (string, required)
@@ -1620,15 +1623,23 @@ API for searching Ukrainian Addresses
 + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + inserted_at: `2017-07-06T16:54:05.161571Z` (string, required)
++ updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
 ### `Declaration_Details`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + start_date: `2017-03-02` (string, required)
 + end_date: `2017-03-02` (string, required)
++ signed_at: `2017-03-02T00:00:00.000Z` (string, required)
 + person(`Person_Short`)
 + employee (`Employee_Declaration_Short`)
 + division (`Division_Short`)
 + `legal_entity` (MSP_Details)
++ status (enum, required)
+    - active
+    - pending_verification
+    - terminated
++ scope (enum, required)
+    - family doctor
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
@@ -1742,6 +1753,7 @@ API for searching Ukrainian Addresses
     + include `Party_Short`
     + email: email@example.com (string, optional)
     + phones (array[Phone], optional)
+    + tax_id: `3372159546` (string, required)
 
 ### Employee_Response
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
