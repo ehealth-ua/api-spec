@@ -256,6 +256,7 @@ Method returns shortened details, to obtain full information - get Declaration R
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + division (`Division_Details`)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + seed: hash (string, required) - Hash of previous block in declarations chain or other random component that should be signed with declaration.
 
 ### Create Declaration Request [POST]
 
@@ -381,6 +382,9 @@ This service will store signed copy of Declaration Request in Media Content Stor
 
 Signed content MUST consists of JSON object with Declaration Request data and printout template. Object that need to be signed is returned by `Get Declaration request by ID` response, JSON.Path: $.data
 The only field that can and must be changed is JSON.Path: `$.data.patient_signed`. It should be changed to `true`.
+
+**Important**
+Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in declarations chain or other random component that should be signed with declaration
 
 **Signed object example:**
 ```
@@ -575,7 +579,8 @@ The only field that can and must be changed is JSON.Path: `$.data.patient_signed
       "type": "clinic",
       "external_id": "3213213"
     },
-    "content": "Declaration content"
+    "content": "Declaration content",
+    "seed": "ghTjh409dnhHUkdi4jdh6hded"
   }
 }
 ```
@@ -1755,7 +1760,7 @@ API for searching Ukrainian Addresses
     + phones (array[Phone], optional)
     + tax_id: `3372159546` (string, required)
 
-### Employee_Response
+### `Employee_Response`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
@@ -1940,6 +1945,7 @@ API for searching Ukrainian Addresses
     - ambulant_clinic
     - fap
 + external_id: `3213213` (string, optional)
++ location (Location, optional)
 
 ### `Division_Details`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -2086,6 +2092,7 @@ API for searching Ukrainian Addresses
 + apartment: 23 (string, optional)
 + zip: 02090 (string, optional)
 
+
 ### Phone
 + type: MOBILE (string, required) - `Dictionary PHONE_TYPE`
 + number: `+380503410870` (string, required)
@@ -2182,6 +2189,12 @@ API for searching Ukrainian Addresses
 + declarations_closed: 2 (number, required)
 + msps: 2 (number, required)
 + doctors: 15 (number, required)   
+
+### `MainStats_Division`
++ declarations_total: 100 (number, required)
++ declarations_created: 10 (number, required)
++ declarations_closed: 2 (number, required)
++ doctors: 15 (number, required)  
 
 ### RegionReport
 + id: `asSbcy12sYs8c` (string, required)
