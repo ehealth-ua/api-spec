@@ -257,6 +257,13 @@ Method returns shortened details, to obtain full information - get Declaration R
             + division (`Division_Details`)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
             + seed: hash (string, required) - Hash of previous block in declarations chain or other random component that should be signed with declaration.
+        + urgent (object, required)
+            + `authentication_method_current` (object, required)
+                + type: `OTP` (enum, required)
+                    - OTP
+                    - OFFLINE
+                + number: `+38093*****85` (string, required)
+            + documents (array[`media_content`], optional)
 
 ### Create Declaration Request [POST]
 
@@ -284,13 +291,13 @@ This method is used to create Declaration Request (as part of Declaration creati
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + division (`Division_Details`, required)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
-            + urgent (object, required)
-                + `authentication_method_current` (object, required)
-                    + type: `OTP` (enum, required)
-                        - OTP
-                        - OFFLINE
-                    + number: `+38093*****85` (string, required)
-                + documents (array[`media_content`], optional)
+        + urgent (object, required)
+            + `authentication_method_current` (object, required)
+                + type: `OTP` (enum, required)
+                    - OTP
+                    - OFFLINE
+                + number: `+38093*****85` (string, required)
+            + documents (array[`media_content`], optional)
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -310,7 +317,10 @@ In case if authentication_method is OTP, request example:
   "verification_code": 3748
 }
 ```
-In case if authentication_method is OFFLINE, request body should be empty.
+In case if authentication_method is OFFLINE, request body should be empty. But before approve patient's scanned documents should be uploaded to the ([Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program))
+on demand. 
+Clients can use signed URL's to directly access Google Cloud Storage via their API 
+([Google Cloud Storage API](https://cloud.google.com/storage/docs/xml-api/put-object-upload))
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -380,7 +390,7 @@ All signature fields will be validated (including signer certificate authority).
 
 This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
 
-Signed content MUST consists of JSON object with Declaration Request data and printout template. Object that need to be signed is returned by `Get Declaration request by ID` response, JSON.Path: $.data
+Signed content MUST consists of JSON object with Declaration Request data and printout template. Object that need to be signed is returned by `Get Declaration request by ID` response, `JSON.Path: $.data`.
 The only field that can and must be changed is JSON.Path: `$.data.patient_signed`. It should be changed to `true`.
 
 **Important**
@@ -602,32 +612,6 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
     + Attributes (Response__Process_OK)
         + data (`Declaration_short`)
 
-### Upload document copies for a Declaration Request [POST /media_content_storage/msp/declaration_requests/{id}/{filename}]
-
-This method is used in offline patient verification process.
-
-Service returns verification code in exchange for uploaded file.
-
-+ Parameters
-    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
-    + filename: SzFxGfAg_Zj.pdf
-
-+ Request (application/pdf)
-
-    + Headers
-
-            Authorization: Bearer mF_9.B5f-4.1JqM
-            Content-Length: 150
-            Content-Range: bytes
-    
-    + Body
-
-            PDF CONTENT
-
-+ Response 201 (application/json)
-    + Attributes (Response_OK)
-        + data
-          + `verification_code`: SzFxGfAg_Zj
 
 ## Declarations - TBD [/api/declarations]
 
@@ -2257,7 +2241,7 @@ API for searching Ukrainian Addresses
 + speciality: THERAPIST (string, required) - `Dictionary SPECIALITY_TYPE`
 + speciality_officio: true (boolean, required) - спеціальність за посадою
 + level: FIRST (string, required) - `Dictionary SPECIALITY_LEVEL`
-+ `qualification_type`: AWARDING (string, required) - `Dictionary QUALIFICATION_TYPE`
++ `qualification_type`: AWARDING (string, required) - `Dictionary SPEC_QUALIFICATION_TYPE`
 + attestation_name: Академія Богомольця (string, required) - орган що видав
 + attestation_date: 2017-02-28 (string, required) - дата отримання
 + valid_to_date: 2020-02-28 (string, required) - дата дії до
