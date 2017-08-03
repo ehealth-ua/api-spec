@@ -25,6 +25,8 @@ If our API returns only one work context, you are free to hide context picker.
 
 To submit issues you should use [Issue Tracking Repo](https://github.com/ehealth-ua/api-spec), issues in all other repositories are used to plan backlog and non-related issued will be closed.
 
+# Group Public. Medical Service Provider Integration Layer
+
 ## oAuth [/api/oauth]
 
 1. Client UI: redirects user to Login UI with `client_id`, `redirect_uri` and `response_type=code` query params;
@@ -91,12 +93,13 @@ Exposed client credentials may be blocked for a security reasons, you will need 
             X-CSRF-Token: my-csrf-token
 
     + Attributes (object)
-        + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
-        + client_secret: `mis-001-secret-key` (string, required) - Medical Information System secret key issued upon integration request. Used to identify application developer.
-        + code: 299383828 (string, required) - oAuth code grant.
-        + `grant_type`: authorization_code (string, fixed, required) - oAuth Grant Type. Currently only `authorization_code` is supported.
-        + redirect_uri: http://example.com/ (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
-        + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space. Different login forms will be shown based on scopes that you requested.
+        + token (object)
+            + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
+            + client_secret: `mis-001-secret-key` (string, required) - Medical Information System secret key issued upon integration request. Used to identify application developer.
+            + code: 299383828 (string, required) - oAuth code grant.
+            + `grant_type`: authorization_code (string, fixed, required) - oAuth Grant Type. Currently only `authorization_code` is supported.
+            + redirect_uri: http://example.com/ (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
+            + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space. Different login forms will be shown based on scopes that you requested.
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
@@ -118,10 +121,11 @@ In future, you will be able to refresh access tokens to extend `access_token` li
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
-        + client_secret: `mis-001-secret-key` (string, required) - Medical Information System secret key issued upon integration request. Used to identify application developer.
-        + refresh_token: `my-oauth-refresh-token` (string, required) - oAuth refresh token.
-        + `grant_type`: refresh_token (string, fixed) - oAuth Grant Type. Currently only `authorization_code` is supported.
+        + token (object)
+            + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
+            + client_secret: `mis-001-secret-key` (string, required) - Medical Information System secret key issued upon integration request. Used to identify application developer.
+            + refresh_token: `my-oauth-refresh-token` (string, required) - oAuth refresh token.
+            + `grant_type`: refresh_token (string, fixed) - oAuth Grant Type. Currently only `authorization_code` is supported.
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
@@ -262,6 +266,7 @@ Method returns shortened details, to obtain full information - get Declaration R
                 + type: `OTP` (enum, required)
                     - OTP
                     - OFFLINE
+                    - NA
                 + number: `+38093*****85` (string, required)
             + documents (array[`media_content`], optional)
 
@@ -296,6 +301,7 @@ This method is used to create Declaration Request (as part of Declaration creati
                 + type: `OTP` (enum, required)
                     - OTP
                     - OFFLINE
+                    - NA
                 + number: `+38093*****85` (string, required)
             + documents (array[`media_content`], optional)
 
@@ -613,7 +619,7 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
         + data (`Declaration_short`)
 
 
-## Declarations - TBD [/api/declarations]
+## Declarations [/api/declarations]
 
 ### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,status,starting_after,ending_before,limit}]
 
@@ -639,7 +645,7 @@ Method returns shortened details, to obtain full information - get Declaration D
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
-        + data (array[`Declaration_short`])
+        + data (array[`nhs_declaration_list`])
 
 ### Get Declaration by ID [GET /api/declarations/{id}]
 
@@ -658,6 +664,41 @@ Method returns shortened details, to obtain full information - get Declaration D
             + code: 200 (number)
         + data (object)
             + include `Declaration_Details`
+
+### Verify declaration  [PATCH /declarations/{id}/verify]
+
+This method is used by NHS_admin to verify declarations that has been created with the offline authorization.
+declaration status will be changed to `active`
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
+
++ Request (application/json)
+    + Headers
+           Authorization: Bearer mF_9.B5f-4.1JqM
+    + Attributes (crud_Declaration_patch)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+
+### Reject declaration  [PATCH /declarations/{id}/reject]
+
+This method is used by NHS_admin to reject declarations that has been created with the offline authorization.
+In case if the verification result is not acceptable.
+declaration status will be changed to `closed`
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
+
++ Request (application/json)
+    + Headers
+           Authorization: Bearer mF_9.B5f-4.1JqM
+    + Attributes (crud_Declaration_patch)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
 
 ## Employees [/api/employees]
 
@@ -849,7 +890,7 @@ This service should be used with `access_token` authetification method.
         + urgent (object, optional)
             + user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
-## Persons - TBD [/api/persons]
+## Persons [/api/persons]
 
 ### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,starting_after,ending_before,limit}]
 
@@ -1179,7 +1220,7 @@ Available transition:
             
 
 
-### Deactivate Legal Entity - TBD [PATCH /api/legal_entities/{id}/actions/deactivate]
+### Deactivate Legal Entity [PATCH /api/legal_entities/{id}/actions/deactivate]
 
 Use this method to deactivate msp.
 1. Deactivate emploees by legal entity
@@ -1497,6 +1538,7 @@ API for searching Ukrainian Addresses
 + type (enum, required)
     - OTP
     - OFFLINE
+    - NA
 + phone_number: `+380508887700` (string, optional)
 
 ## `Merge_Candidates`
@@ -1586,6 +1628,7 @@ API for searching Ukrainian Addresses
 + division (`Division_Details`)
 + scope (enum, required)
     - family doctor
++ `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 
 ### `Declaration_Request_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1607,6 +1650,7 @@ API for searching Ukrainian Addresses
     - terminated
 + scope (enum, required)
     - family doctor
++ `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 + person_id: `5fb57a5d-1457-430e-9678-c81cec72779f` (string, required)
 + `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1629,6 +1673,7 @@ API for searching Ukrainian Addresses
     - terminated
 + scope (enum, required)
     - family doctor
++ `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
@@ -1644,6 +1689,7 @@ API for searching Ukrainian Addresses
 + division (`Division_Details`)
 + scope (enum, required)
     - family doctor
++ `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 
 ## Party
 ### `Party_Short`
@@ -1942,6 +1988,9 @@ API for searching Ukrainian Addresses
     - clinic
     - ambulant_clinic
     - fap
++ status: ACTIVE (enum, required)
+    - ACTIVE
+    - INACTIVE
 
 ### `Division_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1951,17 +2000,21 @@ API for searching Ukrainian Addresses
     - clinic
     - ambulant_clinic
     - fap
++ status: ACTIVE (enum, required)
+    - ACTIVE
+    - INACTIVE
 + mountain_group: `group1` (string, optional)
 
 ### `crud_division_post`
 + include `Division`
-+ active: true (boolean, required)
 
 ### `crud_division_get`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + include `Division`
++ status: ACTIVE (enum, required)
+    - ACTIVE
+    - INACTIVE
 + mountain_group: `group1` (string, optional)
-+ active: true (boolean, required)
 
 ## `Owners`
 ### `Owner`
@@ -2263,9 +2316,20 @@ API for searching Ukrainian Addresses
 
 ## NHS Portal
 ### `nhs_declaration_list`
-+ include `Declaration`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
++ employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851`m (string, required)
++ scope (enum, required)
+    - family_doctor
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
++ signed_at: `2017-03-02T10:45:16.000Z` (string, required)
++ status (enum, optional)
+    - active
+    - closed
 + person (`Person_Minimal`, required)
 + `legal_entity` (`Legal_Entity_Short`, required)
++ `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 
 ### `nhs_declaration`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
