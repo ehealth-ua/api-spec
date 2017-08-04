@@ -1293,11 +1293,30 @@ This method to create the division info by ID.
 ## UAdresses [/api/uaddresses]
 API for searching Ukrainian Addresses
 
-### List Of Settlements By Search Params [GET /api/uaddresses/search/settlements{?settlement_name,region,district}]
+## Search Streets [/streets]
+
+### List of Streets by Search Params [GET /streets{?settlement_id,name,type}]
+
 + Parameters
-    + settlement_name: Новосілки (string, optional) - Name of searching settlement
+    + settlement_id: `eea333b5-e26d-4e3e-92e2-2ab37b131502` (string, required) - Settlement identifier
+    + name: `Незалежності` (string, optional) - Street name
+    + type: STREET (string, optional) - Street type (Dictionary STREET_TYPE)
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array[`Response_Street`])
+
+## Search Settlements [/settlements]
+
+### List Of Cities By Search Params [GET /settlements{?name,region,district,koatuu}]
+
++ Parameters
+    + name: Новосілки (string, optional) - Name of searching settlement
     + region: Київ (string, required) - Province name
     + district: `Києво-Святошинський` (string, optional) - Administrative district of province
+    + koatuu: `2625286301` (string, optional) - koatuu classifier id
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -1305,9 +1324,12 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_Settlement`])
 
-### List Of Regions By Search Params [GET /api/uaddresses/search/regions{?region}]
+## Search Regions [/regions]
+
+### List Of Regions By Search Params [GET /regions{?name,koatuu}]
 + Parameters
-    + region: Київ (string, optional) - Province name
+    + name: Київ (string, optional) - Province name
+    + koatuu: `2625286301` (string, optional) - koatuu classifier id
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -1315,11 +1337,13 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_Region`])
 
-### List Of Districts By Search Params [GET /api/uaddresses/search/districts{?region,region_id,district}]
+## Search Districts [/districts]
+
+### List Of Districts By Search Params [GET /districts{?region,name,koatuu}]
 + Parameters
     + region: Київ (string) - Province name
-    + district: `Києво-Святошинський` (string, optional) - Administrative district of province
-    + region_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
+    + name: `Києво-Святошинський` (string, optional) - Administrative district of province
+    + koatuu: `2625286301` (string, optional) - koatuu classifier id
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -1327,10 +1351,11 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_District`])
 
-### Districts by Region [GET /api/uaddresses/details/region/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name}]
+### Districts by Region [GET /regions/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name,koatuu}]
 
 + Parameters
     + name: `Києво-Святошинський` (string, optional) - Filter by district name
+    + koatuu: `2625286301` (string, optional) - koatuu classifier id
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -1338,10 +1363,13 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_District_Short`])
 
-### Settlements by district [GET /api/uaddresses/details/district/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name}]
+### Settlements by district [GET /districts/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name,koatuu}]
+
+Get list of cities by district
 
 + Parameters
     + name: `Київ` (string, optional) - Filter by settlement name
+    + koatuu: `2625286301` (string, optional) - koatuu classifier id
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -2348,13 +2376,9 @@ API for searching Ukrainian Addresses
 ## UAddresses
 ### `Response_Street`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string) - Address ID
-+ region: Київ (string) -  Region name
-+ district: `Києво-Святошинський` (string) - District name
 + settlement_name: Новосілки (string) - City name
 + street_type: вул (string) - Type of street
 + street_name: `Єрмоленка Володимира` (string) - Street name
-+ street_number: 67 (string) - Number of building
-+ postal_code: 03027 (string) - Postal code
 
 ### `Response_Settlement_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - Settlement ID
@@ -2363,21 +2387,17 @@ API for searching Ukrainian Addresses
 ### `Response_Settlement`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - Settlement ID
 + region: Київ (string) -  Region name
-+ district: `Києво-Святошинський` (string, optional) - District name
++ district: `Києво-Святошинський` (string) - District name
 + settlement_name: Новосілки (string) - City name
-+ type: VILLAGE (enum, optional) - Settlement type Dictionary SETTLEMENT_TYPE
-    - CITY
-    - VILLAGE
-    - SETTLEMENT
-    - TOWNSHIP
-+ parent_settlement: НОВОВОЛИНСЬК (string, optional) - Parent settlement
-+ koatuu: 0724582601 (string, optional) - KOATUU code
-+ mountain_group: false (boolean)
++ mountain_group: 0 (string) - Mountain group
++ type: `С` (string, optional) - Settlement type
++ koatuu: 3520380802 (string, optional) - KOATUU code
++ parent_settlement: Берегово (string, optional) - Parent settlement name
 
 ### `Response_Region`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - Region ID
-+ koatuu: 0700000000 (string, optional) - KOATUU code
-+ name: ВОЛИНСЬКА (string) -  Region name
++ region: Київ (string) -  Region name
++ koatuu: 3520380802 (string, optional) - KOATUU code
 
 ### `Response_District_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - District ID
@@ -2386,8 +2406,8 @@ API for searching Ukrainian Addresses
 ### `Response_District`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - District ID
 + region: Київ (string) -  Region name
-+ koatuu: 0720500000 (string, optional) - KOATUU code
 + district: `Києво-Святошинський` (string) - District name
++ koatuu: 3520380802 (string, optional) - KOATUU code
 
 ### `Create_Settlement`
 + region: Київ (string, required) -  Region name
