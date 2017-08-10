@@ -746,13 +746,13 @@ Method returns shortened details, to obtain full information - get Employee it b
 
 Response structure differs depending on employee type:
 
-**For HR, ADMIN or ACCOUNTANT:**
+**For HR, ACCOUNTANT, OWNER or PHARMACY_OWNER:**
 
 * Person info
 * Employee info
 * User Info
 
-**For DOCTOR:**
+**For DOCTOR or PHARMACIST:**
 
 * Person info
 * Employee info
@@ -1853,6 +1853,10 @@ Get list of cities by district
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + status: NEW, REJECTED, APPROVED (enum, required)
 + inserted_at: `2018-03-02T10:45:16.000Z` (string, required)
++ edrpou: 5432345432 (string, required)
++ `legal_entity_name`: Клініка Борис (string, required)
++ include `Party_Short`
+
 
 ### `Employee_Request_Details`
 + include `Employee_Request`
@@ -2239,37 +2243,65 @@ Get list of cities by district
 
 ## Dashboards
 
+### StatsByRegion
++ stats (RegionStats, required)
++ region (Region, required)
+
+### RegionStats
++ declarations: 100 (number, required)
++ msps: 2 (number, required)
++ doctors: 15 (number, required)
+
+### Region
++ id: `asSbcy12sYs8c` (string, required)
++ name: `Київ` (string, required)
+
 ### HistogramStats
-+ interval (Interval, required)
-+ period (MainStats, required)
-+ total (MainStats, required)
++ period_type (string, required)
++ period_name (string, required)
++ declarations_created (number, required)
++ declarations_closed (number, required)
++ declarations_active_start (number, required)
++ declarations_active_end (number, required)
 
 ### Interval
 + from_date: `2017-02-01` (string, required)
 + to_date: `2017-02-30` (string, required)
 
 ### MainStats
-+ declarations_total: 100 (number, required)
-+ declarations_created: 10 (number, required)
-+ declarations_closed: 2 (number, required)
++ declarations: 100 (number, required)
 + msps: 2 (number, required)
 + doctors: 15 (number, required)   
 
-### `MainStats_Division`
-+ declarations_total: 100 (number, required)
-+ declarations_created: 10 (number, required)
-+ declarations_closed: 2 (number, required)
+### MainStats_Division
++ stats (DivisionStats, required)
++ region (DivisionName, required)
+
+### DivisionStats
++ declarations: 100 (number, required)
++ msps: 2 (number, required)
 + doctors: 15 (number, required)  
+
+### DivisionName
++ id: `asSbcy12sYs8c` (string, required)
++ name: `Пединовка` (string, required)
 
 ### RegionReport
 + id: `asSbcy12sYs8c` (string, required)
 + name: `Київ` (string, required)
 
-### DivisionMap
+### DataEntriesDivisionMap
++ total_pages (number, required)
++ total_entries (number, required)
++ page_size (number, required)
++ page_number (number, required)
++ entries (array[EntriesDivisionMap], optional)
+
+### EntriesDivisionMap
 + id: `asSbcy12sYs8c` (string, required)
 + name: `Aдоніс` (string, required)
 + type: CLINIC, AMBULANT_CLINIC, FAP (enum, required)
-+ address (Address, optional)
++ addresses (Address, optional)
 + contacts (ContactInfo, optional)
 + coordinates (Location, optional)
 
@@ -2434,4 +2466,3 @@ Get list of cities by district
 ### `User_Response` (User_Data)
 + id: `user-1380df72-275a-11e7-93ae-92361f002671` (string) - Internal user ID, a UUID string.
 + `created_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
-+ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
