@@ -530,7 +530,8 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
           "issued_date": "2017-02-28",
           "expiry_date": "2017-02-28",
           "active_from_date": "2017-02-28",
-          "what_licensed": "реалізація наркотичних засобів"
+          "what_licensed": "реалізація наркотичних засобів",
+          "order_no": "K-123"
         }
       ],
       "accreditation": {
@@ -673,7 +674,6 @@ declaration status will be changed to `active`
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
-
 + Request (application/json)
     + Headers
            Authorization: Bearer mF_9.B5f-4.1JqM
@@ -690,7 +690,6 @@ declaration status will be changed to `closed`
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
 
 + Request (application/json)
     + Headers
@@ -1106,7 +1105,8 @@ Signed content MUST consists of JSON object with Legal Entity data:
         "issued_date": "1991-08-19",
         "expiry_date": "1991-08-19",
         "active_from_date": "1991-08-19",
-        "what_licensed": "реалізація наркотичних засобів"
+        "what_licensed": "реалізація наркотичних засобів",
+        "order_no": "K-123"
       }
     ],
     "accreditation": {
@@ -1376,6 +1376,8 @@ Get list of cities by district
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[`Response_Settlement_Short`])
+
+
 
 # Group Dummy. Create legal entity
 
@@ -2222,12 +2224,13 @@ Get list of cities by district
 
 
 ### `MSP_License`
-+ license_number: fd123443 (string, required)
++ license_number: fd123443 (string, optional)
 + issued_by: Кваліфікацйна комісія (string, required)
 + issued_date: `2017-02-28` (string, required)
 + expiry_date: `2017-02-28` (string, optional)
 + `active_from_date`: `2017-02-28` (string, required)
 + what_licensed: реалізація наркотичних засобів (string, optional)
++ order_no: ВА43234 (string, required) - номер наказу
 
 
 ## OTPs
@@ -2273,7 +2276,7 @@ Get list of cities by district
 + msps: 2 (number, required)
 + doctors: 15 (number, required)   
 
-### MainStats_Division
+### `MainStats_Division`
 + stats (DivisionStats, required)
 + region (DivisionName, required)
 
@@ -2349,6 +2352,8 @@ Get list of cities by district
 + speciality: Педіатр (string, required)
 + issued_date: 2017-02-28 (string, required) - дата отримання сертифікату
 + certificate_number: 2017-02-28 (string, required)
++ valid_to: 2017-02-28 (string, optional) - дійсний до
++ additional_info: додаткова інофрмація (string, optional) - додаткова інформація
 
 ### Speciality
 + speciality: THERAPIST (string, required) - `Dictionary SPECIALITY_TYPE`
@@ -2466,3 +2471,4 @@ Get list of cities by district
 ### `User_Response` (User_Data)
 + id: `user-1380df72-275a-11e7-93ae-92361f002671` (string) - Internal user ID, a UUID string.
 + `created_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
