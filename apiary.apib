@@ -199,7 +199,7 @@ Method is used to verify that provided in declarartion request phone number is v
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (OTP)
+        + data (Response_verification_by_phone)
 
 ## Declaration Requests [/api/declaration_requests]
 
@@ -226,6 +226,7 @@ Method returns shortened details, to obtain full information - get Declaration R
     + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    
 
 + Request (application/json)
 
@@ -253,6 +254,11 @@ Method returns shortened details, to obtain full information - get Declaration R
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
+            + status: SIGNED (enum, optional)
+                - NEW
+                - APPROVED
+                - SIGNED
+                - CANCELLED
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Declaration_Request_Public_Response`
             + employee (Employee_Minimal)
@@ -289,6 +295,7 @@ This method is used to create Declaration Request (as part of Declaration creati
             + code: 201 (number)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + seed: hash (string, required)
             + include `Declaration_Request_Public_Response`
             + status: `NEW` (string, required)
             + employee (Employee_Minimal, required)
@@ -346,8 +353,9 @@ Clients can use signed URL's to directly access Google Cloud Storage via their A
             + code: 201 (number)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + seed: hash (string, required)
             + include `Declaration_Request_Public_Response`
-            + status: `APPROVED` (string, required)
+            + status: `REJECTED` (string, required)
             + employee (Employee_Minimal, required)
             + `legal_entity` (`Medical_Service_Provider`, required)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -371,6 +379,17 @@ Use this method to reject previously created Declaration Request.
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
             + code: 200 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + seed: hash (string, required)
+            + include `Declaration_Request_Public_Response`
+            + status: `APPROVED` (string, required)
+            + employee (Employee_Minimal, required)
+            + `legal_entity` (`Medical_Service_Provider`, required)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + division (`Division_Details`, required)
+            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+
 
 ### Resend Authorization OTP on Declaration Request [POST /api/declaration_requests/{id}/actions/resend_otp]
 
@@ -646,7 +665,7 @@ Method returns shortened details, to obtain full information - get Declaration D
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
-        + data (array[`nhs_declaration_list`])
+        + data (array[`nhs_declaration_list_Public`])
 
 ### Get Declaration by ID [GET /api/declarations/{id}]
 
@@ -675,8 +694,11 @@ declaration status will be changed to `active`
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
+
     + Headers
-           Authorization: Bearer mF_9.B5f-4.1JqM
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
     + Attributes (crud_Declaration_patch)
 
 + Response 200 (application/json)
@@ -692,8 +714,11 @@ declaration status will be changed to `closed`
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
+
     + Headers
-           Authorization: Bearer mF_9.B5f-4.1JqM
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
     + Attributes (crud_Declaration_patch)
 
 + Response 200 (application/json)
@@ -714,7 +739,7 @@ Use this end-point to obtain all Employees of the legal entity specified by the 
 
 We suggest to use `status` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
 
-Method returns shortened details, to obtain full information - get Employee it by ID.
+Method returns shortened details (for DOCTOR and PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
 
 + Parameters
     + tax_id: 3015492561 (string, optional)
@@ -723,7 +748,6 @@ Method returns shortened details, to obtain full information - get Employee it b
     + `legal_enyity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + status: APPROVED (enum, optional)
-        - NEW
         - APPROVED
         - DISMISSED
     + employee_type: DOCTOR (string, optional) 
@@ -803,6 +827,8 @@ status = DISMISSED
     + Attributes (Response_OK)
         + data (Employee_Response)
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+                + division (Division_Short)
+                + `legal_entity` (`Legal_Entity_Short`)
 
 ## Employee Requests [/api/employee_requests]
 
@@ -995,7 +1021,15 @@ List consists of legal entities with parameter `is_active = true`.
     + Attributes (Response_Collection)
         + data (array)
             + (object)
-                + include `Legal_Entity_Short`
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+                + include `Legal_Entity_Request_Public_Short`
+                + status: ACTIVE (enum, required)
+                    - ACTIVE
+                    - CLOSED
+                + `mis_verified`: NOT_VERIFIED (enum, required)
+                    - NOT_VERIFIED
+                    - VERIFIED
+                + `nhs_verified`: false (boolean, required)
 
 ### Get Legal Entity by ID [GET /api/legal_entities/{id}]
 
@@ -1020,6 +1054,7 @@ List consists of legal entities with parameter `is_active = true`.
                 - NOT_VERIFIED
                 - VERIFIED
             + `nhs_verified`: false (boolean, required)
+        + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
                 + `client_id`: `client_id` (string, required)
@@ -1168,6 +1203,12 @@ Signed content MUST consists of JSON object with Legal Entity data:
                 - NOT_VERIFIED
                 - VERIFIED
             + `nhs_verified`: false (boolean, required)
+            + is_active: true (boolean, required)
+            + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
+            + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
+            + created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
+            + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
+            + updated_by: `userid` (string, required)
         + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
@@ -1194,7 +1235,7 @@ Available transition:
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + include `Legal_Entity_Short`
+            + include `Legal_Entity_Request_Public_Short`
             
 
 ### Verify Legal Entity by NHS [PATCH /api/legal_entities/{id}/actions/nhs_verify]
@@ -1282,6 +1323,7 @@ This method to create the division info by ID.
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
+        + data (`crud_division_get`)
 
 ### Activate division [PATCH /api/divisions/{id}/actions/activate]
 + Parameters
@@ -1289,6 +1331,7 @@ This method to create the division info by ID.
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
+        + data (`crud_division_get`)
 
 ## UAdresses [/api/uaddresses]
 API for searching Ukrainian Addresses
@@ -1378,7 +1421,6 @@ Get list of cities by district
         + data (array[`Response_Settlement_Short`])
 
 
-
 # Group Dummy. Create legal entity
 
 ## Dummy for legal entity [/dummy/legal_entities]
@@ -1446,6 +1488,9 @@ Get list of cities by district
 + data (object, fixed-type)
     + affordances (array[Affordance], required) - List of available affordances and their URLs
 
+### `Response_verification_by_phone`
++ `phone_number`: `+380508887700` (string, required)
+
 ### `Response_Error`
 + meta (Response__Meta, fixed-type)
     + code: 400 (number)
@@ -1458,7 +1503,6 @@ Get list of cities by district
     - object (string) - `data` attribute is a JSON object.
     - list (string) - `data` attribute is a list.
 + code: 200 (number) - HTTP response code.
-+ `idempotency_key`: `idemp-ssjssdjoa8308u0us0` (string, optional) - [Idempotency key](http://docs.apimanifest.apiary.io/#introduction/optional-features/idempotent-requests). Send it trough `X-Idempotency-Key` header.
 + `request_id`: `req-adasdoijasdojsda` (string) - [Request ID](http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header.
 
 ### `Response__Error`
@@ -1559,10 +1603,7 @@ Get list of cities by district
 + birth_date: `1991-08-19` (string, required) - ISO Datetime.
 + tax_id: 3126509816 (string, optional)
 + phones (array[Phone], required)
-+ birth_country: UA (string, required)
 + birth_settlement: Вінниця (string, required)
-+ merged_ids (array)
-        + `7bca069f-21e4-4546-90cf-b65e3f39d93d`
 
 ### `Authentication_Method`
 + type (enum, required)
@@ -1820,13 +1861,17 @@ Get list of cities by district
     + phones (array[Phone], optional)
     + tax_id: `3372159546` (string, required)
 
+### `Employee_For_Declaration_Minimal`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ position: P6 (string, required) - `Dictionary POSITION`
++ `employee_type`: doctor (enum) - `Dictionary EMPLOYEE_TYPE`
+
 ### `Employee_Response`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: NEW, APPROVED, DISMISSED (enum, required)
-+ is_active: true (boolean, required)
++ status: APPROVED, DISMISSED (enum, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (Party_Response)
 + doctor (DoctorNew, optional)
@@ -1836,13 +1881,13 @@ Get list of cities by district
 + position: лікар (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: NEW, APPROVED, DISMISSED (enum, required)
++ status: APPROVED, DISMISSED (enum, required)
 + party (Party_Update)
 + doctor (DoctorNew, optional)
 
 ### `Employee_Request`
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
-+ employee_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
++ `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
 + position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
@@ -1862,14 +1907,12 @@ Get list of cities by district
 
 ### `Employee_Request_Details`
 + include `Employee_Request`
-+ division (`Division_Short`)
-+ `legal_entity` (`Legal_Entity_Short`)
 
 ### `Employee_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
-+ status: NEW, APPROVED, DISMISSED (enum, required) - Employee status
++ status: APPROVED, DISMISSED (enum, required) - Employee status
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
@@ -1883,7 +1926,7 @@ Get list of cities by district
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
-+ status: NEW, APPROVED, DISMISSED (enum, required) - Employee status
++ status: APPROVED, DISMISSED (enum, required) - Employee status
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
@@ -1952,12 +1995,6 @@ Get list of cities by district
 + status: ACTIVE (enum, required)
     - ACTIVE
     - CLOSED
-+ mis_verified: VERIFIED (enum, required)
-    - VERIFIED
-    - NOT_VERIFIED
-+ nhs_verified: false (boolean)
-+ `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
-+ `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 
 ## `Legal_Entity_Requests`
 
@@ -1979,7 +2016,7 @@ Get list of cities by district
     + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri
 + public_offer (object)
     + `consent`: true (boolean, required)
-    + `consent_text`: `Зобов'язуюсь дотримуватись Регламенту функціонування системи eHealth. Підтверджую достовірність вказаних мною даних та добровільність надання цих даних. Усвідомлюю, що у випадку надання мною невірної інформації, мені може бути відмовлено у реєстрації в системі eHealth.` (string, required)
+    + `consent_text`: `Відповідно до Закону України “Про захист персональних даних” з метою ведення реєстрів електронної системи охорони здоров’я та забезпечення її функціонування у дослідній експлуатації надаю згоду обраному оператору та адміністратору електронної системи охорони здоров’я на обробку моїх персональних даних з первинних джерел, а також на здійснення дій пов’язаних зі збиранням, реєстрацією, накопиченням, зберіганням, адаптуванням, зміною, поновленням, використанням, поширенням, розповсюдженням, реалізацією, передачею, знеособленням, знищенням будь-яких відомостей. Додатково надаю згоду на доступ до моїх персональних даних уповноважених третіх осіб, що визначає дії оператора МІС та адміністратора у разі отримання запиту від уповноваженої третьої особи щодо надання доступу до персональних даних. Підтверджую достовірність вказаних мною даних та добровільність надання цих даних до електронної системи охорони здоров’я, що працює у дослідній експлуатації. Усвідомлюю, що у випадку надання мною невірної інформації, мені може бути відмовлено в реєстрації в електронній системі охорони здоров’я. Зобов’язуюсь дотримуватись Регламенту функціонуваня електронної системи охорони здоров’я.` (string, required)
 
 ### `Legal_Entity_Request_Public_Short` 
 + name: Клініка Борис (string, required)
@@ -1996,10 +2033,15 @@ Get list of cities by district
 + `medical_service_provider` (MSP)
 + security (object, fixed-type)
     + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
++ is_active: true (boolean, required)
++ inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
++ inserted_at: `2005-10-30 10:45` (string, required) - timestamp
++ created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
++ updated_at: `1991-08-19T00:00:00.000Z` (string, required)
++ updated_by: `userid` (string, required)
 
 ## `Divisions`
 ### `Division`
-+ `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + name: Бориспільське відділення Клініки Борис (string, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
@@ -2009,7 +2051,6 @@ Get list of cities by district
     - ambulant_clinic
     - fap
 + external_id: `3213213` (string, optional)
-+ location (Location, optional)
 
 ### `Division_Details`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -2037,7 +2078,7 @@ Get list of cities by district
 + status: ACTIVE (enum, required)
     - ACTIVE
     - INACTIVE
-+ mountain_group: `group1` (string, optional)
++ mountain_group: false (boolean, optional)
 
 ### `crud_division_post`
 + include `Division`
@@ -2048,7 +2089,7 @@ Get list of cities by district
 + status: ACTIVE (enum, required)
     - ACTIVE
     - INACTIVE
-+ mountain_group: `group1` (string, optional)
++ mountain_group: false (boolean, optional)
 
 ## `Owners`
 ### `Owner`
@@ -2324,7 +2365,6 @@ Get list of cities by district
 + science_degree (ScienceDegree, optional)
 
 ### `DoctorNew_Short`
-+ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + specialities (array[Speciality], required)
 
 ### Education
@@ -2396,6 +2436,22 @@ Get list of cities by district
 + `legal_entity` (`Legal_Entity_Short`, required)
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 
+### `nhs_declaration_list_Public`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
++ `employee` (`Employee_For_Declaration_Minimal`, required)
++ `division` (`DivisionName`, required)        
++ scope (enum, required)
+    - family_doctor
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
++ signed_at: `2017-03-02T10:45:16.000Z` (string, required)
++ status (enum, optional)
+    - active
+    - closed
++ person (`Person_Minimal`, required)
++ `legal_entity` (`Legal_Entity_Short`, required)
++ `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
+
 ### `nhs_declaration`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + include `Declaration_Request_Details_Public`
@@ -2423,13 +2479,16 @@ Get list of cities by district
 
 ### `Response_Settlement`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - Settlement ID
++ region_id: `99310bc4-ac7c-4f1f-bc29-b3ae25bd96bc` (string)
 + region: Київ (string) -  Region name
 + district: `Києво-Святошинський` (string) - District name
++ district_id: `99310bc4-ac7c-4f1f-bc29-b3ae25bd96bc` (string)
 + settlement_name: Новосілки (string) - City name
 + mountain_group: 0 (string) - Mountain group
 + type: `С` (string, optional) - Settlement type
 + koatuu: 3520380802 (string, optional) - KOATUU code
 + parent_settlement: Берегово (string, optional) - Parent settlement name
++ parent_settlement_id: `99310bc4-ac7c-4f1f-bc29-b3ae25bd96bc` (string)
 
 ### `Response_Region`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - Region ID
@@ -2443,6 +2502,7 @@ Get list of cities by district
 ### `Response_District`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - District ID
 + region: Київ (string) -  Region name
++ region_id: `c4c0f907-8b60-483e-bbf6-dfb34ab91574` (string)
 + district: `Києво-Святошинський` (string) - District name
 + koatuu: 3520380802 (string, optional) - KOATUU code
 
@@ -2472,3 +2532,4 @@ Get list of cities by district
 + id: `user-1380df72-275a-11e7-93ae-92361f002671` (string) - Internal user ID, a UUID string.
 + `created_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
+
