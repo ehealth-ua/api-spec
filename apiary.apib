@@ -1286,11 +1286,21 @@ Update status on CLOSED
 
 ## Divisions [/api/divisions]
 
-### Get divisions [GET]
+### Get divisions [GET /api/divisions{?ids,name,legal_entity_id,type,status}]
+
++ Parameters
+    + ids: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
+    + name: `Бориспільське відділення клініки` (string, optional)
+    + legal_entity_id: `d8b5f374-0f3c-46e6-baf1-21d97b4c9ff5` (string, optional)
+    + type: CLINIC (string, optional) - Dictionary DIVISION_TYPE
+    + status: ACTIVE (string, optional)
+        - ACTIVE
+        - INACTIVE
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
         + data (`crud_division_get`)
+
 
 ### Update division [PUT /api/divisions/{id}]
 
@@ -2051,6 +2061,7 @@ Get list of cities by district
     - ambulant_clinic
     - fap
 + external_id: `3213213` (string, optional)
++ location (Location, optional)
 
 ### `Division_Details`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
