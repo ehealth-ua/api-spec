@@ -1346,9 +1346,9 @@ This method to create the division info by ID.
 ## UAdresses [/api/uaddresses]
 API for searching Ukrainian Addresses
 
-## Search Streets [/streets]
+## Search Streets [/api/uaddresses/streets]
 
-### List of Streets by Search Params [GET /streets{?settlement_id,name,type}]
+### List of Streets by Search Params [GET /api/uaddresses/streets{?settlement_id,name,type}]
 
 + Parameters
     + settlement_id: `eea333b5-e26d-4e3e-92e2-2ab37b131502` (string, required) - Settlement identifier
@@ -1361,9 +1361,9 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_Street`])
 
-## Search Settlements [/settlements]
+## Search Settlements [/api/uaddresses/settlements]
 
-### List Of Cities By Search Params [GET /settlements{?name,region,district,koatuu}]
+### List Of Cities By Search Params [GET /api/uaddresses/settlements{?name,region,district,koatuu}]
 
 + Parameters
     + name: Новосілки (string, optional) - Name of searching settlement
@@ -1377,9 +1377,9 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_Settlement`])
 
-## Search Regions [/regions]
+## Search Regions [/api/uaddresses/regions]
 
-### List Of Regions By Search Params [GET /regions{?name,koatuu}]
+### List Of Regions By Search Params [GET /api/uaddresses/regions{?name,koatuu}]
 + Parameters
     + name: Київ (string, optional) - Province name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
@@ -1390,9 +1390,9 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_Region`])
 
-## Search Districts [/districts]
+## Search Districts [/api/uaddresses/districts]
 
-### List Of Districts By Search Params [GET /districts{?region,name,koatuu}]
+### List Of Districts By Search Params [GET /api/uaddresses/districts{?region,name,koatuu}]
 + Parameters
     + region: Київ (string) - Province name
     + name: `Києво-Святошинський` (string, optional) - Administrative district of province
@@ -1404,7 +1404,7 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_District`])
 
-### Districts by Region [GET /regions/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name,koatuu}]
+### Districts by Region [GET /api/uaddresses/regions/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name,koatuu}]
 
 + Parameters
     + name: `Києво-Святошинський` (string, optional) - Filter by district name
@@ -1416,7 +1416,7 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_District_Short`])
 
-### Settlements by district [GET /districts/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name,koatuu}]
+### Settlements by district [GET /api/uaddresses/districts/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name,koatuu}]
 
 Get list of cities by district
 
