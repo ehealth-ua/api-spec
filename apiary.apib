@@ -1430,7 +1430,7 @@ Get list of cities by district
             + code: 200 (number)
         + data (array[`Response_Settlement_Short`])
 
-## Roles [/roles]
+## Roles [/admin/roles]
 
 Roles are used to simplify Users access management.
 Role scopes limits list of scopes that User can have.
@@ -1438,7 +1438,7 @@ By changing Role scopes this change will immidiately propagate to all users with
 
 Roles are set separately for each Client.
 
-### List Roles [GET /roles{?name,page_number,page_size}]
+### List Roles [GET /admin/roles{?name,page_number,page_size}]
 
 + Parameters
     + name: `My role` (string, optional) - Return only roles that contains `name` substring.
@@ -1451,7 +1451,7 @@ Roles are set separately for each Client.
     + Attributes (`Response_Collection`)
         + data (array[`Role_Response`])
 
-### Get Role by ID [GET /roles/{id}]
+### Get Role by ID [GET /admin/roles/{id}]
 
 + Parameters
     + id: `role-1380df72-275a-11e7-93ae-92361f002671` (string, required)
