@@ -1430,6 +1430,37 @@ Get list of cities by district
             + code: 200 (number)
         + data (array[`Response_Settlement_Short`])
 
+## Roles [/roles]
+
+Roles are used to simplify Users access management.
+Role scopes limits list of scopes that User can have.
+By changing Role scopes this change will immidiately propagate to all users within role.
+
+Roles are set separately for each Client.
+
+### List Roles [GET /roles{?name,page_number,page_size}]
+
++ Parameters
+    + name: `My role` (string, optional) - Return only roles that contains `name` substring.
+    + `page_number`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection`)
+        + data (array[`Role_Response`])
+
+### Get Role by ID [GET /roles/{id}]
+
++ Parameters
+    + id: `role-1380df72-275a-11e7-93ae-92361f002671` (string, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (`Role_Response`)
 
 # Group Dummy. Create legal entity
 
@@ -2544,3 +2575,12 @@ Get list of cities by district
 + `created_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
+## Roles
+### Role (object)
++ name: `Doctor` (string, required) - role title
++ scope: `notebooks:read notebooks:create patients:read` (string, required) - List of scopes, space-separated.
+
+### `Role_Response` (Role)
++ id: `role-1380df72-275a-11e7-93ae-92361f002671` (string) - Internal role ID, a UUID string.
++ `created_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
