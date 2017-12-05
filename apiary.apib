@@ -38,9 +38,22 @@ To submit issues you should use [Issue Tracking Repo](https://github.com/ehealth
 7. Client Back-End: stores `refresh_token` (in back-end!) and sends `access_token` to Client UI;
 8. Client UI: stores `access_token` (in local storage, cookie, etc.) and makes all future requests with `Auhtorization: Bearer <access_token>` header.
 
-Notes:
+**Notes:**
 - If User already has approval with insufficient scopes, all steps are required, but Login UI MAY render page that shows only newly added scopes.
 - When `access_token` expires, Client repeats steps 6-8 but via `grant_type=refresh_token`.
+
+**API-key:**
+- For identifiers MIS clients (as a brocker) we use term API-key. MIS must be **mandatory** send API-key when called e-Health API. 
+- API-key its a `client_secret` - Medical Information System secret key issued upon integration request.
+- API-key dispatched in Request HEADER as a `API-key` attribute. Example: 
+```
+HEADERS
+Content-Type:application/json
+Authorization:Bearer mF_9.B5f-4.1JqM
+API-key:uXhEczJ56adsfh3Ri9SUkc4en
+```
+- If MIS don't send API-key in Request HEADER, API return 401 error wih message "API-KEY header required".
+
 
 **Sequence Diagram**
 
@@ -207,7 +220,7 @@ Method is used to verify that provided in declarartion request phone number is v
 
 After declaration request is signed and/or verified (depends on verification logic) it will be automatically moved to [Declarations]().
 
-### Get Declaration Requests List [GET /api/declaration_requests{?employee_id,legal_entity_id,status,starting_after,ending_before,limit}]
+### Get Declaration Requests List [GET /api/declaration_requests{?employee_id,legal_entity_id,status,page,page_size}]
 
 Use this method to obrain list of Declaration Requests for an `empolee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -223,9 +236,8 @@ Method returns shortened details, to obtain full information - get Declaration R
         - APPROVED
         - SIGNED
         - CANCELLED
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
     
 
 + Request (application/json)
@@ -235,7 +247,7 @@ Method returns shortened details, to obtain full information - get Declaration R
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`Declaration_Request_Short`])
 
 ### Get Declaration Request by ID [GET /api/declaration_requests/{id}]
@@ -641,7 +653,7 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
 
 ## Declarations [/api/declarations]
 
-### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,status,starting_after,ending_before,limit}]
+### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,status,page,page_size}]
 
 Use this method to obrain list of Declarations for an `empolee_id` and legal_entity_id. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -652,10 +664,8 @@ Method returns shortened details, to obtain full information - get Declaration D
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - MSP ID.
     + status: active (string, optional)
         + Default: active
-    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-        + Default: 50
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -664,7 +674,7 @@ Method returns shortened details, to obtain full information - get Declaration D
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`nhs_declaration_list_Public`])
 
 ### Get Declaration by ID [GET /api/declarations/{id}]
@@ -733,7 +743,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /api/employees{?tax_id,party_id,edrpou,legal_enyity_id,division_id,status,employee_type,limit,starting_after,ending_before}]
+### Get Employees List [GET /api/employees{?no_tax_id,tax_id,party_id,edrpou,legal_enyity_id,division_id,status,employee_type,page,page_size}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -742,6 +752,7 @@ We suggest to use `status` filter to limit response size. Eg. you MAY want to li
 Method returns shortened details (for DOCTOR and PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
 
 + Parameters
+    + no_tax_id: true (boolean, optional)
     + tax_id: 3015492561 (string, optional)
     + party_id: 3015492561 (string, optional)
     + edrpou: 38782323 (string, optional)
@@ -751,9 +762,8 @@ Method returns shortened details (for DOCTOR and PHARMACIST - additional return
         - APPROVED
         - DISMISSED
     + employee_type: DOCTOR (string, optional) 
-    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -762,7 +772,7 @@ Method returns shortened details (for DOCTOR and PHARMACIST - additional return
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`Employee_Short`])
 
 ### Get Employee Details [GET /api/employees/{employee_id}]
@@ -800,19 +810,16 @@ Response structure differs depending on employee type:
 
 ### Deactivate Employee [PATCH /api/employees/{id}/actions/deactivate]
 
-Use this method to deactivate employee.
+Use this method to deactivate employee. OWNER and PHARMACY_OWNER can't be deactivated using this method.
+(the 409 error with message 'Owner can't be deactivated').
+OWNER and PHARMACY_OWNER deactivates when corresponding legal_entity deactivates.
+Employee deactivation: 
 1. Revoke role from user
 
 2. Deactivate declarations
 
 3. Update employee parameters:
- - if employee_type = OWNER
-is_active = false
-status not update
- - if employee_type not OWNER
-is_active not update
-status = DISMISSED
- - end_date is now
+ - change status=DISMISSED and end_date=now
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -827,7 +834,7 @@ status = DISMISSED
     + Attributes (Response_OK)
         + data (Employee_Response)
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-                + division (Division_Short)
+            + division (Division_Short)
                 + `legal_entity` (`Legal_Entity_Short`)
 
 ## Employee Requests [/api/employee_requests]
@@ -869,17 +876,20 @@ For changes to take effect employee must confirm the changes
             + inserted_at: `2017-05-05T14:09:59.232112` (string, required)
             + updated_at: `2017-05-05T14:09:59.232112` (string, required)
 
-### Get Employee Requests List [GET /api/employee_requests{?status,limit,starting_after,ending_before}]
+### Get Employee Requests List [GET /api/employee_requests{?id,edrpou,legal_entity_name,no_tax_id,status,page,page_size}]
 
 + Parameters
-    + status: NEW (enum, optional)
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) 
+    + `edrpou`: `341086` (string, optional)
+    + `legal_entity_name`: `Лимич Медікал` (string, optional)
+    + `no_tax_id`: true (boolean, optional)
+    + `status`: NEW (enum, optional)
         - NEW
         - REJECTED
         - APPROVED
         + Default: NEW
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -888,7 +898,7 @@ For changes to take effect employee must confirm the changes
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`Employee_Request_Short`])
 
 ### Get Employee Request by ID [GET /api/employee_requests/{id}]
@@ -917,7 +927,7 @@ This service should be used with `access_token` authetification method.
 
 ## Persons [/api/persons]
 
-### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,starting_after,ending_before,limit}]
+### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,page,page_size}]
 
 This method allows to search for a Person (MPI) without disclosing personal data.
 
@@ -930,10 +940,8 @@ Method returns only **requested** parameters, birth place and second name in add
     + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
-    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
-
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 + Request (application/json)
 
     + Headers
@@ -982,9 +990,35 @@ It returns:
             + type: `forbidden`
             + message: `Active declaration belongs to another msp` (string)
 
+### Reset authentication method [PATCH /api/persons/{id}/actions/reset_authentication_method]
+
+This method allows to reset (set to **NA**) person authentication method.
+
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (`Person_Short`)
+
++ Response 403 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta, fixed-type)
+            + code: 403 (number)
+        + error (Response__Error, fixed-type)
+            + type: `forbidden`
+            + message: `Not found active declaration with person for this legal entity!` (string)
+
 ## Legal Entities [/api/legal_entities]
 
-### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,settlement_id,type,owner_property,status,mis_verified,nhs_verified,starting_after,ending_before,limit}]
+### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,settlement_id,type,owner_property,status,mis_verified,nhs_verified,page,page_size}]
 
 Use this method to get list of legal entities filtering by parameters.
 List consists of legal entities with parameter `is_active = true`.
@@ -1006,10 +1040,8 @@ List consists of legal entities with parameter `is_active = true`.
         - VERIFIED
         - NOT_VERIFIED 
     + `nhs_verified`: false (boolean, optional)
-    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-        + Default: 50
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -1018,7 +1050,7 @@ List consists of legal entities with parameter `is_active = true`.
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array)
             + (object)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1286,7 +1318,7 @@ Update status on CLOSED
 
 ## Divisions [/api/divisions]
 
-### Get divisions [GET /api/divisions{?ids,name,legal_entity_id,type,status}]
+### Get divisions [GET /api/divisions{?ids,name,legal_entity_id,type,status,page,page_size}]
 
 + Parameters
     + ids: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
@@ -1296,13 +1328,15 @@ Update status on CLOSED
     + status: ACTIVE (string, optional)
         - ACTIVE
         - INACTIVE
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (Response_Collection_V2)
         + data (`crud_division_get`)
 
-
-### Update division [PUT /api/divisions/{id}]
+### Update division [PATCH /api/divisions/{id}]
 
 This method to update the division info by ID.
 
@@ -1344,88 +1378,106 @@ This method to create the division info by ID.
         + data (`crud_division_get`)
 
 ## UAdresses [/api/uaddresses]
+
 API for searching Ukrainian Addresses
 
 ## Search Streets [/api/uaddresses/streets]
 
-### List of Streets by Search Params [GET /api/uaddresses/streets{?settlement_id,name,type}]
+### List of Streets by Search Params [GET /api/uaddresses/streets{?settlement_id,name,type,page,page_size}]
 
 + Parameters
     + settlement_id: `eea333b5-e26d-4e3e-92e2-2ab37b131502` (string, required) - Settlement identifier
     + name: `Незалежності` (string, optional) - Street name
     + type: STREET (string, optional) - Street type (Dictionary STREET_TYPE)
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[`Response_Street`])
 
-## Search Settlements [/api/uaddresses/settlements]
+## Search Settlements [/api/settlements]
 
-### List Of Cities By Search Params [GET /api/uaddresses/settlements{?name,region,district,koatuu}]
+### List Of Cities By Search Params [GET /api/uaddresses/settlements{?name,region,district,koatuu,page,page_size}]
+
+Use this method to obtain list of cities. If you want to reduce amount of data that is going trough your application, use `name`, `region`, `district` or `koatuu classifier` filters and show only cities you are interested in.
 
 + Parameters
     + name: Новосілки (string, optional) - Name of searching settlement
-    + region: Київ (string, required) - Province name
+    + region: Київ (string, optional) - Province name
     + district: `Києво-Святошинський` (string, optional) - Administrative district of province
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[`Response_Settlement`])
 
 ## Search Regions [/api/uaddresses/regions]
 
-### List Of Regions By Search Params [GET /api/uaddresses/regions{?name,koatuu}]
+### List Of Regions By Search Params [GET /api/uaddresses/regions{?name,koatuu,page,page_size}]
 + Parameters
     + name: Київ (string, optional) - Province name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[`Response_Region`])
 
 ## Search Districts [/api/uaddresses/districts]
 
-### List Of Districts By Search Params [GET /api/uaddresses/districts{?region,name,koatuu}]
+### List Of Districts By Search Params [GET /api/uaddresses/districts{?region_id,region,name,koatuu,page,page_size}]
 + Parameters
-    + region: Київ (string) - Province name
+    + region_id: `09a33c98-9a5c-447a-8493-da8fcecb6873` (string, optional) - Province id
+    + region: Київ (string, optional) - Province name
     + name: `Києво-Святошинський` (string, optional) - Administrative district of province
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[`Response_District`])
 
-### Districts by Region [GET /api/uaddresses/regions/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name,koatuu}]
+### Districts by Region [GET /api/uaddresses/regions/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name,koatuu,page,page_size}]
 
 + Parameters
     + name: `Києво-Святошинський` (string, optional) - Filter by district name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[`Response_District_Short`])
 
-### Settlements by district [GET /api/uaddresses/districts/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name,koatuu}]
+### Settlements by district [GET /api/uaddresses/districts/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name,koatuu,page,page_size}]
 
 Get list of cities by district
 
 + Parameters
     + name: `Київ` (string, optional) - Filter by settlement name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[`Response_Settlement_Short`])
@@ -1438,11 +1490,11 @@ By changing Role scopes this change will immidiately propagate to all users with
 
 Roles are set separately for each Client.
 
-### List Roles [GET /admin/roles{?name,page_number,page_size}]
+### List Roles [GET /admin/roles{?name,page,page_size}]
 
 + Parameters
     + name: `My role` (string, optional) - Return only roles that contains `name` substring.
-    + `page_number`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.    
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
     
 + Request (application/json)
@@ -1461,6 +1513,535 @@ Roles are set separately for each Client.
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (`Role_Response`)
+
+## Client secret [/admin/clients]
+
+### Refresh client secret [PATCH /admin/clients/{id}/refresh_secret]
+
+This method is used to refresh client secret for existing client (legal entity)
+Only legal entity owner can request new client secret for his own legal entity
+
+**Scopes required:** `secret:refresh`
+
++ Parameters
+    + id: `role-1380df72-275a-11e7-93ae-92361f002671` (string, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (`Client`)
+
+# Group Public. Reimbursement
+
+## Drugs [/apidrugs]
+
+### Get drugs list [GET /api/drugs{?innm_id,innm_name,innm_sctid,innm_dosage_form,innm_dosage_id,innm_dosage_name,medication_code_atc,page,page_size}]
+
+Get drugs list by filters.
+
+**Scopes required:** `drug:read`
+
++ Parameters
+    + `innm_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Innm identifier. 
+    + `innm_name`: `Аміодарон` (string, optional) - Innm local name.
+    + `innm_sctid`: `52574003` (string, optional) - Innm CNOMED code.
+    + `innm_dosage_form`: `PILL` (string, optional) - Innm_dosage form.
+    + `innm_dosage_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Innm_dosage identifier.
+    + `innm_dosage_name`: `Аміодарон 200мг таблетки` (string, optional) - Innm_dosage name.
+    + `medication_code_atc`: `С01BD01` (string, optional) - Medication code ATC..
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array[Drug_Response])
+
+## Medication Request Requests [/api/medication_request_requests]
+
+[Medication request Request]() is a life-cycle entity that is used to perform operations on [Medication requests]().
+
+After Medication request Request is signed it will be automatically moved to [Medication requests]().
+
+> **Important:** (Specific only for "Доступні ліки")
+> You can't create new Medication Request for medication in case there is another Medication Request with the same medication in this period (between started_at and ended_at)
+
+> **Important:** Dispense of Medications under this Medication Request is possible in period between dispense_valid_from and dispense_valid_to
+
+### Get Medication Request Requests List [GET /api/medication_request_requests{?employee_id,person_id,status,page,page_size}]
+
+Use this method to obtain list of Medication request Requests an `employee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
+
+Also we suggest use `employee_id` and `legal_entity_id` to make sure that end-user understands context of actions that he or she will perform.
+
+Method returns shortened details, to obtain full information - Get Medication request Request it by it's ID.
+
++ Parameters
+    + `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - user_id of a doctor.
+    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a pacient. 
+    + `status`: `NEW` (enum, optional). Default `NEW` 
+        - NEW
+        - SIGNED
+        - EXPIRED
+        - REJECTED
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[`Medication_request_Request_Public_Response`]) 
+ 
+
+### Get Medication Request Request by ID [GET /api/medication_request_requests/{id}]
+
+Use this method to obrain full information of Medication request Request an `id`.
+
++ Parameters
+    + id: `48416485-cc98-46c4-8bba-e321de9e1ecd` (string, required) - request id
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+        + data (object)
+            + include `Medication_request_Request_Public_Response`
+
+    
+### PreQualify Medication Request Request [POST /api/medication_request_requests/prequalify]
+
+This method is used to pre-qualify data Medication request Request (possibility to give reimbursement for medication according the programs) before creating Medication request Request. Fields descriptions are listed in request Example view.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + `medication_request_request` (object)
+            + include `Medication_request_Request_Qualify_post_data`
+        + `programs` (array[`Qualify_Medication_request_Request_List_program_post_data`], required) - Medical programs list for qualify
+        
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+        +  data (array[`Qualify_Medication_request_Request_Responce`]))
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Only for active MPI record can create Medication request Request!` (string, required)
+
+
+### Create Medication Request Request [POST /api/medication_request_requests]
+
+This method is used to create Medication request Request (as a part of Medication request creation process). 
+Fields description are listed in request Example view.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + `medication_request_request`(`Medication_request_Request_post_data`)
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Medication_request_Request_Public_Response`
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Only active employee with type DOCTOR can create medication request!` (string, required)
+
+### Sign Medication Request Request [PATCH /api/medication_request_requests/{id}/actions/sign]
+
+This method is used to sign Medication request Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property. 
+All signature fields will be validated (including signer certificate authority).
+
+This service will store signed copy of Medication request Request in Media Content Storage and create Medication request if signature is all checks is passed.
+
+Signed content MUST consists of JSON object with Medication request Request data. Object that need to be signed is returned by `Get Medication request Request by ID` response, `JSON.Path: $.data`.
+The only field that can and must be changed is JSON.Path: `$.data.employee_signed`. It should be changed to `true`.
+
+**Important**
+Invoke Get Medication request Request by ID to obtain seed - Hash of previous block in Medication request Request chain or other random component that should be signed with Medication request Request.
+
+**Signed object example:**
+```
+{
+}
+```
++ Parameters
+    + id: 6a8a83a4-ac39-4547-bfa2-813bc87362a4 (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + `signed_medication_request_request`: `MIIWmAYJKoZIhvcNAQcCoIIWiTCCFoUCAQExCzAJBgUrDgMCGgUAMIISuwYJKoZIhvcNAQcBoIISrASCEqh7XHJ0ZjFcYW5zaVxhbnNpY3BnMTI1Mlxjb2NvYXJ0ZjE1MDRcY29jb2FzdWJydGY4MTANCntcZm9udHRibFxmMFxmc3dpc3NcZmNoYXJzZXQwIEhlbHZldGljYTt9DQp7XGNvbG9ydGJsO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1NTtccmVkNzBcZ3JlZW41M1xibHVlOTY7XHJlZDI0OVxncmVlbjI0OVxibHVlMjUxO30NCntcKlxleHBhbmRlZGNvbG9ydGJsOztcY3NzcmdiXGMzNDUxMFxjMjc4NDNcYzQ1MDk4O1xjc3NyZ2JcYzk4MDM5XGM5ODAzOVxjOTg4MjQ7fQ0KXG1hcmdsMTQ0MFxtYXJncjE0NDBcdmlld3cxMDgwMFx2aWV3aDg0MDBcdmlld2tpbmQwDQpcZGVmdGFiNzIwDQpccGFyZFxwYXJkZWZ0YWI3MjBccGFydGlnaHRlbmZhY3RvcjANCg0KXGYwXGZzMjggXGNmMiBcY2IzIFxleHBuZDBcZXhwbmR0dzBca2VybmluZzANClx7XA0KICAgImlkIjoiYjA3NWYxNDgiLFwNCiAgICJzdGFydF9kYXRlIjoiMjAxNy0wMy0wMlQxMDo0NToxNi4wMDBaIixcDQogICAiZW5kX2RhdGUiOiIyMDE3LTAzLTAyVDEwOjQ1OjE2LjAwMFoiLFwNCiAgICJwZXJzb24iOlx7XA0KICAgICAgImZpcnN0X25hbWUiOiJcdWMwXHUxMDU1IFx1MTA3NyBcdTEwOTAgXHUxMDg4IFx1MTA4NiAiLFwNCiAgICAgICJsYXN0X25hbWUiOiJcdWMwXHUxMDMwIFx1MTA3NCBcdTEwNzIgXHUxMDg1IFx1MTA4NiBcdTEwNzQgIixcDQogICAgICAic2blic Vjb25kX25hbWUiOiJcdWMwXHUxMDUyIFx1MTA4MCBcdTEwODIgXHUxMDg2IFx1MTA4MyBcdTEwNzIgXHUxMDgxIFx1MTA4NiBcdTEwNzQgXHUxMDgwIFx1MTA5NSAiLFwNCiAgICAgICJiaXJ0aF9kYXRlIjoiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIixcDQogICAgICAiYmlydGhfcGxhY2UiOiJcdWMwXHUxMDQyIFx1MTExMCBcdTEwODUgXHUxMDg1IFx1MTA4MCBcdTEwOTQgXHUxMTAzICwgXHUxMDU5IFx1MTA4MiBcdTEwODggXHUxMDcyIFx1MTExMSBcdTEwODUgXHUxMDcyICIsXA0KICAgICAgImdlbmRlciI6Ik1BTEUiLFwNCiAgICAgICJlbWFpbCI6ImVtYWlsQGV4YW1wbGUuY29tIixcDQogICAgICAidGF4X2lkIjoiMzEyNjUwOTgxNiIsXA0KICAgICAgIm5hdGlvbmFsX2lkIjoiQ0M3MTUwOTg1MjQzIixcDQogICAgICAic2VjcmV0Ijoic2VjcmV0IixcDQogICAgICAiZG9jdW1lbnRzIjpbXA0KICAgICAgICAgXHtcDQogICAgICAgICAgICAidHlwZSI6IlBBU1NQT1JUIixcDQogICAgICAgICAgICAibnVtYmVyIjoiMTIwNTE4IixcDQogICAgICAgICAgICAiaXNzdWVfZGF0ZSI6IjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIsXA0KICAgICAgICAgICAgImV4cGlyeV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAiaXNzdWVkX2J5IjoiRE1TVSJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImFkZHJlc3NlcyI6W1wNCiAgICAgICAgIFx7XA0KICAgICAgICAgICAgInR5cGUiOiJSRVNJREVOQ0UiLFwNCiAgICAgICAgICAgICJjb3VudHJ5IjoiVUEiLFwNCiAgICAgICAgICAgICJhcmVhIjoiXHVjMFx1MTA0NiBcdTEwODAgXHUxMDkwIFx1MTA4NiBcdTEwODQgXHUxMDgwIFx1MTA4OCBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAicmVnaW9uIjoiXHVjMFx1MTA0MSBcdTEwNzcgXHUxMDg4IFx1MTA3NiBcdTEwODAgXHUxMDk1IFx1MTExMCBcdTEwNzQgXHUxMDg5IFx1MTEwMCBcdTEwODIgXHUxMDgwIFx1MTA4MSAiLFwNCiAgICAgICAgICAgICJjaXR5IjoiXHVjMFx1MTA1MCBcdTEwODAgXHUxMTExIFx1MTA3NCAiLFwNCiAgICAgICAgICAgICJjaXR5X3R5cGUiOiJDSVRZIixcDQogICAgICAgICAgICAic3RyZWV0IjoiXHVjMFx1MTA3NCBcdTEwOTEgXHUxMDgzIC4gXHUxMDUzIFx1MTExMCBcdTEwNzggXHUxMDgwIFx1MTA4NSBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAiYnVpbGRpbmciOiIxNSIsXA0KICAgICAgICAgICAgImFwYXJ0bWVudCI6IjIzIixcDQogICAgICAgICAgICAiemlwIjoiMDIwOTAiXA0KICAgICAgICAgXH1cDQogICAgICBdLFwNCiAgICAgICJwaG9uZXMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiTU9CSUxFIixcDQogICAgICAgICAgICAibnVtYmVyIjoiKzM4MDUwMzQxMDg3MCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiU01TIixcDQogICAgICAgICAgICAicGhvbmVfbnVtYmVyIjoiKzM4MDUwODg4NzcwMCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImVtZXJnZW5jeV9jb250YWN0Ijpce1wNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIixcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgImNvbmZpZGFudF9wZXJzb24iOlx7XA0KICAgICAgICAgInJlbGF0aW9uX3R5cGUiOiJ0cnVzdGVlIixcDQogICAgICAgICAiZmlyc3RfbmFtZSI6Ilx1YzBcdTEwNTUgXHUxMDc3IFx1MTA5MCBcdTEwODggXHUxMDg2ICIsXA0KICAgICAgICAgImxhc3RfbmFtZSI6Ilx1YzBcdTEwMzAgXHUxMDc0IFx1MTA3MiBcdTEwODUgXHUxMDg2IFx1MTA3NCAiLFwNCiAgICAgICAgICJzZWNvbmRfbmFtZSI6Ilx1YzBcdTEwNTIgXHUxMDgwIFx1MTA4MiBcdTEwODYgXHUxMDgzIFx1MTA3MiBcdTEwODEgXHUxMDg2IFx1MTA3NCBcdTEwODAgXHUxMDk1ICIsXA0KICAgICAgICAgImJpcnRoX2RhdGUiOiIxOTkxLTA4LTE5VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICJiaXJ0aF9wbGFjZSI6Ilx1YzBcdTEwNDIgXHUxMTEwIFx1MTA4NSBcdTEwODUgXHUxMDgwIFx1MTA5NCBcdTExMDMgLCBcdTEwNTkgXHUxMDgyIFx1MTA4OCBcdTEwNzIgXHUxMTExIFx1MTA4NSBcdTEwNzIgIixcDQogICAgICAgICAiZ2VuZGVyIjoiTUFMRSIsXA0KICAgICAgICAgInRheF9pZCI6IjMxMjY1MDk4MTYiLFwNCiAgICAgICAgICJkb2N1bWVudHMiOltcDQogICAgICAgICAgICBce1wNCiAgICAgICAgICAgICAgICJ0eXBlIjoiUEFTU1BPUlQiLFwNCiAgICAgICAgICAgICAgICJudW1iZXIiOiIxMjA1MTgiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAgICAiZXhwaXJ5X2RhdGUiOiIyMDE1LTA0LTA3VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZWRfYnkiOiJETVNVIlwNCiAgICAgICAgICAgIFx9XA0KICAgICAgICAgXSxcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgInJlbmV3YWxfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicGF0aWVudF9zaWduZWQiOnRydWUsXA0KICAgICAgImRpc2Nsb3N1cmVfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicHJvY2Vzc19kYXRhX2NvbnNlbnQiOnRydWVcDQogICBcfSxcDQogICAiZW1wbG95ZWUiOlx7XA0KICAgICAgImlkIjoiZDI5MGYxZWUtNmM1NC00YjAxLTkwZTYtZDcwMTc0OGYwODUxIixcDQogICAgICAidGl0bGUiOiJcdWMwXHUxMDgzIFx1MTExMCBcdTEwODIgXHUxMDcyIFx1MTA4OCAiLFwNCiAgICAgICJwYXJ0eSI6XHtcDQogICAgICAgICAiaWQiOiJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLFwNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIlwNCiAgICAgIFx9XA0KICAgXH0sXA0KICAgIm1zcCI6XHtcDQogICAgICAiaWQiOiJkMjkwZjFlZSIsXA0KICAgICAgIm5hbWUiOiJcdWMwXHUxMDUwIFx1MTA4MyBcdTExMTAgXHUxMDg1IFx1MTExMCBcdTEwODIgXHUxMDcyICBcdTEwNDEgXHUxMDg2IFx1MTA4OCBcdTEwODAgXHUxMDg5ICIsXA0KICAgICAgInNob3J0X05hbWUiOiJcdWMwXHUxMDQxIFx1MTA4NiBcdTEwODggXHUxMDgwIFx1MTA4OSAiLFwNCiAgICAgICJ0eXBlIjoiXHVjMFx1MTA2MCBcdTEwNTQgXHUxMDU1ICIsXA0KICAgICAgImVkcnBvdSI6IjU0MzIzNDU0MzIiXA0KICAgXH0sXA0KICAgInNjb3BlIjoiZmFtaWx5IGRvY3RvciIsXA0KICAgInBsYWludGV4dF9jb250ZW50IjoiRGVjbGFyYXRpb24gY29udGVudCJcDQpcfX2gggIuMIICKjCCAZOgAwIBAgIJANj0sC/v0hWYMA0GCSqGSIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBLQ1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0NTczM1oXDTE3MDQyNjE0NTczM1owGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMuqrxE/0txT+ZVRKU1O85a8eaaUAOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0GA1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+CaflnzBJBgNVHSMEQjBAgBTET2SwL5UfUMKDyhuBGCA+Cafln6EdpBswGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY9LAv79IVmDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IVS28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjnw87JzkAy5KLDTiotQl8eknkd1bR3nIWINemck3GeGYkR8giG3gkNxz6ky1+63ZcoJkEiS46aneDhmS6BdH0V2G/3delos8+ZMYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQDFA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTcwMzI4MTE1NDEwWjAjBgkqhkiG9w0BCQQxFgQU5NSvVRVYHz5tG1GW8gXrjHSnLj8wUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEgYCdqnN8gGXw9OUmtxOvQQgHK5Ni/4/2WQWj7rxERh5AI6rhXs/hh3DNS5Z5mN6wO8z47SQuedbsMQ5hf6+9BbKhXD7WKeU+DtGyfa1ner5/ubz6BeVvuT98D4PrzHlqNSpe/7AirrA70QVO9kPoFSmGtBG6JjaqaCZBYbvF9InPRw==` (string, required)
+        + `signed_content_encoding`: base64 (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (`Medication_request_Public_Response`)
+
+### Reject Medication Request Request [PATCH /api/medication_request_requests/{id}/actions/reject]
+
+Use this method to reject previously created Medication request Request.
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+        + data (`Medication_request_Request_Public_Response`)
+
+## Medication Request [/api/medication_requests]
+### Qualify Medication Request by ID [POST /api/medication_requests/{id}/actions/qualify]
+
+This method is used to qualify (possibility to use Innm for the program) Medication request by Id . Fields descriptions are listed in request Example view.
+
++ Parameters
+    + id: `2848a935-5fd7-48ba-b235-a9b5d475c647` (string, required) - `Medication request identifier`
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + `programs` (array[`Qualify_Medication_request_Request_List_program_post_data`], required) - Medical programs list for qualify
+    
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+        +  data (array[`Qualify_by_ID_Request_for_Medication_request_Responce`]))
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Only for active MPI record can create medication request!` (string, required)
+
+### Get Medication request by ID [GET /api/medication_requests/{id}]
+
+Use this method to obtain full information of Medication request an `id`.
+
++ Parameters
+    + id: `48416485-cc98-46c4-8bba-e321de9e1ecd` (string, required) - `Medication Request identifier OR request_number`
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+        + data (object)
+            + include `Medication_request_Public_Response`
+
+### Get Medication requests List [GET /api/medication_requests{?legal_entity_id,employee_id,person_id,status,request_number,created_from,created_to,medication_id,page,page_size}]
+
+Use this method to obtain list of Medication request an `employee_id` or/and `person_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
+
+Also we suggest use `employee_id` to make sure that end-user understands context of actions that he or she will perform.
+
+Method returns shortened details, to obtain full information - get Medication request it by it's ID.
+
++ Parameters
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - legal entity identifier.
+    + `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - user_id of a doctor.
+    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a pacient. 
+    + `status`: `ACTIVE` (enum, optional). Default `ACTIVE` 
+        - ACTIVE
+        - COMPLETED
+        - EXPIRED
+        - REJECTED
+    + `request_number` : `0000-243P-1X53-EH38` (string, optional) - Public medication request human readable number
+    + `created_from`: `2017-08-17` (string, optional) - Medication request creation date period start, which is determined by the external system. Format *DATE '2017-08-17'*
+    + `created_to`: `2017-08-30` (string, optional) - Medication request creation date period end, which is determined by the external system. Format *DATE '2017-08-30'*
+    + `medication_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b5b` (string, optional) - innm dosage id
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+   + Attributes (`Response_Collection_V2`)
+        + data (array[`Medication_request_Public_Response`]) 
+
+### Reject Medication Request [PATCH /api/medication_requests/{id}/actions/reject]
+
+Use this method to reject previously created and signed Medication request.
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + `Reason`: `Помилка призначення. Несумісні препарпти.` (string, optional) - Medication request reject reason
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+        + data (`Medication_request_Public_Response`)
+            + include (`Medication_request_Reject_Public_Response`)
+
+### Resend Medication Request [PATCH /api/medication_requests/{id}/actions/resend]
+
+Use this method to resend SMS for person with info medication request number & verification code.
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+        + data (`Medication_request_Public_Response`)
+
+### Get Medication Dispenses list by Medication Request ID [GET /api/medication_requests/{id}/dispenses{?status}]
+
+Use this method to obtain list of Medication Dispenses by doctor with medication request ID. 
+
+Only Medication dispenses linked to medication request id will be shown. If you want to reduce amount of data that is going trough your application, use `status` filter and show only dispenses that Doctor is interested in.
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+    + status: PROCESSED (string, optional) - Status
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array)
+            + (object)
+                + include `Medication_Dispense_Response`
+
+
+## Medication Dispense [/api/medication_dispenses]
+
+Medication Dispense - Indicates that a medication product has been dispensed for a named person/patient
+
+1. Dispense of medication is possible only under Medication Request and during the period specified in Medication Request
+
+2. **Medical program** - mandatory attribute for the first phase. There is no options to dispense medication without program
+
+3. **Dispense details** - several medications of different manufacturers with the same innm can be dispensed at a time. Total of medication_qty should be less or equal to medication quantity specified in Medication Request
+
+**Sequence diagram**
+
+![Medication Dispense Sequence](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgTWVkaWNhdGlvbiBEaXNwZW5zZQpwYXJ0aWNpcGFudCBQaGFybWFjeQAIDUdXABcNZUhlYWx0aAoKIyBDcmVhdGUgbQBMCmQATggAQggtPkdXOiA8PAAkBwBuEz4-CkdXACEGQXV0aG9yaXplAA0FKwBjBwAeIQCBCwctPgAoCVZlcmlmeQCBDQxyZXF1ZXN0ABIaAIEyCCBwZXJpb2QAOxoAQwdlZCBwcm9ncmFtAFwkcwCBEhNHZXQgcmVpbWJ1cnNlbWVudCByYXRlAIFECi0AgwYIOiA8PFJlc3BvAIIoBiAgICAKICAgIGFsdCBQcm9jZXNzAINFFSAgICAgICAAg00JAIMECAAZGwBYByAgICAAgwMSAA4MAIMRDAAqJgCDFBJDaGFuZwCFABUgc3RhdHVzACoSAIF4HGVsc2UgUmVqZWN0AIFiLQAZGgCBWTUAKiUAgStibmQK&s=modern-blue)
+
+### Create Medication Dispense [POST /api/medication_dispenses{?code}]
+
+This method is used to dispense medications to patient
+
++ Parameters
+    + `code`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (object)
+        + include `Medication_Dispense_Request`
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Medication_Dispense_Response`
+
+### Process Medication Dispense [PATCH /api/medication_dispenses/{id}/actions/process]
+
+This method is used to process created dispense
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (object)
+        + payment_id: F324H456 (string, optional)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object)
+            + include `Medication_Dispense_Response`
+
+### Reject Medication Dispense [PATCH /api/medication_dispenses/{id}/actions/reject]
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object)
+            + include `Medication_Dispense_Response`
+
+### Get Medication Dispenses List [GET /api/medication_dispenses{?id,medication_request_id,legal_entity_id,division_id,status,dispensed_from,dispensed_to,page,page_size}]
+
++ Parameters
+    + id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Medication dispense ID
+    + medication_request_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Medication request ID
+    + legal_entity_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Legal entity ID
+    + division_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Division ID
+    + status: PROCESSED (string, optional) - Status
+    + dispensed_from: '2017-09-01' (string, optional) - date of dispense
+    + dispensed_to: '2017-10-01' (string, optional) - date of dispense
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array)
+            + (object)
+                + include `Medication_Dispense_Response`
+
+### Get Medication Dispense by ID [PATCH /api/medication_dispenses/{id}]
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object)
+            + include `Medication_Dispense_Response`
+
+## Reimbursement Report [/api/reimbursement_report]
+
+Reimbursement Report combines information about Medication requests and corresponding Medication Dispenses
+
+**Scopes required:** `reimbursement_report:read`
+
+1. **MIS (OWNER)** is allowed to see Medication Requests made by its' legal_entity and related to those Medication Requests Medication Dispenses
+
+2. **PHARMACY (PHARAMCY_OWNER)** - is allowed to see Medication Dispenses made by its' legal_entity and related to those Medication Dispenses Medication Requests.
+
+### Get Reimbursement Report [GET /api/reimbursement_report{?date_from_request,date_to_request,date_from_dispense,date_to_dispense,page,page_size}]
+
++ Parameters
+    + date_from_request: `2017-09-01` (date, optional) - Start date for Medication Requests created date
+    + date_to_request: `2017-10-01` (date, optional) - End date for Medication Requests created date
+    + date_from_dispense: `2017-09-01` (date, optional) - Start date for Medication Dispense disbursed_at date
+    + date_to_dispense: `2017-10-01` (date, optional) - End date for Medication Dispense disbursed_at date
+    + page: 2 (number, optional) - Page number.
+    + page_size: 1000 (number, optional) - A limit on the number of objects to be returned. Default: 1000
+
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+         + data (array[`Reimbursement_Report_Response`])
+
+## Reimbursement Report for NHS admin [/api/reimbursement_report_download]
+
+Reimbursement Report combines information about Medication Dispenses and corresponding Medication Requests
+
+**Scopes required:** `reimbursement_report:download`
+
+
+### Get Reimbursement Report [GET /api/reimbursement_report_download{?date_from_dispense,date_to_dispense}]
+
++ Parameters
+    + date_from_dispense: `2017-09-01` (date, optional) - Start date for Medication Dispense disbursed_at date
+    + date_to_dispense: `2017-10-01` (date, optional) - End date for Medication Dispense disbursed_at date
+
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (text/csv;charset=UTF-8)
+
 
 # Group Dummy. Create legal entity
 
@@ -1516,6 +2097,11 @@ Roles are set separately for each Client.
 + data (array[], fixed-type)
 + paging (Response__Pagination, fixed-type)
 
+### `Response_Collection_V2`
++ meta (Response__Meta, fixed-type)
++ data (array[], fixed-type)
++ paging (`Response__Pagination__V2`, fixed-type)
+
 ### `Response_Collection_OK`
 + meta (Response__Meta, fixed-type)
 + data (array[], fixed-type)
@@ -1543,7 +2129,6 @@ Roles are set separately for each Client.
 + type (enum) - Type of data that is located in `data` attribute.
     - object (string) - `data` attribute is a JSON object.
     - list (string) - `data` attribute is a list.
-+ code: 200 (number) - HTTP response code.
 + `request_id`: `req-adasdoijasdojsda` (string) - [Request ID](http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header.
 
 ### `Response__Error`
@@ -1571,6 +2156,12 @@ Roles are set separately for each Client.
     + `ending_before`: 56c31536a60ad644060041aa (string) - A cursor for use in pagination. An object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.
 + size: 1000 (number) - Total number of objects in collection.
 + has_more: false (boolean) - Is this collection have more data to load in the same style as last request loaded it.
+
+### `Response__Pagination__V2`
++ page_number: 2 (number) - Page number.
++ page_size: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
++ total_entries: 1000 (number) - Total number of objects in collection.
++ total_pages: 23 (number) - Total number of pages.
 
 ## Persons
 ### `Person`
@@ -1646,6 +2237,14 @@ Roles are set separately for each Client.
 + phones (array[Phone], required)
 + birth_settlement: Вінниця (string, required)
 
+### `Person_Medication_Request`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ birth_date: `1991-08-19` (string, required) - ISO Datetime.
++ addresses (array[Address], required)
+
 ### `Authentication_Method`
 + type (enum, required)
     - OTP
@@ -1681,6 +2280,7 @@ Roles are set separately for each Client.
 ### `media_content`
 + type: `PASSPORT` (string, required)
 + url: `https://google.com.ua` (string, required)
+
 
 ## Declarations
 ### Declaration
@@ -1776,6 +2376,8 @@ Roles are set separately for each Client.
 + end_date: `2017-03-02` (string, required)
 + signed_at: `2017-03-02T00:00:00.000Z` (string, required)
 + person(`Person_Short`)
+    + `emergency_contact` (`Emergency_Contact`, required)
+    + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
 + employee (`Employee_Declaration_Short`)
 + division (`Division_Short`)
 + `legal_entity` (MSP_Details)
@@ -1813,6 +2415,7 @@ Roles are set separately for each Client.
 + include `Party_Short`
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
++ `no_tax_id`: false (boolean, optional)
 + tax_id: 3126509816 (string, optional)
 + email: email@example.com (string, optional)
 + documents (array[Document], optional)
@@ -1823,12 +2426,14 @@ Roles are set separately for each Client.
 + include `Party_Short`
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
++ `no_tax_id`: false (boolean, optional)
 + tax_id: 3126509816 (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 
 ### `Party_Update`
 + include `Party_Short`
++ no_tax_id: false (boolean, required)
 + tax_id: 3126509816 (string, required)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE(string, required) - `Dictionary GENDER`
@@ -1841,6 +2446,7 @@ Roles are set separately for each Client.
 + second_name: Миколайович (string, optional)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE(string, required) - `Dictionary GENDER`
++ no_tax_id: false (boolean, required)
 + tax_id: 3126509816 (string, required)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
@@ -1860,6 +2466,7 @@ Roles are set separately for each Client.
 ## Employees
 ### `crud_employee`
 + party_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ no_tax_id: true (boolean, required)
 + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
 + `employee_type`: DOCTOR (string) - `Dictionary EMPLOYEE_TYPE`
@@ -1900,7 +2507,6 @@ Roles are set separately for each Client.
     + include `Party_Short`
     + email: email@example.com (string, optional)
     + phones (array[Phone], optional)
-    + tax_id: `3372159546` (string, required)
 
 ### `Employee_For_Declaration_Minimal`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1943,6 +2549,7 @@ Roles are set separately for each Client.
 + inserted_at: `2018-03-02T10:45:16.000Z` (string, required)
 + edrpou: 5432345432 (string, required)
 + `legal_entity_name`: Клініка Борис (string, required)
++ `no_tax_id`: true (boolean, required)
 + include `Party_Short`
 
 
@@ -1958,6 +2565,7 @@ Roles are set separately for each Client.
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + no_tax_id: true (boolean, required)
     + include `Party_Short`
 + division (`Division_Short`)
 + `legal_entity` (`Legal_Entity_Short`)
@@ -2088,9 +2696,9 @@ Roles are set separately for each Client.
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
 + type: clinic (enum, required)
-    - clinic
-    - ambulant_clinic
-    - fap
+    - CLINIC
+    - AMBULANT_CLINIC
+    - FAP
 + external_id: `3213213` (string, optional)
 + location (Location, optional)
 
@@ -2102,9 +2710,9 @@ Roles are set separately for each Client.
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + name: Бориспільське відділення Клініки Борис (string, required)
 + type: clinic (enum, required)
-    - clinic
-    - ambulant_clinic
-    - fap
+    - CLINIC
+    - AMBULANT_CLINIC
+    - FAP
 + status: ACTIVE (enum, required)
     - ACTIVE
     - INACTIVE
@@ -2113,10 +2721,10 @@ Roles are set separately for each Client.
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + name: Бориспільське відділення Клініки Борис (string, required)
 + `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
-+ type: clinic (enum, required)
-    - clinic
-    - ambulant_clinic
-    - fap
++ type: CLINIC (enum, required)
+    - CLINIC
+    - AMBULANT_CLINIC
+    - FAP
 + status: ACTIVE (enum, required)
     - ACTIVE
     - INACTIVE
@@ -2232,6 +2840,12 @@ Roles are set separately for each Client.
 
 ## Shared
 
+### `System_Logging`
++ inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
 ### Address
 + type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`
 + country: UA (enum[string], required) - `Dictionary COUNTRY`
@@ -2330,25 +2944,44 @@ Roles are set separately for each Client.
 ## Dashboards
 
 ### StatsByRegion
-+ stats (RegionStats, required)
-+ region (Region, required)
++ from_date: `2017-09-01` (string, optional)
++ to_date: `2017-09-02` (string, optional)
++ regions (array, required)
+    + (object)
+        + include (`StatsByRegionadd`)
+
+### StatsByRegionadd
++ `region` (object, required)
+    + include `Region`
++ `period` (object, required)
+    + include `RegionStats`    
++ `total` (object, required)
+    + include `RegionStats` 
 
 ### RegionStats
-+ declarations: 100 (number, required)
++ declarations_total: 100 (number, required)
++ declarations_created: 102 (number, required)
++ declarations_closed: 2 (number, required)
 + msps: 2 (number, required)
 + doctors: 15 (number, required)
++ pharmacies: 2 (number, required)
++ pharmacists: 6 (number, required)
 
 ### Region
 + id: `asSbcy12sYs8c` (string, required)
 + name: `Київ` (string, required)
 
 ### HistogramStats
-+ period_type (string, required)
-+ period_name (string, required)
-+ declarations_created (number, required)
-+ declarations_closed (number, required)
-+ declarations_active_start (number, required)
-+ declarations_active_end (number, required)
++ period_type: DAY (string, required)
++ period_name: `2017-09-01` (string, required)
++ declarations_created: 0 (number, required)
++ declarations_closed: 0 (number, required)
++ declarations_active_start: 1 (number, required)
++ declarations_active_end: 1 (number, required)
++ medication_requests_created: 0 (number, required)
++ medication_requests_closed: 0 (number, required)
++ medication_requests_active_start: 1 (number, required)
++ medication_requests_active_end: 1 (number, required)
 
 ### Interval
 + from_date: `2017-02-01` (string, required)
@@ -2361,7 +2994,7 @@ Roles are set separately for each Client.
 
 ### `MainStats_Division`
 + stats (DivisionStats, required)
-+ region (DivisionName, required)
++ division (DivisionName, required)
 
 ### DivisionStats
 + declarations: 100 (number, required)
@@ -2380,7 +3013,7 @@ Roles are set separately for each Client.
 + total_pages (number, required)
 + total_entries (number, required)
 + page_size (number, required)
-+ page_number (number, required)
++ page (number, required)
 + entries (array[EntriesDivisionMap], optional)
 
 ### EntriesDivisionMap
@@ -2575,6 +3208,489 @@ Roles are set separately for each Client.
 + `created_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
+## Drugs
+### `Drug_Response`
++ `id`: `ae9bf68e-3c98-4027-9211-535f7dad7a87` (string, required)
++ `name`: `Аміодарон 200мг таблетки` (string, required)
++ `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `innm` (`Innm_Public_Response_Short`, required) 
++ `dosage` (`Dosage_drug`, required)
++ `packages` (array [`Medication_package`], required)
+
+### `Medication_package`
++ `container_dosage` (`Dosage_container`, required)
++ `package_qty`: 30 (number, required)
++ `package_min_qty`: 10 (number, required)
+
+## Medications
+### `Innm_Request`
++ `sctid`: `52574003` (string, optional) - innm CNOMED code
++ `name`: `Аміодарон` (string, required) - innm local name
++ `name_original`: `Amiodarone` (string, required) - innm original name
+
+### `Innm`
++ `sctid`: `52574003` (string, required) - innm CNOMED code
++ `name`: `Аміодарон` (string, required) - innm local name
++ `name_original`: `Amiodarone` (string, required) - innm original name
+
+### `Innm_Public_Response_Short`
++ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
++ include `Innm`
+
+### `Innm_Response_Short`
++ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
++ include `Innm`
++ is_active: true (boolean, required)
+
+### `Innm_Response`
++ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
++ include `Innm`
++ is_active: true (boolean, required)
++ inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Dosage_drug`
++ `numerator_unit`: MG (string, required) - `Dictionary MEDICATION_UNIT`
++ `numerator_value`: 200 (number, required)
++ `denumerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
++ `denumerator_value`: 1 (number, required)
+
+### `Dosage_container`
++ `numerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
++ `numerator_value`: 1 (number, required)
++ `denumerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
++ `denumerator_value`: 1 (number, required)
+
+### `Innm_Dosage_for_Medication_request`
++ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
++ `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `dosage` (`Dosage_drug`, required)
++ `container` (`Dosage_container`, required)
++ `request_qty`: 10 (number, required)
+
+### `Innm_Dosage_for_Medication_request_Responce`
++ `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required) - `Identifier medication with type **INNM_DOSAGE**`
++ `medication_name`: `Аміодарон 200мг таблетки` (string, required) - `Name of medication with type **INNM_DOSAGE**`
++ `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `dosage` (`Dosage_drug`, required) - Dosage of innm_dosage object
++ `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
+
+### `Manufacturer`
++ `name` : `ПАТ "Київський вітамінний завод"` (string, required) 
++ `country` : `UA` (string, required) - `Dictionary COUNTRY`
+
+### `Ingredient_request`
++ `id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
++ `dosage` (`Dosage_drug`, required)
++ `is_primary` : true (boolean, required) 
+
+### `Ingredient`
++ `id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
++ `name` : `Амідарон` (string, required)
++ `dosage` (`Dosage_drug`, required)
++ `is_primary` : true (boolean, required) 
+
+### `INNM_Dosage_Request`
++ `name` : `Амідарон` (string, required)
++ `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `ingredients` (array, required)
+    + (object)
+        + include `Ingredient_request`
+
+### `INNM_Dosage_Response_Short`
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ include `INNM_Dosage_Response`
++ `is_active` : true (boolean, required)
+
+### `INNM_Dosage_Response`
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ `name` : `Амідарон` (string, required)
++ `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `ingredients` (array, required)
+    + (object)
+        + include `Ingredient`
++ `is_active` : true (boolean, required)
++ inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Medication_Request`
++ `name` : `Амідарон` (string, required)
++ `manufacturer` (`Manufacturer`, optional)
++ `code_atc`: `C01BD01` (string, optional)
++ `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `container` (`Dosage_container`, required)
++ `package_qty`: 30 (number, optional)
++ `package_min_qty`: 10 (number, optional)
++ `certificate` : `UA/4514/01/01` (string, optional)
++ `certificate_expired_at` : `2021-02-09` (string, optional)
++ `ingredients` (array, required)
+    + (object)
+        + include `Ingredient_request`
+
+### `Medication_Response`
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ `name` : `Амідарон` (string, required)
++ `manufacturer` (`Manufacturer`, optional)
++ `code_atc`: `C01BD01` (string, optional)
++ `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `container` (`Dosage_container`, required)
++ `package_qty`: 30 (number, optional)
++ `package_min_qty`: 10 (number, optional)
++ `certificate` : `UA/4514/01/01` (string, optional)
++ `certificate_expired_at` : `2021-02-09` (string, optional)
++ `ingredients` (array, required)
+    + (object)
+        + include `Ingredient`
++ `is_active` : true (boolean, required)
++ inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Medication_Response_Short`
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ include `Medication_Response`
++ `is_active` : true (boolean, required)
+
+### `Medication_Short`
++ `name` : `Амідарон` (string, required)
++ `type`: `MEDICATION` (string, required)
++ `manufacturer` (`Manufacturer`, optional)
++ `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `container` (`Dosage_container`, required)
+
+### `Medical_Program_Response`
++ `id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string, required) - `Medical program Identifier`
++ `name`: `program 'DOSTUPNI LIKI'` (string, required) - `Medical program name`
+
+
+### `Program_medications_Request`
++ `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) -  Medication Identifier
++ `medical_program_id`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required) -  Medical program Identifier
++ `reimbursement` (object, required)
+    + include `Reimbursement`
+
+### `Program_medications_Update_Request`
++ `is_active`: true (boolean, optional)
++ `medication_request_allowed`: true (boolean, optional)
++ `reimbursement` (object, optional)
+    + include `Reimbursement`
+
+### `Reimbursement`
++ `type`: `fixed` (string, required) - fixed or external type of reimbursement (Dictionary REIMBURSEMENT_TYPE)
++ `reimbursement_amount`: 450 (number, optional) - Amount to reimburse for medication package by medical_program
+
+### `Program_medications_Response`
++ `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
++ `medication` (`Medication_Response_Short`, required)
++ `medical_program` (`Medical_Program_Response`, required)
++ `medication_request_allowed`: true (boolean, required) - indicator whether medication is allowed to use in new medication request
++ `reimbursement` (object, required)
+    + include `Reimbursement`
++ `is_active` : true (boolean, required) - flag for activation/deactiovation
++ include `System_Logging`
+
+### `Program_medications_List`
++ `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ `medical_program_id`: `042a3b20-bb08-4e50-83ee-ef23c3b1c0c8` (string, required) - medical program identifier
++ `medical_program_name`: `Доступні ліки` (string, required) - medical program name
++ `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) -  Medication Identifier
++ `medication_name`: `Аритміл` (string, required) - Medication name
++ `form` :  PILL (string, optional) - `Dictionary MEDICATION_FORM`
++ `manufacturer` (`Manufacturer`, optional)
++ `innm_id`: `5052fcaf-58a0-461b-9e98-d60243a1773e` (string, required) - INNM Identifier
++ `innm_name`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - INNM name
++ `reimbursement_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
+
+### `Program_medications_ID`
++ `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - program_medications_id
++ `innm` (object, required)
+    + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - innm id
+    + `name`: `Аміодарон` (string, required) - innm name
+    + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM` - innm form
+    + `ingredients` (array, required)
+        + (object)
+            + include (`Dosage_drug`, required) - substances dosage in innm
+            + `substance_name`: `Аміодарон` (string, optional) - substance name
+            + `is_primary` : true (boolean, required) 
++ `medications` (object, required)
+    + `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required)
+    + `name`: `Аміодарон 5мг` (string, required) - medication name 
+    + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM` - medication form
+    + `manufacturer` (`Manufacturer`, optional) 
+    + `ingredients` (array, required)
+        + (object)
+            + include (`Dosage_drug`, required) - innm dosage in medication
+            + `innm_name`: `Аміодарон`(string, required) 
+            + `is_primary` : true (boolean, required) 
++ `medical_program` (`Medical_Program_Response`, required)
++ `reimbursement` (`Reimbursement`, required)
++ `is_active` : true (boolean, required) - flag for activation/deactiovation
++ `medication_request_allowed`: true (boolean, required) - flag whether medications are allowed to be dispensed by the program
+
+### `Black_list_user_Request`
++ `tax_id`: `3126509816` (string, required) - tax_id by party_id 
+
+### `Black_list_user_Response`
++ `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - black list user id
++ `tax_id`: `3126509816` (string, required) - tax_id by party_id
++ `is_active`: true (boolean, required) - flag for activation/deactiovation
++  `parties` (array[`Person_Short_BlackList`], required)
++ inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Party_user_Response`
++ `id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person identifier
++ `user_id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional) - user Identifier
++ `party_id`: `79a91507-d409-49fc-b373-934b59c4f694` (string, optional) - Party Identifier
++ `first_name`: `Петро` (string, required)
++ `last_name`: `Іванов` (string, required)
++ `second_name`: `Миколайович` (string, optional)
++ `birth_date`: `1991-08-19T00:00:00.000Z` (string, required)
++ inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
+
+### `Person_Short_BlackList`
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `first_name`: Петро (string, required)
++ `last_name`: Іванов (string, required)
++ `second_name`: Миколайович (string, optional)
++ `birth_date`: `1991-08-19` (string, required) - ISO Datetime.
+
+## `Medication request Request`
+### `Medication_request_Request_post_data`
++ `person_id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person identifier
++ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee identifier with `type=DOCTOR` who issued Medication Request.
++ `division_id`: `881d6dee-dd3d-43f3-8983-922354c0e6ce` (string, required) - Division identifier where issued Medication Request.
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
++ `medication_id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required) - `Medication (type INNM_DOSAGE) identifier`
++ `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
++ `medical_program_id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string) - `Medical program Identifier`
+
+### `Medication_request_Request_Qualify_post_data`
++ `person_id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person identifier
++ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee identifier with `type=DOCTOR` who issued Medication Request.
++ `division_id`: `881d6dee-dd3d-43f3-8983-922354c0e6ce` (string, required) - Division identifier where issued Medication Request.
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
++ `medication_id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required) - Medication identified
++ `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
+
+### `Medication_request_Request_Public_Response`
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request request identifier
++ `status`: `NEW` (string, required) - Medication Request status. Find available **statuses** on State Charts wiki page
++ `request_number` : `0000-243P-1X53-EH38` (string) - Public medication request human readable number
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
++ `legal_entity` (`Legal_Entity_Short`, required)
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `division` (`Division_Details`, required)
++ `employee` (Employee_Minimal, required)
++ `person` (`Person_Medication_Request`)            
++ `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
++ `medical_program` (`Medical_Program_Response`, required)
+
+### `Qualify_Medication_request_Request_List_program_post_data`
++ `id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string,required) - `Medical program Identifier`
+
+### `Qualify_Medication_request_Request_Responce`
++ `program_id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string, required) - `Medical program Identifier`
++ `program_name` : `Програма "Доступні ліки"`(string, required)
++ `status` : `INVALID` (enum, required) - Status for ability use program for this Medication request Request
+    - VALID
+    - INVALID
++ `rejection_reason` : ` Innm not on the list of approved innms for program 'DOSTUPNI LIKI' !` (string) - Reason to fetch invalid status
+
+### `Program_medications_for_Qualify`
++ `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) -  Medication Identifier
++ `medication_name`: `Амлодипін-КВ ` (string, required) - Medication name
++ `form` :  PILL (string, optional) - `Dictionary MEDICATION_FORM`
++ `manufacturer` (`Manufacturer`, optional)
++ `innm_id`: `5052fcaf-58a0-461b-9e98-d60243a1773e` (string, required) - INNM Identifier
++ `innm_name`: `Амлодипін` (string, required) - INNM name
++ `reimbursement_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
+
+### `Qualify_by_ID_Request_for_Medication_request_Responce`
++ include `Qualify_Medication_request_Request_Responce`
++ `participants` (array, required)
+    + (object)
+        + include `Program_medications_for_Qualify`
+
+## `medical_programs`
+### `medical_programs_request`
++ `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
+
+### `medical_programs_response`
++ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
++ `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
++ `is_active`: `true` (boolean, required) - Is medical program active or not. True - Active; False - Inactive
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `medical_programs_list`
++ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
++ `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
++ `is_active`: `true` (boolean, required) - Is medical program active or not. True - Active; False - Inactive
+
+## `Medication request`
+### `Medication_request_Public_Response`
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
++ `status`: `ACTIVE` (enum[string], required) - Medication Request status. Find available **statuses** on State Charts wiki page
+    - ACTIVE
+    - COMPLETED
+    - REJECTED
+    - EXPIRED
++ `request_number` : `0000-243P-1X53-EH38` (string) - Public medication request human readable number
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
++ `legal_entity` (`Legal_Entity_Short`, required)
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `division` (`Division_Details`, required)
++ `employee` (Employee_Minimal, required)
++ `person` (`Person_Medication_Request`)            
++ `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
++ `medical_program` (`Medical_Program_Response`, required)
+
+### `Medication_request_Reject_Public_Response`
++ `rejected_at`: `2017-04-20T19:14:13Z` (string, required) - Reject date - ISO 8601 date and time in UTC timezone.
++ `rejected_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - Rejected user identifier
++ `reject_reason` : `Помилка призначення. Несумісні препарати.` (string, required) - Medication request reject reason 
+
+
+## `Medication Dispense`
+### `Medication_Dispense_Request`
++ `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required) - Key for the Medication request 
++ `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
++ `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
++ `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required) - Active medical program within which medications are going to be provided
++ `details` (array, fixed, required)
+    + (object)
+        + include `Medication_Dispense_Detail_Request`
+
+### `Medication_Dispense_Response`
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Dispense Response Identifier
++ `medication_request` (`Medication_request_Public_Response`, required) - Medication request 
++ `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
++ `party` (object)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + include `Party_Short`
++ `legal_entity` (`Legal_Entity_Short`, required) - Active legal entity (Pharmacy) the division belongs to Identifier
++ `division` (`Division_Short`, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
++ `medical_program` (`Medical_Program_Response`, required) - Active medical program within which medications are going to be provided
++ `details` (array, fixed, required)
+    + (object)
+        + include `Medication_Dispense_Detail_Response`
++ `payment_id`: 1239804 (string, optional) - receipt number for the paid medications
++ `status`: NEW (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Medication_Dispense_Detail_Request`
++ `medication_id`: `787b6ef1-1d3a-4129-849c-87716c9a2130` (string, required) - Identifier of brand medications 
++ `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
++ `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
++ `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
++ `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
+
+### `Medication_Dispense_Detail_Response`
++ `medication` (`Medication_Short`, required) - Identifier of brand medications 
++ `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
++ `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
++ `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
++ `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
++ `reimbursement_amount`: 450 (number, required) - Amount to reimburse for medication package by medical_program
+
+## `Reimbursement_Report`
+### `Reimbursement_Report_Response`
++ `medication_request` (object, required)
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
+    + `request_number`: `0000-243P-1X53-EH38` (string) - Public medication request human readable number
+    + `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
+    + `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
+    + `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
+    + `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
+    + `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
+    + `status`: `NEW` (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
+    +  include (`Medication_request_Reject_Public_Response`, optional)
+    + `person_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
+    + `legal_entity` (object, required)
+        + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Legal entity identifier
+        + `name`: `Клініка Борис` (string, required)
+        + `edrpou`: `5432345432` (string, required)
+    + `division` (object, required) 
+        + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+        + `name`: `Бориспільське відділення Клініки Борис` (string, required)
+        + `mountain_group`: `false` (boolean, optional)
+        + `address` (`Address`, required)
+    + `employee` (object, required) 
+        + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee identifier with `type=DOCTOR` who issued Medication Request.
+        + `party_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee Party id
+        + `last_name`: `Іванов` (string, required)
+        + `first_name`: `Петро` (string, required)
+        + `second_name`: `Миколайович` (string, optional)
+        + `position`: `P6` (string, required) - `Dictionary POSITION`
+        + `employee_type`: `DOCTOR` (string) - `Dictionary: EMPLOYEE_TYPE`
+    + `innm_dosage` (object, required)
+        + `id`: `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
+        + `name`: `Амідарон` (string, required)
+        + `form`:  PILL (string, required) - `Dictionary MEDICATION_FORM`
+        + `medication_qty`:10 (number, required) - qnty of INNM_DOSAGE
+    + `medical_program` (`Medical_Program_Response`, required)
++ `medication_dispense`(object, optional)
+    + `id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, optional) - Medication dispense Identifier
+    + `dispensed_at`: `2017-08-17` (string, optional) - date of dispense
+    + `status`: NEW (string, optional) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
+    + `medications` (array, fixed, optional)
+        + (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Identifier of brand medications
+            + `code_atc`: `С01BD01` (string, optional)
+            + include `Medication_Short`
+            + `package_qty`: 30 (number, required) - qnty medications in the package
+            + `details` (object, required)
+                + `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
+                + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
+                + `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
+                + `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
+                + `reimbursement_amount`: 450 (number, required) - Amount to reimburse for medication package by medical_program
+    + `medical_program` (`Medical_Program_Response`, optional)
+    + `legal_entity` (object, optional)
+        + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Legal entity identifier
+        + `name`: `Аптека Доброго дня` (string, required) - Legal entity name
+        + `edrpou`: `5432345431` (string, required) - Legal entity edrpou
+    + `division` (object, optional) 
+        + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+        + `name`: `Бориспільське відділення Аптеки Доброго Дня` (string, required)
+        + `mountain_group`: `false` (boolean, optional)
+        + `address` (`Address`, required)
+    + `party` (object, optional) 
+        + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee Party id
+        + `last_name`: `Іванов` (string, required)
+        + `first_name`: `Петро` (string, required)
+        + `second_name`: `Миколайович` (string, optional)
+
 ## Roles
 ### Role (object)
 + name: `Doctor` (string, required) - role title
@@ -2584,3 +3700,12 @@ Roles are set separately for each Client.
 + id: `role-1380df72-275a-11e7-93ae-92361f002671` (string) - Internal role ID, a UUID string.
 + `created_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
+
+## Clients
+### Client (object)
++ id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - Unique client id
++ name: `Аптека 199` (string, required) - Client name
++ secret: `ZlFOaHBTR0d3Q0hQcDEraHVYdXBVZz09` (string, required)
++ redirect_uri: `http://example2.com` (string, required)
++ settings (object)
++ priv_settings (object)
