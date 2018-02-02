@@ -77,8 +77,8 @@ User will see rendered login page, which structure differ by a list of requested
 For security purposes, we will set `X-Frame-Options: deny` header that will disallow opening this page in an iframe.
 
 + Parameters
-    + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
-    + redirect_uri: http://example.com/ (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
+    + `client_id`: `6498d88e-97fb-47e2-85a5-99e884f888aa` (string, required) - Medical Service provider ID issued after legal_entity registration. Used to identify the context of the MSP/Pharmacy.
+    + `redirect_uri`: http://example.com/ (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
     + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space. Different login forms will be shown based on scopes that you requested.
     + email: email@example.com
 
@@ -107,8 +107,8 @@ Exposed client credentials may be blocked for a security reasons, you will need 
 
     + Attributes (object)
         + token (object)
-            + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
-            + client_secret: `mis-001-secret-key` (string, required) - Medical Information System secret key issued upon integration request. Used to identify application developer.
+            + client_id: `6498d88e-97fb-47e2-85a5-99e884f888aa` (string, required) - Medical Service provider ID issued after legal_entity registration. Used to identify the context of the MSP/Pharmacy.
+            + client_secret: `msp-001-secret-key` (string, required) - Medical Information System secret key issued upon integration request. Used to identify application developer.
             + code: 299383828 (string, required) - oAuth code grant.
             + `grant_type`: authorization_code (string, fixed, required) - oAuth Grant Type. Currently only `authorization_code` is supported.
             + redirect_uri: http://example.com/ (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
@@ -135,8 +135,8 @@ In future, you will be able to refresh access tokens to extend `access_token` li
 
     + Attributes (object)
         + token (object)
-            + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
-            + client_secret: `mis-001-secret-key` (string, required) - Medical Information System secret key issued upon integration request. Used to identify application developer.
+            + client_id: `6498d88e-97fb-47e2-85a5-99e884f888aa` (string, required) - Medical Service provider ID issued after legal_entity registration. Used to identify the context of the MSP/Pharmacy.
+            + client_secret: `msp-001-secret-key` (string, required) - Medical Service provider secret key issued upon integration request. Used to identify MSP.
             + refresh_token: `my-oauth-refresh-token` (string, required) - oAuth refresh token.
             + `grant_type`: refresh_token (string, fixed) - oAuth Grant Type. Currently only `authorization_code` is supported.
 
@@ -342,8 +342,7 @@ In case if authentication_method is OTP, request example:
   "verification_code": 3748
 }
 ```
-In case if authentication_method is OFFLINE, request body should be empty. But before approve patient's scanned documents should be uploaded to the ([Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program))
-on demand. 
+In case if authentication_method is OFFLINE, request body should be empty. But before approve patient's scanned documents should be uploaded to the ([Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program)) on demand. 
 Clients can use signed URL's to directly access Google Cloud Storage via their API 
 ([Google Cloud Storage API](https://cloud.google.com/storage/docs/xml-api/put-object-upload))
 
@@ -549,8 +548,8 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
       }
     },
     "legal_entity": {
-      "name": "Клініка Борис",
-      "short_name": "Борис",
+      "name": "Клініка НоуНейм",
+      "short_name": "Ноунейм",
       "legal_form": "140",
       "public_name": "ЦПМСД №1",
       "edrpou": "5432345432",
@@ -600,7 +599,7 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
     "division": {
       "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
       "legal_entity_id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
-      "name": "Бориспільське відділення Клініки Борис",
+      "name": "Бориспільське відділення Клініки Ноунейм",
       "addresses": [
         {
           "type": "RESIDENCE",
@@ -749,7 +748,7 @@ Use this end-point to obtain all Employees of the legal entity specified by the 
 
 We suggest to use `status` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
 
-Method returns shortened details (for DOCTOR and PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
+Method returns shortened details (for DOCTOR and PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
 
 + Parameters
     + no_tax_id: true (boolean, optional)
@@ -1186,10 +1185,6 @@ Signed content MUST consists of JSON object with Legal Entity data:
   },
   "security": {
     "redirect_uri": "http://example2.com"
-  },
-  "public_offer": {
-    "consent": true,
-    "consent_text": "Consent text"
   }
 }
 ```
@@ -2042,6 +2037,60 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 
 + Response 200 (text/csv;charset=UTF-8)
 
+# Group Public. Event Manager
+
+Event Manager is used to collect different events (like `ATTRIBUTE_CHANGED`, `OBJECT_ADDED` etc) from different sources and store them in one place. At the moment only statuses are monitored. All changed statuses are stored to EventDB.
+
+List of events that are stored to EventDB:
+- employee request status changed
+- employee status changed
+- declaration status changed
+- medication request status changed
+- medication dispense status changed
+
+In the EventDB events are kept during one month or till 10K. The duration and amount of events are parametrized.
+
+## Get Events
+
+### Get events by ID [GET /api/events/{id}]
+
+This method is used to obtain events by id. 
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+         + data (array[`Get_events`])
+
+### Get events list [GET /api/events/{?date,event_type,entity_type,attribute_name,new_value,page,page_size}]
+
+This method is used to abtain list of events with filters.
+
++ Parameters
+    + date: `2017-09-01` (date, optional) - date of event happening.
+    + event_type: `StatusChangeEvent` (enum, optional) - type of event.
+    + entity_type: `MedicationDispense` (enum, optional) - type of entity.
+    + attribute_name: `status` (string, optional) - name of event in properties.
+    + new_value: `COMPLETED` (enum, optional)- new status of entity.
+    + page: 2 (number, optional) - Page number.
+    + page_size: 1000 (number, optional) - A limit on the number of objects to be returned. Default: 1000
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+         + data (array[`Get_events`])
 
 # Group Dummy. Create legal entity
 
@@ -2416,7 +2465,7 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
 + `no_tax_id`: false (boolean, optional)
-+ tax_id: 3126509816 (string, optional)
++ tax_id: 3126509816 (string, required)
 + email: email@example.com (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
@@ -2427,13 +2476,13 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
 + `no_tax_id`: false (boolean, optional)
-+ tax_id: 3126509816 (string, optional)
++ tax_id: 3126509816 (string, required)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 
 ### `Party_Update`
 + include `Party_Short`
-+ no_tax_id: false (boolean, required)
++ no_tax_id: false (boolean, optional)
 + tax_id: 3126509816 (string, required)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE(string, required) - `Dictionary GENDER`
@@ -2446,7 +2495,7 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 + second_name: Миколайович (string, optional)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE(string, required) - `Dictionary GENDER`
-+ no_tax_id: false (boolean, required)
++ no_tax_id: false (boolean, optional)
 + tax_id: 3126509816 (string, required)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
@@ -2466,7 +2515,7 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 ## Employees
 ### `crud_employee`
 + party_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ no_tax_id: true (boolean, required)
++ no_tax_id: true (boolean, optional)
 + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
 + `employee_type`: DOCTOR (string) - `Dictionary EMPLOYEE_TYPE`
@@ -2548,8 +2597,8 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 + status: NEW, REJECTED, APPROVED (enum, required)
 + inserted_at: `2018-03-02T10:45:16.000Z` (string, required)
 + edrpou: 5432345432 (string, required)
-+ `legal_entity_name`: Клініка Борис (string, required)
-+ `no_tax_id`: true (boolean, required)
++ `legal_entity_name`: Клініка Ноунейм (string, required)
++ `no_tax_id`: true (boolean, optional)
 + include `Party_Short`
 
 
@@ -2565,7 +2614,7 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-    + no_tax_id: true (boolean, required)
+    + no_tax_id: true (boolean, optional)
     + include `Party_Short`
 + division (`Division_Short`)
 + `legal_entity` (`Legal_Entity_Short`)
@@ -2588,15 +2637,15 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 ## `Legal_Entities`
 
 ### `crud_legal_entity`
-+ name: Клініка Борис (string, required)
-+ short_name: Борис (string, required)
++ name: Клініка ноунейм (string, required)
++ short_name: Ноунейм (string, required)
 + type: MSP (string, required) - `Dictionary LEGAL_ENTITY_TYPE`
 + edrpou: 5432345432 (string, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (array[Email], required)
 + is_active: true (boolean)
-+ public_name: Клініка Борис (string, required)
++ public_name: Клініка Ноунейм (string, required)
 + kveds: 86.1 (array, required)
 + status: VERIFIED (enum, required)
     - VERIFIED
@@ -2618,15 +2667,15 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 + include `crud_legal_entity`
 
 ### `crud_legal_entity_patch`
-+ name: Клініка Борис (string, optional)
-+ short_name: Борис (string, optional)
-+ public_name: Клініка Борис (string, required)
++ name: Клініка Ноунейм (string, optional)
++ short_name: Ноунейм (string, optional)
++ public_name: Клініка Ноунейм (string, required)
 + type: MSP (string, optional) - `Dictionary LEGAL_ENTITY_TYPE`
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
 + email: email@example.com (array[Email], optional)
 + is_active: true (boolean)
-+ public_name: Клініка Борис (string, optional)
++ public_name: Клініка Ноунейм (string, optional)
 + status: VERIFIED (enum, optional)
     - VERIFIED
     - NOT_VERIFIED
@@ -2636,9 +2685,9 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 
 ### `Legal_Entity_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ name: Клініка Борис (string, required)
-+ short_name: Борис (string, required)
-+ public_name: Клініка Борис (string, required)
++ name: Клініка Ноунейм (string, required)
++ short_name: Ноунейм (string, required)
++ public_name: Клініка Ноунейм (string, required)
 + type: MSP (string, required)
 + edrpou: 5432345432 (string, required)
 + status: ACTIVE (enum, required)
@@ -2648,9 +2697,9 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 ## `Legal_Entity_Requests`
 
 ### `Legal_Entity_Request_Public`
-+ name: Клініка Борис (string, required)
-+ short_name: Борис (string, optional)
-+ public_name: Борис (string, optional)
++ name: Клініка Ноунейм (string, required)
++ short_name: Ноунейм (string, optional)
++ public_name: Ноунейм (string, optional)
 + type: MSP (string, required)
 + `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
@@ -2663,14 +2712,11 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 + `medical_service_provider` (MSP)
 + security (object, fixed-type)
     + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri
-+ public_offer (object)
-    + `consent`: true (boolean, required)
-    + `consent_text`: `Відповідно до Закону України “Про захист персональних даних” з метою ведення реєстрів електронної системи охорони здоров’я та забезпечення її функціонування у дослідній експлуатації надаю згоду обраному оператору та адміністратору електронної системи охорони здоров’я на обробку моїх персональних даних з первинних джерел, а також на здійснення дій пов’язаних зі збиранням, реєстрацією, накопиченням, зберіганням, адаптуванням, зміною, поновленням, використанням, поширенням, розповсюдженням, реалізацією, передачею, знеособленням, знищенням будь-яких відомостей. Додатково надаю згоду на доступ до моїх персональних даних уповноважених третіх осіб, що визначає дії оператора МІС та адміністратора у разі отримання запиту від уповноваженої третьої особи щодо надання доступу до персональних даних. Підтверджую достовірність вказаних мною даних та добровільність надання цих даних до електронної системи охорони здоров’я, що працює у дослідній експлуатації. Усвідомлюю, що у випадку надання мною невірної інформації, мені може бути відмовлено в реєстрації в електронній системі охорони здоров’я. Зобов’язуюсь дотримуватись Регламенту функціонуваня електронної системи охорони здоров’я.` (string, required)
 
 ### `Legal_Entity_Request_Public_Short` 
-+ name: Клініка Борис (string, required)
-+ short_name: Борис (string, optional)
-+ public_name: Борис (string, optional)
++ name: Клініка Ноунейм (string, required)
++ short_name: Ноунейм (string, optional)
++ public_name: Ноунейм (string, optional)
 + type: MSP (string, required)
 + `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
@@ -2691,7 +2737,7 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 
 ## `Divisions`
 ### `Division`
-+ name: Бориспільське відділення Клініки Борис (string, required)
++ name: Бориспільське відділення Клініки Ноунейм (string, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
@@ -2708,7 +2754,7 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 
 ### `Division_Short_List`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ name: Бориспільське відділення Клініки Борис (string, required)
++ name: Бориспільське відділення Клініки Ноунейм (string, required)
 + type: clinic (enum, required)
     - CLINIC
     - AMBULANT_CLINIC
@@ -2719,7 +2765,7 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 
 ### `Division_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ name: Бориспільське відділення Клініки Борис (string, required)
++ name: Бориспільське відділення Клініки Ноунейм (string, required)
 + `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + type: CLINIC (enum, required)
     - CLINIC
@@ -2772,8 +2818,8 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 + licenses (array[MSP_License], required)
 
 ### `Medical_Service_Provider`
-+ name: Клініка Борис (string, required)
-+ short_name: Борис (string, required)
++ name: Клініка Ноунейм (string, required)
++ short_name: Ноунейм (string, required)
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
@@ -2785,8 +2831,8 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 
 ### `MSP_Short`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
-+ name: Клініка Борис (string, required)
-+ short_name: Борис (string, required)
++ name: Клініка Ноунейм (string, required)
++ short_name: Ноунейм (string, required)
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + edrpou: 5432345432 (string, required)
 
@@ -2811,7 +2857,7 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 ## `Ukr_med_registries`
 ### `ukr_med_registry`
 + edrpou: 5432345432 (string, required)
-+ name: Клініка Борис (string, optional)
++ name: Клініка Ноунейм (string, optional)
 
 ### `crud_ukr_med_registry_post`
 + include `ukr_med_registry`
@@ -2837,6 +2883,19 @@ Reimbursement Report combines information about Medication Dispenses and corresp
     + redirect_uri: `http://example.com/` (string, required) - Redirect URI
     + `grant_type`: `authorization_code` 
     + client_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Client ID of authorized user.
+
+### `Access_Token_1`
++ value: `my-oauth-token` (string, required) - oAuth access token.
++ user_id: `3ff33ced-69dc-415a-b231-c6446898335a` (string, required) - User identifier
++ name: `change_password_token` (string, required) - oAuth token name
++ id: `3ff33ced-69dc-415a-b231-c6446898335a` - oAuth token identifier
++ expires_at: 1498749591 (number, required) - expiration date-time timestamp
++ details (object)
+    + scope: `user:change_password` (string, required) - List of scopes that is required in application business logic, separated by space
+    + redirect_uri: `http://example.com/` (string, required) - Redirect URI
+    + `grant_type`: `change_password` 
+    + client_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Client ID of authorized user.
+
 
 ## Shared
 
@@ -2928,7 +2987,6 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 + `active_from_date`: `2017-02-28` (string, required)
 + what_licensed: реалізація наркотичних засобів (string, optional)
 + order_no: ВА43234 (string, required) - номер наказу
-
 
 ## OTPs
 ### OTP
@@ -3023,6 +3081,44 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 + addresses (Address, optional)
 + contacts (ContactInfo, optional)
 + coordinates (Location, optional)
++ `legal_entity` (`LegalEntityMap`, required)
+
+### LegalEntityMap
++ name: Клініка Ноунейм (string, required)
++ short_name: Ноунейм (string, optional)
++ public_name: Ноунейм (string, optional)
++ type: MSP (string, required)
++ `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
++ `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
++ edrpou: 5432345432 (string, required)
++ kveds: `["86.10", "47.73"]` (string, optional)
++ addresses (array[Address], required)
++ phones (array[Phone], required)
++ email: email@example.com (string, required)
++ mis_verified: true (string, optional)
++ nhs_verified: false (string, optional)
++ owner (OwnerMap)
+
+### OwnerMap
++ id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required) - employee id
++ position: P1 (string, required) - employee position
++ employee_type: OWNER (string, required)
++ party (PartyMap)
+
+### PartyMap
++ id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
++ first_name: Петро (string, required)
++ second_name: Миколайович (string, required)
++ last_name: Іванов (string, required)
+
+
+### EmployeeMap
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee identifier with `type=DOCTOR` who issued Medication Request.
++ last_name: `Іванов` (string, required)
++ first_name: `Петро` (string, required)
++ second_name: `Миколайович` (string, optional)
++ position: `P6` (string, required) - `Dictionary POSITION`
++ employee_type: `DOCTOR` (string) - `Dictionary: EMPLOYEE_TYPE`
 
 ### ContactInfo
 + email: email@example.com (string, optional)
@@ -3638,11 +3734,11 @@ Reimbursement Report combines information about Medication Dispenses and corresp
     + `person_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
     + `legal_entity` (object, required)
         + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Legal entity identifier
-        + `name`: `Клініка Борис` (string, required)
+        + `name`: `Клініка Ноунейм` (string, required)
         + `edrpou`: `5432345432` (string, required)
     + `division` (object, required) 
         + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-        + `name`: `Бориспільське відділення Клініки Борис` (string, required)
+        + `name`: `Бориспільське відділення Клініки Ноунейм` (string, required)
         + `mountain_group`: `false` (boolean, optional)
         + `address` (`Address`, required)
     + `employee` (object, required) 
@@ -3678,11 +3774,11 @@ Reimbursement Report combines information about Medication Dispenses and corresp
     + `medical_program` (`Medical_Program_Response`, optional)
     + `legal_entity` (object, optional)
         + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Legal entity identifier
-        + `name`: `Аптека Доброго дня` (string, required) - Legal entity name
+        + `name`: `Аптека 42` (string, required) - Legal entity name
         + `edrpou`: `5432345431` (string, required) - Legal entity edrpou
     + `division` (object, optional) 
         + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-        + `name`: `Бориспільське відділення Аптеки Доброго Дня` (string, required)
+        + `name`: `Бориспільське відділення Аптеки 42` (string, required)
         + `mountain_group`: `false` (boolean, optional)
         + `address` (`Address`, required)
     + `party` (object, optional) 
@@ -3709,3 +3805,18 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 + redirect_uri: `http://example2.com` (string, required)
 + settings (object)
 + priv_settings (object)
+
+## Events
+### `Get_events`
++ id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - Event identifier
++ event_type: `StatusChangeEvent` (string, required) - the name of event
++ entity_type: `MedicationDispense` (string, required) - the name of entity that was changed
++ entity_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - uuid of changed object
++ properties (object, required)
+    + status (object, required)
+        + include (`Event_properties`, required)
++ event_time: `2017-04-20T19:14:13Z` (string, required) - time, when the entity was changed
++ changed_by: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - uuid of the person who changed the entity
+
+### `Event_properties`
++ new_value: `COMPLETED` (string) - new status of entity
