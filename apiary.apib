@@ -273,6 +273,7 @@ Method returns shortened details, to obtain full information - get Declaration R
                 - SIGNED
                 - CANCELLED
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
             + include `Declaration_Request_Public_Response`
             + employee (Employee_Minimal)
             + `legal_entity` (`Medical_Service_Provider`)
@@ -314,6 +315,7 @@ After sign new declaration all previously created pending (status one of the fol
             + code: 201 (number)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
             + seed: hash (string, required)
             + include `Declaration_Request_Public_Response`
             + status: `NEW` (string, required)
@@ -998,19 +1000,27 @@ Method returns only **requested** parameters, birth place and second name in add
             + message: `This API method returns only exact match results, please retry with more specific search result` (string)
 
 ### Get Person Declaration [GET /api/persons/{id}/declaration]
+
 This method allows to receive active person declarations issued by current legal entity (based on access_token). It can be used to check if Patient has active declarations in other Legal Entities.
+
 It returns:
 1. Short declaration info if **active declaration found** AND issued by legal entity that is available for `access_token` scope.
 2. 404 error if **active declaration not found**.
 3. 403 if **active declaration found** issued by **other** (not available by access scopes) legal entity.
+
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
 + Request (application/json)
+
     + Headers
+
             Authorization: Bearer mF_9.B5f-4.1JqM
+
 + Response 200 (application/json)
     + Attributes (Response_Collection)
         + data (array[Declaration_Details])
+
 + Response 403 (application/json)
     + Attributes (Response_Error)
         + meta (Response__Meta, fixed-type)
@@ -1585,7 +1595,9 @@ After Medication request Request is signed it will be automatically moved to [Me
 
 > **Important:** (Specific only for "Доступні ліки")
 > You can't create new Medication Request for medication in case there is another Medication Request with the same medication in this period (between started_at and ended_at)
+
 > **Important:** Dispense of Medications under this Medication Request is possible in period between dispense_valid_from and dispense_valid_to
+
 ### Get Medication Request Requests List [GET /api/medication_request_requests{?employee_id,person_id,status,page,page_size}]
 
 Use this method to obtain list of Medication request Requests an `employee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
@@ -2308,6 +2320,7 @@ This method is used to abtain list of events with filters.
 + tax_id: 3126509816 (string, optional)
 + phones (array[Phone], required)
 + birth_settlement: Вінниця (string, required)
++ documents (array[Document],optional) 
 
 ### `Person_Medication_Request`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -2395,7 +2408,7 @@ This method is used to abtain list of events with filters.
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
 + scope (enum, required)
     - family_doctor
-+ overlimit: false (boolean, optional)
++ overlimit: false (boolean, optional) - when doctor needs more declaration then in declaration_limit is, overlimit should be true
 
 ### `Declaration_Request_Public_Response`
 + start_date: `2017-03-02` (string, required) - Should be defined on the client side.
@@ -2405,7 +2418,8 @@ This method is used to abtain list of events with filters.
     + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
 + scope (enum, required)
     - family doctor
-+ overlimit: false (boolean, optional)
++ overlimit: false (boolean, optional) - when doctor needs more declaration then in declaration_limit is, overlimit should be true
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 
 ### `Declaration_Request_Details_Public`
 + start_date: `2017-03-02` (string, required)
@@ -2419,7 +2433,7 @@ This method is used to abtain list of events with filters.
 + division (`Division_Details`)
 + scope (enum, required)
     - family doctor
-+ overlimit: false (boolean, optional)
++ overlimit: false (boolean, optional) - when doctor needs more declaration then in declaration_limit is, overlimit should be true
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 
 ### `Declaration_Request_Online`
@@ -2432,12 +2446,16 @@ This method is used to abtain list of events with filters.
 + end_date: `2017-03-02` (string, required) - Will be defined on eHealth side if it's not set.
 + person(object, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person ID
-+ overlimit: false (boolean, optional)
++ overlimit: false (boolean, optional) - when doctor needs more declaration then in declaration_limit is, overlimit should be true
 
 ### `Declaration_Request_Short`
-+ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - unique id of declaration
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 + start_date: `2017-03-02` (string, required)
-+ end_date: `2017-03-02` (string, required)
++ status (enum, required)
+    - active
+    - pending_verification
+    - terminated
 + person (Person_Minimal)
 + employee (Employee_Minimal)
 + `legal_entity` (`MSP_Short`)
@@ -2464,6 +2482,7 @@ This method is used to abtain list of events with filters.
 
 ### `Declaration_Details`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 + start_date: `2017-03-02` (string, required)
 + end_date: `2017-03-02` (string, required)
 + signed_at: `2017-03-02T00:00:00.000Z` (string, required)
@@ -2472,6 +2491,28 @@ This method is used to abtain list of events with filters.
     + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
 + employee (`Employee_Declaration_Short`)
 + division (`Division_Short`)
++ `legal_entity` (MSP_Details)
++ status (enum, required)
+    - active
+    - pending_verification
+    - terminated
++ scope (enum, required)
+    - family doctor
++ `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
++ inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
+
+### `Declaration_Details_Cabinet`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
++ signed_at: `2017-03-02T00:00:00.000Z` (string, required)
++ person(`Person_Short`)
+    + `emergency_contact` (`Emergency_Contact`, required)
+    + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
++ employee (`Employee_Declaration_Short`)
++ division (`Division_Details_Cabinet`)
 + `legal_entity` (MSP_Details)
 + status (enum, required)
     - active
@@ -2528,7 +2569,6 @@ This method is used to abtain list of events with filters.
 + phones (array[Phone], optional)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
-+ declaration_limit: `2000` (number) - maximum number of declaration with a doctor.
 
 ### `Party_Response_old`
 + id:`b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -2690,7 +2730,7 @@ This method is used to abtain list of events with filters.
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + no_tax_id: true (boolean, optional)
     + include `Party_Short`
-    + declaration_limit: `2000` (number)
+    + declaration_limit: `2000` (number) - maximum number of declaration with a doctor.
     + declaration_count: `1578` (number) 
 + division (`Division_Short`)
 + `legal_entity` (`Legal_Entity_Short`)
@@ -2855,6 +2895,14 @@ This method is used to abtain list of events with filters.
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + include Division
 
+### `Division_Details_Cabinet`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ name: Бориспільське відділення Клініки Ноунейм (string, required) - the full name of division
++ addresses (array[Address], required)
++ phones (array[Phone], required)
++ email: email@example.com (string, required) - division's email
+
+
 ### `Division_Short_List`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + name: Бориспільське відділення Клініки Ноунейм (string, required)
@@ -2942,7 +2990,7 @@ This method is used to abtain list of events with filters.
 ### `MSP_Details`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
 + name: Клініка ЦПМСД №1 (string, required)
-+ short_Name: ЦПМСД №1 (string, required)
++ short_name: ЦПМСД №1 (string, required)
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
@@ -3189,33 +3237,48 @@ This method is used to abtain list of events with filters.
 + page (number, required)
 + entries (array[EntriesDivisionMap], optional)
 
-### DataEntriesEmployeesMap
+### DataEntriesEmployeesListMap
 + total_pages (number, required)
 + total_entries (number, required)
 + page_size (number, required)
 + page (number, required)
-+ entries (array[EntriesEmployeesMap], optional)
++ entries (array[EntriesEmployeesListMap], optional)
 
 ### EntriesDivisionMap
 + id: `asSbcy12sYs8c` (string, required)
-+ status: `Aдоніс` (string, required)
++ name: `Aдоніс` (string, required)
 + type: CLINIC, AMBULANT_CLINIC, FAP (enum, required)
 + addresses (Address, optional)
 + contacts (ContactInfo, optional)
 + coordinates (Location, optional)
 + `legal_entity` (`LegalEntityMap`, required)
 
-### EntriesEmployeesMap
+### EntriesEmployeesListMap
++ id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required) - employee id
++ party (PartyMap)
+    + specialities (array[Speciality], required)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
+    + is_avaliable: true (boolean, required) 
++ division(object, required)
+    + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
+    + name: `Aдоніс` (string, required)
+    + addresses (Address, optional)
++ `legal_entity` (object, required)
+    + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
+    + name: Клініка Ноунейм (string, required)    
+    
+
+### EntriesEmployeeMap
 + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required) - employee id
 + position: P1 (string, required) - employee position
 + employee_type: DOCTOR (string, required)
 + party (PartyDoctorMap)
 + division(object, required)
     + id: `asSbcy12sYs8c` (string, required)
-    + status: `Aдоніс` (string, required)
+    + name: `Aдоніс` (string, required)
     + type: CLINIC, AMBULANT_CLINIC, FAP (enum, required)
     + addresses (Address, optional)
     + `legal_entity` (object, required)
+        + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
         + name: Клініка Ноунейм (string, required)
 
 
@@ -3369,6 +3432,7 @@ This method is used to abtain list of events with filters.
 
 ### `nhs_declaration_list_Public`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 + `employee` (`Employee_For_Declaration_Minimal`, required)
 + `division` (`DivisionName`, required)        
 + scope (enum, required)
