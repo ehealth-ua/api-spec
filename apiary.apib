@@ -1258,7 +1258,7 @@ Signed content MUST consists of JSON object with Legal Entity data:
     + Attributes (Response__Process_OK)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include Legal_Entity_Request_Public
+            + include Legal_Entity_Response_Public
             + status: ACTIVE (enum, required)
                 - ACTIVE
                 - CLOSED
@@ -1277,7 +1277,7 @@ Signed content MUST consists of JSON object with Legal Entity data:
     + Attributes (Response__Process_OK)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include Legal_Entity_Request_Public
+            + include Legal_Entity_Response_Public
             + status: ACTIVE (enum, required)
                 - ACTIVE
                 - CLOSED
@@ -2865,6 +2865,29 @@ This method is used to abtain list of events with filters.
 + receiver_funds_code: `AB12345` (string, optional) - treasury registration code [Код одержувача/розпорядника бюджетних коштів для Казначейства. Вказується за наявності.]
 + beneficiary: `Борисов Борис Борисович` (string, optional) - legal owner of legal entity [нформація про власника ЗОЗ, для ФОП не заповнюється]
 + owner(`Owner`,required)
++ `medical_service_provider` (MSP)
++ `archive`(array[Archive], optional) 
++ security (object, fixed-type)
+    + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri is used in oauth2.0 flow
++ public_offer(object, fixed-type)
+    + `consent_text`: `Consent text` (string, required)
+    + `consent`: `true` (boolean, required)
+
+### `Legal_Entity_Response_Public`
++ name: Клініка Ноунейм (string, required) - full official name of legal entity also the name to show on public sources [as map, portal etc]
++ short_name: Ноунейм (string, optional) - short name of legal entity
++ public_name: Ноунейм (string, optional) 
++ type: MSP (string, required) - type of legal entity [MSP/PHARMACY]. MIS can't be created using this WS.
++ `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE` State or private type of legal entity
++ `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`  - business form [as ТОВ/ФОП/ДП/КП]
++ edrpou: 32323454 (string, required) - Unified Register of Businesses and Organizations
++ kveds: 86.10 (array, required) - Ukrainian Industry Classification System, there is a check that at least one of next kveds is input: 86.10, 86.21, 47.73.
++ addresses (array[Address], required) - The max items of array is 2: REGISTRATION - required, RESIDENCE - optional. DIVISION is exception: REGISTRATION - optional, RESIDENCE - required
++ phones (array[Phone], required)
++ email: email@example.com (string, required) - email to contact person in charge from legal entity
++ website: `www.msp.com.ua` (string, optional) - legal entity website
++ receiver_funds_code: `AB12345` (string, optional) - treasury registration code [Код одержувача/розпорядника бюджетних коштів для Казначейства. Вказується за наявності.]
++ beneficiary: `Борисов Борис Борисович` (string, optional) - legal owner of legal entity [нформація про власника ЗОЗ, для ФОП не заповнюється]
 + `medical_service_provider` (MSP)
 + `archive`(array[Archive], optional) 
 + security (object, fixed-type)
