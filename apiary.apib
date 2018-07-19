@@ -2155,7 +2155,7 @@ Reimbursement Report combines information about Medication requests and correspo
     + date_from_dispense: `2017-09-01` (date, optional) - Start date for Medication Dispense disbursed_at date
     + date_to_dispense: `2017-10-01` (date, optional) - End date for Medication Dispense disbursed_at date
     + page: 2 (number, optional) - Page number.
-    + page_size: 1000 (number, optional) - A limit on the number of objects to be returned. Default: 1000
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
 
 
 + Request (application/json)
@@ -2238,7 +2238,7 @@ This method is used to abtain list of events with filters.
     + attribute_name: `status` (string, optional) - name of event in properties.
     + new_value: `COMPLETED` (enum, optional)- new status of entity.
     + page: 2 (number, optional) - Page number.
-    + page_size: 1000 (number, optional) - A limit on the number of objects to be returned. Default: 1000
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
 
 + Request (application/json)
 
@@ -2481,7 +2481,7 @@ This method is designed to obtain list of contract request with filters. This me
         - NHS_SIGNED
     + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
     + page: 2 (number, optional) - Page number.
-    + page_size: 1000 (number, optional) - A limit on the number of objects to be returned. Default: 1000
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
 
 + Request (application/json)
 
@@ -2630,7 +2630,7 @@ This method is designed to obtain list of contracts with filters. This mothod re
     + date_to_end_date: `2019-01-01` (string, optional)
     + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
     + page: 2 (number, optional) - Page number.
-    + page_size: 1000 (number, optional) - A limit on the number of objects to be returned. Default: 1000
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
 
 + Request (application/json)
 
@@ -2674,7 +2674,7 @@ The data received in response can be changed and signed in order to update emplo
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
     + `division_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
     + page: 2 (number, optional) - Page number.
-    + page_size: 1000 (number, optional) - A limit on the number of objects to be returned. Default: 1000
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
 
      
 + Request (application/json)
@@ -2811,7 +2811,7 @@ Example data to sign in order to deactivate employee:
 + cursors (object)
     + `starting_after`: 56c31536a60ad644060041af (string) - A cursor for use in pagination. An object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list.
     + `ending_before`: 56c31536a60ad644060041aa (string) - A cursor for use in pagination. An object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.
-+ size: 1000 (number) - Total number of objects in collection.
++ size: 50 (number) - Total number of objects in collection.
 + has_more: false (boolean) - Is this collection have more data to load in the same style as last request loaded it.
 
 ### `Response__Pagination__V2`
@@ -5012,6 +5012,8 @@ Example data to sign in order to deactivate employee:
 + `start_date`: `2017-04-20` (string, required) - contract start date
 + `end_date`: `2018-04-20` (string, required) - contract start date
 + is_suspended: false (string, required) - whether the contract is active or temporary suspended
++ id_form: `PMD` (string, required)
++ parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
 
 ### `Contract_Details`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract ID 
@@ -5049,6 +5051,8 @@ Example data to sign in order to deactivate employee:
 + contract_request_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - contract request id
 + is_suspended: false (boolean, required) - whether the contract is active or temporary suspended
 + `end_date`: `2017-04-20` (string, required) - contract end date
++ id_form: `PMD` (string, required)
++ parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
 
 ### `Capitation_report`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - Unique report id
