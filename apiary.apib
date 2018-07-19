@@ -2590,6 +2590,8 @@ All signature fields will be validated (including signer certificate authority).
 Object that need to be signed is returned by Get Contract request by ID, urgent, type='signed_content'. In response will be receive a link to download a file in pkcs7 format (signed by NHS side).
 This data must be signed.
 
+> Note! In response you will receive Contract object.
+
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
@@ -2607,7 +2609,7 @@ This data must be signed.
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Contract_request_Details`
+            + include `Contract_Details`
 
 ## Contracts [/api/contract]
 ### Public. Get Contracts list [GET /api/contracts{?id,contractor_legal_entity_id,edrpou,contractor_owner_id,nhs_signer_id,is_suspended,status,contract_number,date_from_start_date,date_to_start_date,date_from_end_date,date_to_end_date,page,page_size}]
