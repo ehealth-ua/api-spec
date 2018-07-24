@@ -26,8 +26,14 @@ If our API returns only one work context, you are free to hide context picker.
 To submit issues you should use [Issue Tracking Repo](https://github.com/ehealth-ua/api-spec), issues in all other repositories are used to plan backlog and non-related issued will be closed.
 
 # Group Public. Medical Service Provider Integration Layer
+the below table reflects actual API endpoints for all the ehealth environments
+Env     | Host
+--------|-----
+DEMO    | https://api.demo.asclepius.com.ua
+PREPROD | https://api-preprod.ehealth-ukraine.org
+PROD    | https://api.ehealth-ukraine.org
 
-## oAuth [/api/oauth]
+##oAuth [/api/oauth]
 
 1. Client UI: redirects user to Login UI with `client_id`, `redirect_uri` and `response_type=code` query params;
 2. Login UI: completes [Session]() auth flow with `apps:create` scope;
@@ -236,7 +242,7 @@ Method returns shortened details, to obtain full information - get Declaration R
         - NEW
         - APPROVED
         - SIGNED
-        - CANCELLED
+        - REJECTED
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
     
@@ -281,6 +287,9 @@ Method returns shortened details, to obtain full information - get Declaration R
             + division (`Division_Details`)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
             + seed: hash (string, required) - Hash of previous block in declarations chain or other random component that should be signed with declaration.
+            + channel: `MIS` (enum, required) - channel that invoke declaration create service
+                - MIS
+                - CABINET
         + urgent (object, required)
             + `authentication_method_current` (object, required)
                 + type: `OTP` (enum, required)
@@ -321,8 +330,9 @@ After sign new declaration all previously created pending (status one of the fol
             + employee (Employee_Minimal, required)
             + `legal_entity` (`Medical_Service_Provider`, required)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + division (`Division_Details`, required)
+            + division (`Division_Declaration`, required)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + channel: `MIS` (enum, required) - channel that invoke declaration create service
         + urgent (object, required)
             + `authentication_method_current` (object, required)
                 + type: `OTP` (enum, required)
@@ -384,6 +394,7 @@ Clients can use signed URL's to directly access Minio storage and upload files v
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + division (`Division_Details`, required)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + channel: `MIS` (enum, required) - channel that invoke declaration create service
 
 ### Reject Declaration Request [PATCH /api/declaration_requests/{id}/actions/reject]
 
@@ -412,7 +423,7 @@ Use this method to reject previously created Declaration Request.
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + division (`Division_Details`, required)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
-
+            + channel: `MIS` (enum, required) - channel that invoke declaration create service
 
 ### Resend Authorization OTP on Declaration Request [POST /api/declaration_requests/{id}/actions/resend_otp]
 
@@ -665,7 +676,7 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
 
 ## Declarations [/api/declarations]
 
-### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,status,page,page_size}]
+### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,status,declaration_number,page,page_size}]
 
 Use this method to obrain list of Declarations for an `empolee_id` and legal_entity_id. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -673,7 +684,8 @@ Method returns shortened details, to obtain full information - get Declaration D
 
 + Parameters
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - `user_id` of a Doctor.
-    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - MSP ID.
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    + `declaration_number`: `0000-12H4-245D` (string, optional) - unique human redable number of declaration.
     + status: active (string, optional)
         + Default: active
     + page: 2 (number, optional) - Page number.
@@ -879,6 +891,50 @@ For changes to take effect employee must confirm the changes.
 
     + Attributes (object)
         + `employee_request` (Employee_Request)
+
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (Employee_Request_Details)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + inserted_at: `2017-05-05T14:09:59.232112` (string, required)
+            + updated_at: `2017-05-05T14:09:59.232112` (string, required)
+
+### Create Employee Request v2 [POST /api/v2/employee_requests]
+
+Employee_Request consist of the three mandatory parts:
+* Person info
+* Employee info
+* User Info
+
+Additionally to register/update Physician the `Doctor info` should be passed.
+
+When the `Employee_Request` will be posted the Invitation e-mail with a request
+secret token will be sent to the User specified in the request.
+
+In case the employee doesn't have tax_id no_tax_id must be true and in fields tax_id input passport number (serial number in cyrillic without spaces) 
+
+It can be also used to update employee data. In this case `employee_id` should be passed in the payload.
+
+User may accept or decline Invitation.
+
+For changes to take effect employee must confirm the changes.
+Method receives signed message (pkcs7) including signed content, digital signature and signer public key. 
+All signature fields will be validated (including signer certificate authority).
+Signed content MUST consists of JSON object with the `employee_request` block of [data](https://uaehealthapi.docs.apiary.io/#reference/public.-medical-service-provider-integration-layer/employee-requests/create-employee-request):
+
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + `signed_content`: `...` (string, required)
+        + `signed_content_encoding`: base64 (string, required)
 
 
 + Response 200 (application/json)
@@ -1277,7 +1333,7 @@ Signed content MUST consists of JSON object with Legal Entity data:
     + Attributes (Response__Process_OK)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include Legal_Entity_Response_Public
+            + include `Legal_Entity_Response_Public`
             + status: ACTIVE (enum, required)
                 - ACTIVE
                 - CLOSED
@@ -1581,6 +1637,46 @@ Only legal entity owner can request new client secret for his own legal entity
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (`Client`)
+
+## Capitation reports [/api/capitation_reports]
+
+### Get capitation reports [GET /api/capitation_reports{?page,page_size}]
+
+This method returns list of all available already created capitation reports.
+Capitation reports are created monthly
+
+**Scopes required:** `capitation_report:read`
+
++ Parameters
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (array)
+            + (`Capitation_report`)
+
+### Get capitation report details [GET /api/capitation_report_details{?edrpou,report_id}]
+
+This method returns details of specified capitation report.
+
+* For MSP User service will return the report details limited by user's MSP Id (Client Id)
+* For NHS User service will return all the details
+
+**Scopes required:** `capitation_report:read`
+
++ Parameters
+    + `edrpou`: `34056008` (string,optional)
+    + `report_id`: `role-1380df72-275a-11e7-93ae-92361f002671` (string, optional)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (array)
+            + (`Capitation_report_detail`)
 
 # Group Public. Reimbursement
 
@@ -2059,7 +2155,7 @@ Reimbursement Report combines information about Medication requests and correspo
     + date_from_dispense: `2017-09-01` (date, optional) - Start date for Medication Dispense disbursed_at date
     + date_to_dispense: `2017-10-01` (date, optional) - End date for Medication Dispense disbursed_at date
     + page: 2 (number, optional) - Page number.
-    + page_size: 1000 (number, optional) - A limit on the number of objects to be returned. Default: 1000
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
 
 
 + Request (application/json)
@@ -2142,7 +2238,7 @@ This method is used to abtain list of events with filters.
     + attribute_name: `status` (string, optional) - name of event in properties.
     + new_value: `COMPLETED` (enum, optional)- new status of entity.
     + page: 2 (number, optional) - Page number.
-    + page_size: 1000 (number, optional) - A limit on the number of objects to be returned. Default: 1000
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
 
 + Request (application/json)
 
@@ -2200,6 +2296,488 @@ This method is used to abtain list of events with filters.
                 + `client_id`: `client_id` (string, required)
                 + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
             + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
+
+
+# Group Public. Contracts
+
+## Contract request [/api/contract_requests]
+
+###Business logic
+In order to create a new contract or update an existing contract, legal entity owner should create a contract request first. The contract request should be approved by both sides - Medical Service Provider(MSP) and National Health Service(NHS), and than signed by both sides as well. After that a new contract will be created or an existing contract will be updated. 
+The detailed flow is described in a schema below:
+
+[Confluence: Status Chart](https://edenlab.atlassian.net/wiki/x/GIDMIg)
+
+![Contract request flow](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgQ29udHJhY3QgcmVxdWVzdHMKCnBhcnRpY2lwYW50IE1TUCBhcyBtc3AACg1lSGVhbHRoIGFzIGVoAAYFACkNRG9jdW1lbnQgc3RvcmFnZSBhcwADCABRDU5IUyBhcyBuaHMKCm1zcC0-AEYHOiA8PEluaXRpYWxpemUgYwCBFQ8-PgoAbwcAJwtHZW5lcmF0ZSBVUkxzABYKbXNwOiA8PFJlc3BvbnNlIHdpdGggaWQgYW5kACUFPj4AdAYAgSMHOiBVcGxvYWQgZACBPAdzAIETBgBCBVNpZ24AfBEgdXNpbmcgZGlnaXRhbCBzaWduYXR1cmUgAIFBEUNyZWF0AIE5FW5ocwCBbw1HZXQAgWQRcyBsaQAEKSBkZXRhaWxzPj4KCmFsdCBBcHByb3YAgjgSCiAgICAAbhBVcGQAgREXACUJbmhzAIFgLwBVFQCAfxggYnkgTkhTPj4KZWxzZSBEZWNsaW4AgSIcAElHAFEYPj4KZW5kIACFExIAgwwdAAkkAIMeCwCFcRAAggEcTVNQAINiKHByaW50b3UAhEsGZW4AhGYJAIMQMwCFFxAAhXoWAIMzCQCBTDQAhn4JRG93bgCHBAUAiQkFYWxseQCGVgVlZACFMhIAhxIPABgZXG4AhysIAIgABTJuZACFFAsAiG8QAIFDGQCCdQYKb3B0IFRlcm1pbgCHQBQAhlMFAIlCEAAVGgCDSQplbmQK&s=modern-blue)
+
+### Public. Initialize Contract Request [POST /api/contract_requests]
+
+***Scope  contract_request:create***
+
+This web service allows to initialize contract request creation by generating links for contract request documents upload.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Init_contract_request_response`
+
+### Pubic. Create Contract Request [POST /api/contract_requests/{id}]
+
+***Scope  contract_request:create***
+
+This web service allows to create contract request, using contract_request_id, generated by Initialize Contract Request WS. 
+As an input parameters should be transfered signed data in PKCS7 format. Digital signiture should be applied to data filled by legal entity owner and MD5 HASH of provided files (statuste and equipment agreement).
+#### Generic contract_request object scheme to be signed
+The following tables describes contract_request object fields and it`s child objects.
+#####Contract_request
+
+Attribute |Is required| Description
+----------|-----------|-------------
+contractor_owner_id|true| підписант, зі сторони мед. закладу
+contractor_base|true| на якій підставі діє підписант: закон/домовленість
+contractor_payment_details|true| об'єкт, що містить дані по рахунку, на який будуть здійснюватися виплати
+contractor_rmsp_amount|true| к-сть осіб, що обслуговувалися мед закладом (додаток 1.1 пункт 7)
+contractor_divisions|true| масив id відділень мед. закладу, що включаються в договір
+contractor_employee_divisions|true| масив лікарів (на конкретних відділеннях), що входять да контракту та капітаційного звіту
+external_contractor_flag|true| наявність додатку 2 (підрядники, залучені до надання медичних послуг за Договором)
+external_contractors|false|масив об'єктів типу external_contractor objects - підрядники, залучені до надання медичних послуг за Договором
+start_date|false| пункт 9.2 - цей договір діє з (рік має бути поточний або настпуний)
+end_date|false| пункт 9.2 - цей договір діє по (рік має співпадати з роком у start_date)
+id_form|true| словник `CONTRACT_TYPE`, поки що лише один вид Договір на ПМД
+contract_number|false| human-redable номер контракту
+statute_md5|true| хеш завантаженого документу (статуту)
+additional_document_md5|true| хеш завантаженого документу (додатковий документ)
+consent_text|true|
+
+####Contractor_payment_details
+Attribute |Is required| Description
+----------|-----------|-------------
+bank_name|true| назва банку
+MFO|true| МФО
+payer_account|true| розрахунковий рахунок
+####Contractor_employee_division
+Attribute |Is required| Description
+----------|-----------|------------
+employee_id|true| id запис про медичного працівника в системі
+staff_units|true| штатна одиниця 
+declaration_limit|true| максимальна к-сть пацієнтів, які можуть подати декларації про вибір такого лікаря за Договором
+division_id|true| місце надання медичних послуг пов'язаниз з ПМД (підмножина contractor_divisions)
+####External_contractors
+Attribute |Is required| Description
+----------|-----------|----------
+legal_entity_id|true| запис про надавача з системи  
+contract|true| договір з Підрядником
+divisions|true| масив об'єктів типу Division, що зберігає запис про Місце надання медичних послуг з Системи та послугу
+####Contract
+Attribute |Is required| Description
+----------|-----------|------------
+number|true| номер договору з Підрядником
+issued_at|true| дата укладення договору з Підрядником
+expires_at|true| строк дії договору з Підрядником
+####Division
+Attribute |Is required| Description
+----------|-----------|------------
+id|true| запис про Місце надання медичних послуг з Системи
+medical_service|true| послуга, що надається на відділені (словник `medical_service`)
+
+####Business ruels
+
+1. Create new or update existsing contract
+
+    > 1.1 In order to create new contract, contract_number should be empty, start_date and end_date should be filled.
+    
+    > 1.2 In order to update existing contract, contract_number should be filled, start_date and end_date should be empty. Existing contract must be in `VERIFIED` status.
+
+2. External contractors
+    
+    > 2.1 In case you have external_contractors - external_contractors_flag should be set as TRUE and external_contractors array must be provided (filled).
+    
+    > 2.2 In case you don't have external_contractors - external_contractors_flag should be set as FALSE and external_contractors array must empty.
+
+####JSON example
+
+```
+{
+  "contractor_owner_id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
+  "contractor_base": "на підставі статуту",
+  "contractor_payment_details": {
+    "bank_name": "Банк номер 1",
+    "MFO": "351005",
+    "payer_account": "32009102701026"
+  },
+  "contractor_rmsp_amount": 50000,
+  "contractor_divisions": [
+    "id: `2922a240-63db-404e-b730-09222bfeb2dd`"
+  ],
+  "contractor_employee_divisions": [
+    {
+      "employee_id": "2922a240-63db-404e-b730-09222bfeb2dd",
+      "staff_units": 0.5,
+      "declaration_limit": 2000,
+      "division_id": "2922a240-63db-404e-b730-09222bfeb2dd"
+    }
+  ],
+  "external_contractor_flag": true,
+   "external_contractors": [
+    {
+      "legal_entity_id": "443e901e-b365-45d2-be14-083ee0aba657",
+      "contract": {
+        "number": "1234567",
+        "issued_at": "2018-01-01",
+        "expires_at": "2019-01-01"
+      },
+      "divisions": [
+        {
+          "id": "2922a240-63db-404e-b730-09222bfeb2dd",
+          "medical_service": "Послуга ПМД"
+        }
+      ]
+    }
+  ],
+  "start_date": "2017-04-20",
+  "end_date": "2017-04-20",
+  "id_form": "PMD_1",
+  "contract_number": "0000-9EAX-XT7X-3115",
+  "statute_md5": "db218b04eff70f86f40c1572ce8ca16a",
+  "additional_document_md5": "ac642b04eff40f86f40c1572ce8ca16a",
+  "consent_text": "Погоджуюсь з публічними правилами"
+}
+```
+
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + include `Contract_request_Request_signed`
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Contract_request_Details_Full`
+
+
+### Public. Get Contract Requests list [GET /api/contract_requests{?id,contractor_legal_entity_id,edrpou,contractor_owner_id,nhs_signer_id,issue_city,status,contract_number,page,page_size}]
+
+***Scope  contract_request:read***
+
+This method is designed to obtain list of contract request with filters. This method returns shorten information about contract request, in order to see all information try to use 'get contract request details'
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of contract request
+    + contractor_legal_entity_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of legal entity which created contract request.
+    + contractor_owner_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of legal entity owner.
+    + `nhs_signer_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of nhs employee
+    + issue_city: `КИЇВ` (string, optional) - contract request place
+    + edrpou: `12345678` (string, optional) - legal entity edrpou
+    + status: `NEW` (enum, optional) - current status on contract request.
+        - NEW
+        - APPROVED
+        - DECLINED
+        - SIGNED
+        - TERMINATED
+        - NHS_SIGNED
+    + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[`Contract_request_list`])
+
+### Public. Get Contract Request Details [GET /api/contract_requests/{id}]
+
+***Scope  contract_request:read***
+
+This method is designed to get full information of contract request by id
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Contract_request_Details`
+        + urgent (object, required)
+            + documents (array[`contract_media_content`], optional)
+
+### Public. Approve Contract Request by MSP [PATCH /api/contract_requests/{id}/actions/approve_msp]
+
+***Scope  contract_request:approve***
+
+This WS is designed to approve contract request by MSP side after it was approved by NHS side. 
+Contract request only in status APPROVED can be approved by MSP and as a result status changes to 'PENDING_NHS_SIGN'.
+Only after that NHS employee can sign the contract request.
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_request_Details`
+
+### Public. Terminate Contract Request by MSP [PATCH /api/contract_requests/{id}/actions/terminate]
+
+***Scope  contract_request:terminate***
+
+This WS is designed to terminate contract request by contractor. Contract request can't be in status='SIGNED'
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            
+    + Attributes (object)
+        + `status_reason`: `Неправильний період контракту`(string, optional) - the reason of terminated status
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_request_Details`
+
+### Public. Get Contract Request Printout Content [GET /api/contract_requests/{id}/printout_content]
+
+***Scope  contract_request:read***
+
+This method is designed to get printout content by contract request id. In order to sign contract it's need to invoke
+Get Contract Request Details and Get Contract Request Printout Content and sign whole data.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract request identifier
+            + `printout_content`: `Contract request content` (string, required) - HTML document for contract request, is shown only for requests in `APPROVED`, `PENDING_NHS_SIGN`, `NHS_SIGNED`, `SIGNED` statuses.
+
+
+
+### Public. Sign Contract Request by MSP [PATCH /api/contract_requests/{id}/actions/sign_msp]
+
+***Scope  contract_request:sign***
+
+This WS is designed to sign contract request from MSP side. Contract request's status must be in status ='NHS_SIGNED'.
+Tax_id in DS certeficate = contractor_owner_id.tax_id
+Method receives signed message (pkcs7) including signed content, digital signature of first signer, digital signature of second signer and signer public key in signed_content property. 
+All signature fields will be validated (including signer certificate authority). This service will store signed copy of Contract Request in Media Content Storage (will update previous version of file),created contract records and linked employees_divisions if signature is all checks is passed. 
+Object that need to be signed is returned by Get Contract request by ID, urgent, type='signed_content'. In response will be receive a link to download a file in pkcs7 format (signed by NHS side).
+This data must be signed.
+
+> **Note!** In response you will receive Contract object.
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            
+    + Attributes (object)
+        + `signed_content`: `MIIU2wYJKoZIhvcNAQcCoIIUzDCCFMgCAQExDjAMBgoqhiQCAQEBAQIBMIIG+QYJKoZIhvcNAQcBoIIG6gSCBuZ7CiAgICAiaWQiOiAiMDkxMDZiNzAtMThiMC00NzI2LWIwZWQtNmJkYTEzNjlmZDUyIiwKICAgICJjb250cmFjdG9yX293bmVyX2lkIjogImRmOWY3MGVlLTRiMTItNDc0MC1iMGY1LWJiNWFlYTExNjg2MyIsCiAgICAiY29udHJhY3Rvcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQt9Cw0LrQvtC90YMg0L/RgNC+INCc0LXQtNC40YfQvdC1INC+0LHRgdC70YPQs9C+0LLRg9Cy0LDQvdC90Y8g0L3QsNGB0LXQu9C10L3QvdGPIiwKICAgICJjb250cmFjdG9yX3BheW1lbnRfZGV0YWlscyI6IHsKICAgICAgImJhbmtfbmFtZSI6ICLQkdCw0L3QuiDQvdC+0LzQtdGAIDEiLAogICAgICAiTUZPIjogIjM1MTAwNSIsCiAgICAgICJwYXllcl9hY2NvdW50IjogIjMyMDA5MTAyNzAxMDI2IgogICAgfSwKICAgICJjb250cmFjdG9yX3Jtc3BfYW1vdW50IjogNTAwMDAsCiAgICAiZXh0ZXJuYWxfY29udHJhY3Rvcl9mbGFnIjogdHJ1ZSwKICAgICJleHRlcm5hbF9jb250cmFjdG9ycyI6IHsKICAgICAgImxlZ2FsX2VudGl0eV9pZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLAogICAgICAiY29udHJhY3QiOiB7CiAgICAgICAgIm51bWJlciI6ICIxMjM0NTY3IiwKICAgICAgICAiaXNzdWVkX2F0IjogIjIwMTgtMDEtMDEiLAogICAgICAgICJleHBpcmVzX2F0IjogIjIwMTktMDEtMDEiCiAgICAgIH0sCiAgICAgICJkaXZpc2lvbnMiOiBbCiAgICAgICAgewogICAgICAgICAgImlkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCIsCiAgICAgICAgICAibWVkaWNhbF9zZXJ2aWNlIjogItCf0L7RgdC70YPQs9CwINCf0JzQlCIKICAgICAgICB9CiAgICAgIF0KICAgIH0sCiAgICAiY29udHJhY3Rvcl9lbXBsb3llZV9kaXZpc2lvbnMiOiBbCiAgICAgIHsKICAgICAgICAiZW1wbG95ZWVfaWQiOiAiMjkyMmEyNDAtNjNkYi00MDRlLWI3MzAtMDkyMjJiZmViMmRkIiwKICAgICAgICAic3RhZmZfdW5pdHMiOiAwLjUsCiAgICAgICAgImRlY2xhcmF0aW9uX2xpbWl0IjogMjAwMCwKICAgICAgICAiZGl2aXNpb25faWQiOiAiMjkyMmEyNDAtNjNkYi00MDRlLWI3MzAtMDkyMjJiZmViMmRkIgogICAgICB9CiAgICBdLAogICAgImlkX2Zvcm0iOiAiNSIsCiAgICAibmhzX3NpZ25lcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQvdCw0LrQsNC30YMiLAogICAgIm5oc19jb250cmFjdF9wcmljZSI6IDUwMDAwLAogICAgIm5oc19wYXltZW50X21ldGhvZCI6ICJwcmVwYXltZW50IiwKICAgICJpc3N1ZV9jaXR5IjogItCa0LjRl9CyIiwKICAgICJzdGF0dXMiOiAiTkVXIiwKICAgICJzdGF0dXNfcmVhc29uIjogItCd0LUg0LLRltC00L/QvtCy0ZbQtNCw0ZQg0L/QvtC/0LXRgNC10LTQvdGW0Lwg0LTQvtC80L7QstC70LXQvdC+0YHRgtGP0LwiLAogICAgIm5oc19zaWduZXJfaWQiOiAiZGY5ZjcwZWUtNGIxMi00NzQwLWIwZjUtYmI1YWVhMTE2ODYzIiwKICAgICJuaHNfbGVnYWxfZW50aXR5X2lkIjogImRmOWY3MGVlLTRiMTItNDc0MC1iMGY1LWJiNWFlYTExNjg2MyIsCiAgICAiY29udHJhY3RfbnVtYmVyIjogIjAwMDAtOUVBWC1YVDdYLTMxMTUiLAogICAgImNvbnRyYWN0X2lkIjogImRmOWY3MGVlLTRiMTItNDc0MC1iMGY1LWJiNWFlYTExNjg2MyIsCiAgICAic3RhcnRfZGF0ZSI6ICIyMDE3LTA0LTIwIiwKICAgICJlbmRfZGF0ZSI6ICIyMDE3LTA0LTIwIiwKICAgICJwcmludG91dF9jb250ZW50Ijog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`(string, required) 
+        + `signed_content_encoding`: `base64` (string, required)
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_Details`
+
+## Contracts [/api/contract]
+### Public. Get Contracts list [GET /api/contracts{?id,contractor_legal_entity_id,edrpou,contractor_owner_id,nhs_signer_id,is_suspended,status,contract_number,date_from_start_date,date_to_start_date,date_from_end_date,date_to_end_date,page,page_size}]
+
+***Scope  contract:read***
+
+This method is designed to obtain list of contracts with filters. This mothod return shorten information about contract, in order to see all information try to use 'get contract details'
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of contract request
+    + contractor_legal_entity_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of legal entity which created contract request.
+    + edrpou: `5432345432` (string, optional) - contractor legal entity EDRPOU
+    + contractor_owner_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of legal entity owner.
+    + `nhs_signer_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of nhs employee
+    + status: `VERIFIED` (enum, optional) - current contract status.
+        - TERMINATED
+        - VERIFIED
+    + is_suspended: true (boolean, optional) - wether contract is active
+    + date_from_start_date: `2018-01-01` (string, optional)
+    + date_to_start_date: `2019-01-01` (string, optional)
+    + date_from_end_date: `2018-01-01` (string, optional)
+    + date_to_end_date: `2019-01-01` (string, optional)
+    + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[Contracts_list])
+
+### Public. Get Contract Details [GET /api/contracts/{id}]
+
+***Scope  contract:read***
+
+This method is designed to get full information of contract by id
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Contract_Details`
+        + urgent (object, required)
+            + documents (array[`contract_media_content`], optional)
+
+### Public. Get Contract Employees [GET /api/contracts/{contract_id}/employees{?is_active,employee_id,division_id,page,page_size}]
+
+***Scope  contract:read***
+
+This method allows to get whole history of all changes employees and divisions which were included in Contract.
+In order to see list of employees as for now set parametr `is_active:true`.
+The data received in response can be changed and signed in order to update employees and divisions in conract.
+
++ Parameters
+    + `contract_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract identifier
+    + `is_active`: true (boolean, optional) - Return only active employees. Default: true
+    + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
+    + `division_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
+
+     
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+        
++ Response 200 (application/json)
+    + Attributes (Response_Collection_V2)
+        + data (object)
+            + `contractor_employee_divisions` (array, fixed, required)
+                + (object)
+                    + include `Employee_divisions_response`
+                    + `start_date`: `2017-04-20` (string, required) - employee start date 
+                    + `end_date`: `2017-04-20` (string, required) - employee end date
+                    + `contract_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract identifier
+                       
+
+### Public. Update Contract Employees [PATCH /api/contracts/{contract_id}/employees/actions/update]
+
+***Scope  contract:write***
+
+This method is designed to add, update and deactivate employee and their division in contract.
+Contract itself can be updated only through 2 signed contract request with input contract_number.
+Divisions also must be updated same way as contract (through 2 signed contract request with input contract_number).
+
+Employees in contract update must be done through signed content. 
+Each employee updates individually.
+
+For each employee there is start_date and end_date (within contract). In case of updating emplpoyee, previous version is deactivated (end_date=updated_date) and new version is starting being active from updated_date.
+
+To deactivate employee in contract parameter `is_active=false` must be set in signed content. 
+It's impossible to add and deactivate employee trough one request (emlpoyee already must be added in order to deactivate).
+To update employees in contract contract's status must be 'VERIFIED'.
+
+Example data to sign in order to update/add employee:
+```
+{
+ "employee_id": "09106b70-18b0-4726-b0ed-6bda1369fd52",
+ "staff_units": 1,
+ "declaration_limit": 45000,
+ "division_id": "6eb6123a-b3ce-4d27-ad3a-f6e3fb3ef1a1"
+}
+```
+
+Example data to sign in order to deactivate employee:
+```
+{
+ "employee_id": "09106b70-18b0-4726-b0ed-6bda1369fd52",
+ "division_id": "6eb6123a-b3ce-4d27-ad3a-f6e3fb3ef1a1",
+ "is_active": false
+}
+```
+
++ Parameters
+    + contract_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            
+    + Attributes (object)
+        + `signed_content`: `ICB7DQogICAgImVtcGxveWVlX2lkIjogew0KICAgICAgImlkIjogImIwNzVmMTQ4LTdmOTMtNGZjMi1iMmVjLTJkODFiMTlhOWI3YiIsDQogICAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwNCiAgICAgICJsYXN0X25hbWUiOiAi0IbQstCw0L3QvtCyIiwNCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwNCiAgICAgICJzcGVjaWFsaXRpZXMiOiBbDQogICAgICAgIHsNCiAgICAgICAgICAic3BlY2lhbGl0eSI6ICJUSEVSQVBJU1QiLA0KICAgICAgICAgICJzcGVjaWFsaXR5X29mZmljaW8iOiB0cnVlLA0KICAgICAgICAgICJsZXZlbCI6ICJGSVJTVCIsDQogICAgICAgICAgInF1YWxpZmljYXRpb25fdHlwZSI6ICJBV0FSRElORyIsDQogICAgICAgICAgImF0dGVzdGF0aW9uX25hbWUiOiAi0JDQutCw0LTQtdC80ZbRjyDQkdC+0LPQvtC80L7Qu9GM0YbRjyIsDQogICAgICAgICAgImF0dGVzdGF0aW9uX2RhdGUiOiAiMjAxNyIsDQogICAgICAgICAgInZhbGlkX3RvX2RhdGUiOiAiMjAyMCIsDQogICAgICAgICAgImNlcnRpZmljYXRlX251bWJlciI6ICJBQi8yMTMzMSINCiAgICAgICAgfQ0KICAgICAgXQ0KICAgIH0sDQogICAgInN0YWZmX3VuaXRzIjogMC41LA0KICAgICJpc19hY3RpdmUiOiB0cnVlLA0KICAgICJkaXZpc2lvbiI6IHsNCiAgICAgICJpZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICAgIm5hbWUiOiAi0JHQvtGA0LjRgdC/0ZbQu9GM0YHRjNC60LUg0LLRltC00LTRltC70LXQvdC90Y8g0JrQu9GW0L3RltC60Lgg0J3QvtGD0L3QtdC50LwiDQogICAgfQ0KICB9`(string, required) 
+        + `signed_content_encoding`: `base64` (string, required)
+        
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + `contractor_employee_divisions` (array, fixed, required)
+                + (object)
+                    + include `Employee_divisions_response`
+            + `start_date`: `2017-04-20` (string, required) - employee start date 
+            + `end_date`: `2017-04-20` (string, required) - employee end date
+            + `contract_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract identifier
+
 
 # Data Structures
 ## Responses
@@ -2265,7 +2843,7 @@ This method is used to abtain list of events with filters.
 + cursors (object)
     + `starting_after`: 56c31536a60ad644060041af (string) - A cursor for use in pagination. An object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list.
     + `ending_before`: 56c31536a60ad644060041aa (string) - A cursor for use in pagination. An object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.
-+ size: 1000 (number) - Total number of objects in collection.
++ size: 50 (number) - Total number of objects in collection.
 + has_more: false (boolean) - Is this collection have more data to load in the same style as last request loaded it.
 
 ### `Response__Pagination__V2`
@@ -2340,15 +2918,26 @@ This method is used to abtain list of events with filters.
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
 
+### `Person_Minimal_Contract`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ party (object)
+    + first_name: Петро (string, required)
+    + last_name: Іванов (string, required)
+    + second_name: Миколайович (string, optional)
+
 ### `Person_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
 + birth_date: `1991-08-19` (string, required) - ISO Datetime.
++ gender (enum, required)
+    - FEMALE
+    - MALE
 + tax_id: 3126509816 (string, optional)
 + phones (array[Phone], required)
 + birth_settlement: Вінниця (string, required)
++ birth_country: Україна (string, required) - країна народження
 + documents (array[Document],optional) 
 
 ### `Person_Medication_Request`
@@ -2398,8 +2987,11 @@ This method is used to abtain list of events with filters.
 
 ### `media_content`
 + type: `PASSPORT` (string, required)
-+ url: `https://google.com.ua` (string, required)
++ url: `https://storage.ehealth.world` (string, required)
 
+### `contract_media_content`
++ type: `SIGNED_CONTENT` (string, required)
++ url: `https://storage.ehealth.world` (string, required)
 
 ## Declarations
 ### Declaration
@@ -2447,7 +3039,6 @@ This method is used to abtain list of events with filters.
     + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
 + scope (enum, required)
     - family doctor
-+ overlimit: false (boolean, optional) - when doctor needs more declaration then in declaration_limit is, overlimit should be true
 + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 + declaration_id: `8311ab82-e341-4da0-8a95-235ec9885e23` (string, required) - presetted id for future declaration 
 
@@ -2480,8 +3071,8 @@ This method is used to abtain list of events with filters.
 
 ### `Declaration_Request_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - unique id of declaration
-+ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 + start_date: `2017-03-02` (string, required)
++ end_date: `2025-03-02` (string, required)
 + status (enum, required)
     - active
     - pending_verification
@@ -2508,7 +3099,9 @@ This method is used to abtain list of events with filters.
 + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + inserted_at: `2017-07-06T16:54:05.161571Z` (string, required)
-+ updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ is_active: true (boolean, required)
++ reason: `manual_employee` (string, optional)
++ reason_description: `Згідно постанови 1 від 10.01.2017` (string, optional)
 
 ### `Declaration_Details`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -2527,17 +3120,18 @@ This method is used to abtain list of events with filters.
     - pending_verification
     - terminated
 + scope (enum, required)
-    - family doctor
+    - family_doctor
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ reason: `manual_employee` (string, optional)
++ reason_description: `Згідно постанови 1 від 10.01.2017` (string, optional)
 
 ### `Declaration_Details_Cabinet`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 + start_date: `2017-03-02` (string, required)
 + end_date: `2017-03-02` (string, required)
-+ signed_at: `2017-03-02T00:00:00.000Z` (string, required)
 + person(`Person_Short`)
     + `emergency_contact` (`Emergency_Contact`, required)
     + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
@@ -2549,10 +3143,64 @@ This method is used to abtain list of events with filters.
     - pending_verification
     - terminated
 + scope (enum, required)
-    - family doctor
+    - family_doctor
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
++ content: `Declaration content` (string, required) - HTML document that MUST be shown to a end-user and signed by hes key. - Should be defined on the client side.
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
+
+### `Declaration_Request_Details_Cabinet`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
++ seed: hash (string, required)
++ person_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ person(`Person`)
+    + `emergency_contact` (`Emergency_Contact`, required)
+    + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
++ employee (Employee_Declaration_Short)
++ `legal_entity` (`MSP_Details`)
++ division (`Division_Details_Cabinet`)
++ status (enum, required)
+    - new
+    - approved
+    - signed
+    - expired
++ scope (enum, required)
+    - family_doctor
++ `declaration_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
++ content: `Declaration content` (string, required) - HTML document that MUST be shown to a end-user and signed by hes key. - Should be defined on the client side.
++ inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ channel: `CABINET` (enum, required) - channel that invoke declaration create service
+
+### `Declaration_list_cabinet`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - unique id of declaration
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
++ start_date: `2017-03-02` (string, required)
++ status (enum, required)
+    - active
+    - pending_verification
+    - terminated
++ person (Person_Minimal)
++ employee (`Employee_Minimal_cabinet`)
++ `legal_entity` (`MSP_Short`)
++ division (`Division_Short_List`)
+
+### `Declaration_requests_list_cabinet`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - unique id of declaration request
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
++ start_date: `2017-03-02` (string, required)
++ status (enum, required)
+    - new
+    - approved
+    - signed
+    - expired
++ person (Person_Minimal)
++ employee (`Employee_Minimal_cabinet`)
++ `legal_entity` (`MSP_Short`)
++ division (`Division_Short_List`)
 
 ### `Declaration_Details_Public`
 + start_date: `2017-03-02` (string, required)
@@ -2657,6 +3305,15 @@ This method is used to abtain list of events with filters.
 + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
 + updated_by: `userid` (string, required)
 
+##2FA
+
+### `authentication_factor`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ type: `sms` (string, required) - 2fa type
++ factor: `+380881234567` (string, required) - 2fa factor, ex. phone number
++ is_active: true (boolean)
++ user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
 ## Employees
 ### `crud_employee`
 + party_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -2698,9 +3355,17 @@ This method is used to abtain list of events with filters.
 + position: P6 (string, required) - `Dictionary POSITION`
 + party (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + no_tax_id: true (boolean, required)
     + include `Party_Short`
     + email: email@example.com (string, optional)
     + phones (array[Phone], optional)
+
+### `Employee_Minimal_cabinet`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ position: P6 (string, required) - `Dictionary POSITION`
++ party (object)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + include `Party_Short`
 
 ### `Employee_For_Declaration_Minimal`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -2727,7 +3392,7 @@ This method is used to abtain list of events with filters.
 + doctor (DoctorNew, optional)
 
 ### `Employee_Request`
-+ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
++ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - employees division, mandatory for Doctors
 + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
 + position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
@@ -2777,7 +3442,7 @@ This method is used to abtain list of events with filters.
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + include `Party_Short`
 + division_id: `4cffa825-8b5b-4cba-9a38-fb57733e14b2` (string, optional) - division identifier
-+ `legal_entity`: `be3a154c-3e07-496d-9680-f22c443f5d0c` (string, required) - legal entity identifier
++ `legal_entity_id`: `be3a154c-3e07-496d-9680-f22c443f5d0c` (string, required) - legal entity identifier
 + doctor (DoctorNew)
 
 ## `Legal_Entities`
@@ -2839,9 +3504,12 @@ This method is used to abtain list of events with filters.
 + status: ACTIVE (enum, required)
     - ACTIVE
     - CLOSED
-+ `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
-+ `legal_form`: 140 (enum, required) - `Dictionary LEGAL_FORM`
-+ mis_verified: true (string, optional)
+
+### `Legal_Entity_For_Declaration_Short`
++ short_name: Ноунейм (string, required)
++ name: Клініка Ноунейм (string, required)
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ edrpou: 5432345432 (string, required)
 
 ### `Legal_Entity_Short_Cabinet`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -2953,7 +3621,22 @@ This method is used to abtain list of events with filters.
 
 ### `Division_Details`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ `legal_entity_id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
 + include Division
+
+### `Division_Declaration`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ `legal_entity_id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
++ name: Бориспільське відділення Клініки Ноунейм (string, required) - the full name of division
++ addresses (array[Address], required)
++ phones (array[Phone], required)
++ email: email@example.com (string, required) - division's email
++ type: clinic (enum, required) - division type
+    - CLINIC
+    - AMBULANT_CLINIC
+    - FAP
++ external_id: `3213213` (string, optional)
+
 
 ### `Division_Details_Cabinet`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -3208,8 +3891,8 @@ This method is used to abtain list of events with filters.
     + `32009102701026` (string, required) - banks account number
 
 ### `Archive`
-+ date: `2017-02-28` (string, required) - the date when paper documents were transferred to archive [optional]
-+ place: `вул. Грушевського 15` (string, required) - the address of building where paper documents are [optional]
++ date: `2017-02-28` (string, required) - the date when paper documents were transferred to archive
++ place: `вул. Грушевського 15` (string, required) - the address of building where paper documents are
 
 ## OTPs
 ### OTP
@@ -3317,7 +4000,7 @@ This method is used to abtain list of events with filters.
 + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required) - employee id
 + party (PartyMap)
     + specialities (array[Speciality], required)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
-    + is_avaliable: true (boolean, required) 
+    + is_available: true (boolean, required) 
 + division(object, required)
     + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
     + name: `Aдоніс` (string, required)
@@ -3336,7 +4019,7 @@ This method is used to abtain list of events with filters.
     + id: `asSbcy12sYs8c` (string, required)
     + name: `Aдоніс` (string, required)
     + type: CLINIC, AMBULANT_CLINIC, FAP (enum, required)
-    + addresses (Address, optional)
+    + addresses (Address, required)
     + `legal_entity` (object, required)
         + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
         + name: Клініка Ноунейм (string, required)
@@ -3378,7 +4061,7 @@ This method is used to abtain list of events with filters.
 + educations (array[Education], required)  - освіта
 + qualifications (array[Qualification], optional) - підвищення кваліфікації
 + specialities (array[Speciality], required)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
-+ is_avaliable: true (boolean, required)
++ is_available: true (boolean, required)
 + science_degree (ScienceDegree, optional)
 + working_experience: 10 (number, optional)
 + about_myself: `Закінчив всі можливі курси` (string, optional)
@@ -3409,6 +4092,9 @@ This method is used to abtain list of events with filters.
 
 ### `DoctorNew_Short`
 + specialities (array[Speciality], required)
+
+### `DoctorNew_Short_Single`
++ speciality (Speciality, required)
 
 ### Education
 + country: UA (string, required) - `Dictionary COUNTRY`
@@ -3494,12 +4180,9 @@ This method is used to abtain list of events with filters.
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
 + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 + `employee` (`Employee_For_Declaration_Minimal`, required)
-+ `division` (`DivisionName`, required)        
-+ scope (enum, required)
-    - family_doctor
++ `division` (`DivisionName`, required)
 + start_date: `2017-03-02` (string, required)
 + end_date: `2017-03-02` (string, required)
-+ signed_at: `2017-03-02T10:45:16.000Z` (string, required)
 + status (enum, optional)
     - active
     - closed
@@ -3507,8 +4190,11 @@ This method is used to abtain list of events with filters.
 + reason: `manual_employee` (string, optional)
 + reason_description: `Згідно постанови 1 від 10.01.2017` (string, optional)
 + person (`Person_Minimal`, required)
-+ `legal_entity` (`Legal_Entity_Short`, required)
+    + `birth_date`: `1991-08-19` (string, required)
++ `legal_entity` (`Legal_Entity_For_Declaration_Short`, required)
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
 ### `nhs_declaration`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -3966,6 +4652,7 @@ This method is used to abtain list of events with filters.
 ### `Medication_Dispense_Request`
 + `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required) - Key for the Medication request 
 + `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
++ dispensed_by: `Іванов Іван Іванович` (string, optional) - in case pharmacist uses owner's token this field should be filled with pharmacist's name
 + `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
 + `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required) - Active medical program within which medications are going to be provided
 + `details` (array, fixed, required)
@@ -3976,6 +4663,7 @@ This method is used to abtain list of events with filters.
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Dispense Response Identifier
 + `medication_request` (`Medication_request_Public_Response`, required) - Medication request 
 + `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
++ dispensed_by: `Іванов Іван Іванович` (string, optional) - in case pharmacist uses owner's token this field should be filled with pharmacist's name
 + `party` (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + include `Party_Short`
@@ -4144,6 +4832,7 @@ This method is used to abtain list of events with filters.
 ### `Role_Response` (Role)
 + id: `role-1380df72-275a-11e7-93ae-92361f002671` (string) - Internal role ID, a UUID string.
 
+
 ## Clients
 ### Client (object)
 + id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - Unique client id
@@ -4169,3 +4858,271 @@ This method is used to abtain list of events with filters.
 
 ### `Event_properties`
 + new_value: `COMPLETED` (string) - new status of entity
+
+## `Contract_request`
+
+### `Init_contract_request_response`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID
++ statute_url: `url://upload` (string, required) - URL to upload statute document
++ additional_document_url: `url://upload` (string, required) - URL to upload additional document
+
+### `Contract_request_Request_signed`
++ `signed_content`: `ew0KICAiY29udHJhY3Rvcl9vd25lcl9pZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAiY29udHJhY3Rvcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQt9Cw0LrQvtC90YMg0L/RgNC+INCc0LXQtNC40YfQvdC1INC+0LHRgdC70YPQs9C+0LLRg9Cy0LDQvdC90Y8g0L3QsNGB0LXQu9C10L3QvdGPIiwNCiAgImNvbnRyYWN0b3JfcGF5bWVudF9kZXRhaWxzIjogew0KICAgICJiYW5rX25hbWUiOiAi0JHQsNC90Log0L3QvtC80LXRgCAxIiwNCiAgICAiTUZPIjogIjM1MTAwNSIsDQogICAgInBheWVyX2FjY291bnQiOiAiMzIwMDkxMDI3MDEwMjYiDQogIH0sDQogICJjb250cmFjdG9yX3Jtc3BfYW1vdW50IjogNTAwMDAsDQogICJjb250cmFjdG9yX2RpdmlzaW9ucyI6IFsNCiAgICAiaWQ6IGAyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGRgIg0KICBdLA0KICAiY29udHJhY3Rvcl9lbXBsb3llZV9kaXZpc2lvbnMiOiBbDQogICAgew0KICAgICAgImVtcGxveWVlX2lkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCIsDQogICAgICAic3RhZmZfdW5pdHMiOiAwLjUsDQogICAgICAiZGVjbGFyYXRpb25fbGltaXQiOiAyMDAwLA0KICAgICAgImRpdmlzaW9uX2lkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCINCiAgICB9DQogIF0sDQogICJleHRlcm5hbF9jb250cmFjdG9yX2ZsYWciOiB0cnVlLA0KICAiZXh0ZXJuYWxfY29udHJhY3RvcnMiOiB7DQogICAgImxlZ2FsX2VudGl0eV9pZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICJjb250cmFjdCI6IHsNCiAgICAgICJudW1iZXIiOiAiMTIzNDU2NyIsDQogICAgICAiaXNzdWVkX2F0IjogIjIwMTgtMDEtMDEiLA0KICAgICAgImV4cGlyZXNfYXQiOiAiMjAxOS0wMS0wMSINCiAgICB9LA0KICAgICJkaXZpc2lvbnMiOiBbDQogICAgICB7DQogICAgICAgICJpZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICAgICAibWVkaWNhbF9zZXJ2aWNlIjogItCf0L7RgdC70YPQs9CwINCf0JzQlCINCiAgICAgIH0NCiAgICBdDQogIH0sDQogICJzdGFydF9kYXRlIjogIjIwMTctMDQtMjAiLA0KICAiZW5kX2RhdGUiOiAiMjAxNy0wNC0yMCIsDQogICJpZF9mb3JtIjogIjUiLA0KICAiY29udHJhY3RfbnVtYmVyIjogIjAwMDAtOUVBWC1YVDdYLTMxMTUiLA0KICAic3RhdHV0ZSI6ImJhc2U2NF9kb2N1bWVudCINCiAgImVxdWlwbWVudF9hZ3JlZW1lbnQiOiJiYXNlNjRfZG9jdW1lbnQiDQp9` (string,required)
++ `signed_content_encoding`: `base64` (string, required)
+
+### `Contract_request_Request`
++ `contractor_owner_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - person which represent legal entity
++ `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
++ `contractor_payment_details` (object, required)
+    + include (`Payment_details`, required)
++ `contractor_rmsp_amount`: `50000` (number, required) - the amount of population which were served by this MSP
++ `contractor_divisions` (array, required)
+    + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
++ `contractor_employee_divisions` (array, optional)
+    + (object)
+        + include `Employee_divisions`
++ `external_contractor_flag`: true (boolean, optional) - the existence of second appendix
++ `external_contractors` (array, optional)
+    + (object)
+        + include (`External_contractors`, required)
++ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ `id_form`: `PMD_1` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
++ `contract_number`: `0000-9EAX-XT7X-3115` (string, optional) - number of existing VERIFIED contract
+
+### `Contract_request_list`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
++ `contractor_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
++ `contractor_owner_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - person which represent legal entity
++ `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
++ status: `NEW` (string, required) - contract_request status
++ status_reason: `Не відповідає попереднім домовленостям`(string, optional) - reason of status theat is setted bu nhs
++ `nhs_signer_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - person which represents nhs
++ `nhs_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - nhs legal entity ID
++ `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
++ issue_city: `Київ` (string, optional) - place of contract request
++ `nhs_contract_price`: `50000` (number, optional) - contract price
++ `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
++ contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
++ contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
++ `parent_contract_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - parent contract id
++ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ `end_date`: `2017-04-20` (string, required) - contract end date
+
+### `Contract_request_Update`
++ `nhs_signer_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - id of signer from nhs side 
++ `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
++ `nhs_contract_price`: `50000` (number, optional) - contract price
++ `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
++ `issue_city`: `Київ` (string, optional) - place of contract request
++ `miscellaneous`: `Жодна зі сторін не має права передавати права і зобов’язання за цим контрактом третій стороні без письмової на те згоди іншої сторони` (string, optional) - miscellaneous of a contract
+
+### `Contract_request_Details`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
++ `contractor_legal_entity`(object, required)
+    + include (`contract_legal_entity_details`)
++ `contractor_owner` (object, required)
+    + include (`Person_Minimal_Contract`)
++ `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
++ `contractor_payment_details` (object, required)
+    + include (`Payment_details`, required)
++ `contractor_rmsp_amount`: `50000` (number, required) - the amount of population which were served by this MSP
++ `contractor_divisions` (array, fixed, required)
+    + (object)
+        + include `Contractor_divisions`
++ `contractor_employee_divisions` (array, fixed, optional)
+    + (object)
+        + include `Employee_divisions_response`
++ `external_contractor_flag`: true (boolean, optional) - the existence of second appendix
++ `external_contractors` (array, optional)
+    + (object)
+        + include (`External_contractors_response`, required)
++ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ `id_form`: `PMD_1` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
++ `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
++ `nhs_contract_price`: `50000` (number, optional) - contract price
++ `nhs_payment_method`: `BACKWARD` (enum, optional) - payment method for contract
++ status: `NEW` (string, required) - contract_request status
++ status_reason: `Не відповідає попереднім домовленостям`(string, optional) - reason of status that was set
++ issue_city: `Київ` (string, optional) - place of contract request
++ contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
++ contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
++ `parent_contract_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - parent contract id
++ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown only for requests in `APPROVED`, `PENDING_NHS_SIGN`, `NHS_SIGNED`, `SIGNED` statuses.
+
+### `Contract_request_Details_Full`
++ include `Contract_request_Details`
+
+### `Contract_request_Docs`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
++ status: `NEW` (string, required) - contract_request status
++ statute: `www.url_1` (string, required) - link to statute document
++ `additional_document`: `www.url_2` (string, required) - link to report with additional document
+
+### `contract_legal_entity_details`
++ id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
++ name: Клініка Ноунейм (string, required) - full official name of legal entity also the name to show on public sources [as map, portal etc]
++ edrpou: 32323454 (string, required) - Unified Register of Businesses and Organizations
++ addresses (array[Address], required) - The max items of array is 2: REGISTRATION - required, RESIDENCE - optional. DIVISION is exception: REGISTRATION - optional, RESIDENCE - required
+
+
+### `Payment_details`
++ `bank_name`: `Банк номер 1` (string, required) - bank name
++ MFO: `351005` (string, required) - bank code
++ `payer_account`: `32009102701026` (string, required) - Номер банківського рахунку
+
+### `External_contractors`
++ `legal_entity_id`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - external_contractor ID
++ `contract` (object,required)
+  + `number`: `1234567`(string, required) - number of contract with sub contractor
+  + `issued_at`: `2018-01-01` (string, required) - issue date of contract with sub contractor
+  + `expires_at`: `2019-01-01` (string, required) - expiry date of contract with sub contractor
++ divisions (array, fixed, required)
+    + (object)
+      + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+      + `medical_service`: `Послуга ПМД` (string, required)
+
+### `External_contractors_response`
++ `legal_entity` (object)
+    + include (`Legal_Entity_Short_Cabinet`)
++ `contract` (object,required)
+  + `number`: `1234567`(string, required) - number of contract with sub contractor
+  + `issued_at`: `2018-01-01` (string, required) - issue date of contract with sub contractor
+  + `expires_at`: `2019-01-01` (string, required) - expiry date of contract with sub contractor
++ divisions (array, fixed, required)
+    + (object)
+      + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+      + name: Бориспільське відділення Клініки Ноунейм (string, required) - the full name of division
+      + `medical_service`: `Послуга ПМД` (string, required)
+
+### `Employee_divisions`
++ `employee_id`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - employee ID
++ `staff_units`: `0.5` (number, required)
++ `declaration_limit`: `2000` (number, required) - declaration limit for current employee within the contract
++ `division_id`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
+
+### `Employee_divisions_response`
++ `employee`
+    + include (`Person_Minimal_Contract`)
+    + include (DoctorNew_Short_Single)
++ `staff_units`: `0.5` (number, required)
++ `declaration_limit`: `2000` (number, required) - declaration limit for current employee within the contract
++ `division_id`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID 
+
+### `Contractor_divisions`
++ id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
++ name: Бориспільське відділення Клініки Ноунейм (string, required) - the full name of division
++ addresses (array[Address], required)
++ phones (array[Phone], required)
++ email: email@example.com (string, required) - division's email
++ working_hours (`workinghours`) - optional field, business hours by each day weekly, doesn't make any influence on business process and will be shown on portal and map.
++ mountain_group: false (boolean, optional)
+
+### `Contracts_list`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract ID 
++ `contractor_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
++ `contractor_owner` (object, required)
+    + include (`Person_Minimal_Contract`)
++ `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
++ status: `VERIFIED` (string, required) - contract_request status
++ `contractor_divisions` (array, required, fixed)
+    + (object)
+        + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
+        + name: Бориспільське відділення Клініки Ноунейм (string, required) - the full name of division
++ `external_contractor_flag`: true (boolean, optional) - true if exists appendix 2
++ `nhs_signer_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - person which represents nhs
++ `nhs_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - nhs legal entity ID
++ `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
++ `issue_city`: `Київ` (string, optional) - place of contract request
++ `nhs_contract_price`: `50000` (number, optional) - contract price
++ contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
++ contract_request_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract request id
++ `start_date`: `2017-04-20` (string, required) - contract start date
++ `end_date`: `2018-04-20` (string, required) - contract start date
++ is_suspended: false (string, required) - whether the contract is active or temporary suspended
++ id_form: `PMD` (string, required)
++ parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
+
+### `Contract_Details`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract ID 
++ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ `contractor_legal_entity`(object, required)
+    + include (`contract_legal_entity_details`)
++ `contractor_owner` (object, required)
+    + include (`Person_Minimal_Contract`)
++ `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
++ `contractor_payment_details` (object, required)
+    + include (`Payment_details`, required)
++ `contractor_rmsp_amount`: `50000` (number, required) - the amount of population which were served by this MSP
++ `contractor_divisions` (array, fixed, required)
+    + (object)
+        + include `Contractor_divisions`
++ `external_contractor_flag`: true (boolean, optional) - the existence of second appendix
++ `external_contractors` (array, optional)
+    + (object)
+        + include (`External_contractors_response`, required)
++ `contractor_employee_divisions` (array, fixed, required)
+    + (object)
+        + include `Employee_divisions_response`
++ `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
++ `nhs_contract_price`: `50000` (number, optional) - contract price
++ `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
++ status: `VERIFIED` (string, required) - contract status
++ status_reason: `не було виконано умов контракту` (string, optional) - the reason of terminated status 
++ `nhs_signer` (object, optional) 
+    + include (`Person_Minimal_Contract`)
++ `nhs_legal_entity` (object)
+    + include (`contract_legal_entity_details`)
++ issue_city: `Київ` (string, optional) - place of contract request
++ contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
++ contract_request_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - contract request id
++ is_suspended: false (boolean, required) - whether the contract is active or temporary suspended
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ id_form: `PMD` (string, required)
++ parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
+
+### `Capitation_report`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - Unique report id
++ billing_date: `2018-05-01` (string, required) - Report billing date
++ inserted_at: `2018-05-22` (string, required) - Date that shows when the report was generated
+
+### `Capitation_report_detail`
++ id: `29000165-09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - Synthetical record identifier
++ biling_date: `2017-04-20` (string, required) - report biling date
++ report_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - Unique report id
++ legal_entity_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - Legal entity id
++ edrpou: `29000165` (string, required) - Legal entity edrpou
++ legal_entity_name: `Поліклініка для Капітації` (string, required) - Legal entity name
++ capitation_contracts (array, required)
+    + (object)
+        + contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract ID
+        + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
+        + details (array, required)
+            + (object)
+                + mountain_group: true (boolean)
+                + attributes (object, required)
+                    + `0-5`: 17 (number, required)
+                    + `6-17`: 7 (number, required)
+                    + `18-39`: 9 (number, required)
+                    + `40-65`: 12 (number, required)
+                    + `65+`: 15 (number, required)
+            + (object)
+                + mountain_group: false (boolean)
+                + attributes (object, required)
+                    + `0-5`: 22 (number, required)
+                    + `6-17`: 10 (number, required)
+                    + `18-39`: 15 (number, required)
+                    + `40-65`: 19 (number, required)
+                    + `65+`: 21 (number, required)
+        + total (object, required)
+            + attributes (object, required)
+                + `0-5`: 39 (number, required)
+                + `6-17`: 17 (number, required)
+                + `18-39`: 24 (number, required)
+                + `40-65`: 31 (number, required)
+                + `65+`: 36 (number, required)
