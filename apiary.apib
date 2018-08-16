@@ -773,7 +773,7 @@ Use this end-point to obtain all Employees of the legal entity specified by the 
 
 We suggest to use `status` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
 
-Method returns shortened details (for DOCTOR and PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
+Method returns shortened details (for DOCTOR and PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
 
 + Parameters
     + no_tax_id: true (boolean, optional) - filer employees with or w/o tax_id
@@ -2592,7 +2592,7 @@ Get Contract Request Details and Get Contract Request Printout Content and sign 
     + Attributes (Response__Process_OK)
         + data (object)
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract request identifier
-            + `printout_content`: `Contract request content` (string, required) - HTML document for contract request, is shown only for requests in `APPROVED`, `PENDING_NHS_SIGN`, `NHS_SIGNED`, `SIGNED` statuses.
+            + `printout_content`: `Contract request content` (string, required) - HTML document for contract request
 
 
 
@@ -2741,7 +2741,7 @@ Example data to sign in order to update/add employee:
 {
  "employee_id": "09106b70-18b0-4726-b0ed-6bda1369fd52",
  "staff_units": 1,
- "declaration_limit": 45000,
+ "declaration_limit": 800,
  "division_id": "6eb6123a-b3ce-4d27-ad3a-f6e3fb3ef1a1"
 }
 ```
@@ -2771,12 +2771,8 @@ Example data to sign in order to deactivate employee:
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + `contractor_employee_divisions` (array, fixed, required)
-                + (object)
-                    + include `Employee_divisions_response`
-            + `start_date`: `2017-04-20` (string, required) - employee start date 
-            + `end_date`: `2017-04-20` (string, required) - employee end date
-            + `contract_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract identifier
+            + include `Contract_Details`
+
 
 
 # Data Structures
@@ -4772,7 +4768,7 @@ Example data to sign in order to deactivate employee:
         - new 
         - processing 
         - processed 
-+ `person_type`: patient (enum, required)
++ `entity_type`: patient (enum, required)
         - patient 
         - employee 
 + `type`: `death_registration` (string, required)
@@ -4817,8 +4813,8 @@ Example data to sign in order to deactivate employee:
         - processing
         - matched
         - not_found
-+ `document_type`: `3028106992` (string, required)
-+ `document_number`: `123456789` (string, required)
++ `id_type`: `3028106992` (string, required)
++ `id_number`: `123456789` (string, required)
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
