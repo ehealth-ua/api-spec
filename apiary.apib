@@ -303,8 +303,6 @@ Method returns shortened details, to obtain full information - get Declaration R
 
 This method is used to create Declaration Request (as part of Declaration creation process). Fields descriptions are listed in request Example view.
 
-Each doctor has its own limit of declarations. In case there is a necessity to create more declarations `overlimit` should be TRUE. By default `overlimit`= FALSE
-
 Methods-independence (Online/Offline) the attacment with scan of declaration must be added. The scan should be single page JPEG document.
 
 After sign new declaration all previously created pending (status one of the following: NEW, APPROVED) declaration request will be cancelled automatically.
@@ -1648,7 +1646,7 @@ Capitation reports are created monthly
 **Scopes required:** `capitation_report:read`
 
 + Parameters
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
@@ -1661,6 +1659,12 @@ Capitation reports are created monthly
 ### Get capitation report details [GET /api/capitation_report_details{?edrpou,report_id}]
 
 This method returns details of specified capitation report.
+
+For each contract report returns dataset according to `person_age`,`mountain_group` and `total` information.
+
+There are following age groups right now:
+
+0 - 5 | 6 - 17 | 18 - 39 | 40 - 65 | 65 +
 
 * For MSP User service will return the report details limited by user's MSP Id (Client Id)
 * For NHS User service will return all the details
@@ -2772,8 +2776,6 @@ Example data to sign in order to deactivate employee:
     + Attributes (Response__Process_OK)
         + data (object)
             + include `Contract_Details`
-
-
 
 # Data Structures
 ## Responses
