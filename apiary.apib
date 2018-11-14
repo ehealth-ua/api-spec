@@ -1063,7 +1063,6 @@ This service should be used with mis `access_token` authetification method and u
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + employee_id: `836c4753-ece4-44ba-b63c-0f92900535bf` (string, optional)
             + status: `APPROVED` (string, required)
-            + `is_active`: `true` (boolean, optional) - Is employee active or not
             + updated_at: `2017-05-05T14:09:59.232112` (string, optional)
 
 ## Persons [/api/persons]
@@ -3557,8 +3556,8 @@ Example data to sign in order to deactivate employee:
 + phones (array[Phone], optional)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
-+ declaration_limit: `2000` (number) - maximum number of declaration with a doctor.
-+ declaration_count: `1578` (number) - current number of declaration with a doctor.
++ declaration_limit: `2000` (number) - TO BE DEPRECATED, always zero! maximum number of declaration with a doctor.
++ declaration_count: `1578` (number) - TO BE DEPRECATED, always zero! current number of declaration with a doctor.
 
 ### `Party_Update`
 + include `Party_Short`
@@ -3724,8 +3723,8 @@ Example data to sign in order to deactivate employee:
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + no_tax_id: true (boolean, optional) - true if employee doesn't have tax_id and false otherwise
     + include `Party_Short`
-    + declaration_limit: `2000` (number) - maximum number of declaration with a doctor.
-    + declaration_count: `1578` (number) - current number of declaration with a doctor.
+    + declaration_limit: `2000` (number) - TO BE DEPRECATED, always zero! maximum number of declaration with a doctor.
+    + declaration_count: `1578` (number) - TO BE DEPRECATED, always zero! current number of declaration with a doctor.
 + division (`Division_Short`)
 + `legal_entity` (`Legal_Entity_Short`)
 + doctor (DoctorNew_Short)
