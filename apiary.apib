@@ -350,51 +350,6 @@ After sign new declaration all previously created pending (status one of the fol
             + type: unverified (string, required)
             + message: `Unverified phone number` (string, required)
 
-### Create Declaration Request V2 [POST /api/v2/declaration_requests]
-
-This method is used to create Declaration Request (as part of Declaration creation process) via new api. New version changes person search and adds new fields to request.
-Two version are available temporary, in the future only this version will exist.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer mF_9.B5f-4.1JqM
-
-    + Attributes (object)
-        + `declaration_request` (Declaration_Request_Public_v2)
-
-+ Response 201 (application/json)
-    + Attributes (Response__Process_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + seed: hash (string, required)
-            + include `Declaration_Request_Public_Response_v2`
-            + status: `NEW` (string, required)
-            + employee (Employee_Minimal, required)
-            + `legal_entity` (`Medical_Service_Provider`, required)
-                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + division (`Division_Declaration`, required)
-            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
-            + channel: `MIS` (enum, required) - channel that invoke declaration create service
-        + urgent (object, required)
-            + `authentication_method_current` (object, required)
-                + type: `OTP` (enum, required)
-                    - OTP
-                    - OFFLINE
-                    - NA
-                + number: `+38093*****85` (string, required)
-            + documents (array[`media_content`], optional)
-
-+ Response 422 (application/json)
-    + Attributes (Response_Error)
-        + meta (Response__Meta)
-            + code: 422
-        + error
-            + type: unverified (string, required)
-            + message: `Unverified phone number` (string, required)
 
 ### Approve Declaration Request [PATCH /api/declaration_requests/{id}/actions/approve]
 
