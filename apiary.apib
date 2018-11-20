@@ -303,6 +303,8 @@ Method returns shortened details, to obtain full information - get Declaration R
 
 This method is used to create Declaration Request (as part of Declaration creation process). Fields descriptions are listed in request Example view.
 
+Each doctor has its own limit of declarations. In case there is a necessity to create more declarations `overlimit` should be TRUE. By default `overlimit`= FALSE
+
 Methods-independence (Online/Offline) the attacment with scan of declaration must be added. The scan should be single page JPEG document.
 
 After sign new declaration all previously created pending (status one of the following: NEW, APPROVED) declaration request will be cancelled automatically.
@@ -347,6 +349,7 @@ After sign new declaration all previously created pending (status one of the fol
         + error
             + type: unverified (string, required)
             + message: `Unverified phone number` (string, required)
+
 
 ### Approve Declaration Request [PATCH /api/declaration_requests/{id}/actions/approve]
 
@@ -771,7 +774,7 @@ Use this end-point to obtain all Employees of the legal entity specified by the 
 
 We suggest to use `status` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
 
-Method returns shortened details (for DOCTOR and PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
+Method returns shortened details (for DOCTOR and PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
 
 + Parameters
     + no_tax_id: true (boolean, optional) - filer employees with or w/o tax_id
@@ -1420,6 +1423,28 @@ Update status on CLOSED
             + include `Legal_Entity_Request_Public_Short`
 
 
+### Get legators Legal Entities [GET /api/legal_entities/{id}/related{?page,page_size}]
+
+Use this method to get the list of child legal entities which are related to current legal entity.
+
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array[`Legal_Entity_Related`])
+
 ## Divisions [/api/divisions]
 
 ### Get divisions [GET /api/divisions{?ids,name,legal_entity_id,type,status,page,page_size}]
@@ -1618,7 +1643,7 @@ Roles are set separately for each Client.
     + Attributes (`Response_OK`)
         + data (`Role_Response`)
 
-## Client secret [/admin/clients]
+## Deprecated - Client secret [/admin/clients]
 
 ### Refresh client secret [PATCH /admin/clients/{id}/refresh_secret]
 
@@ -1634,7 +1659,161 @@ Only legal entity owner can request new client secret for his own legal entity
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
+        + data (`Client_Deprecated`)
+
+## Manage client configuration [/api/clients]
+
+### Get clients [GET /api/clients]
+
+This service returns list of clients filtered by context depending on client type:
+
+* Mithril Admin - receives all client records without context
+* MSP - receives only its own client
+* MIS - receives only its own client
+
+**Scopes required:** `client:read`
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[`Client`])
+
+### Get client details [GET /api/clients/{id}]
+
+This service returns client details. 
+
+Service will return authorization error (403) if the requested client doesn't correspond with context
+
+**Scopes required:** `client:read`
+
++ Parameters
+    + id: `1380df72-275a-11e7-93ae-92361f002671` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
         + data (`Client`)
+            + client_type_name: MSP (string, optional)
+
+### Get client connections [GET /api/clients/{id}/connections]
+
+Service returns list of connections for specified client
+
+Service will return authorization error (403) if the requested client doesn't correspond with context
+
+**Scopes required:** `connection:read`
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[`Connection`])
+
+### Get client connection details [GET /api/clients/{id}/connections/{connection_id}]
+
+**Scopes required:** `connection:read`
+
++ Parameters
+    + id: `1380df72-275a-11e7-93ae-92361f002671` (string, required)
+    + connection_id: `e5372365-d47a-467f-81d0-f35117864352` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (`Connection`)
+
+### Update client connection [PATCH /api/clients/{id}/connections/{connection_id}]
+
+Only redirect uri can be updated using this method
+
+**Scopes required:** `connection:write`
+
++ Parameters
+    + id: `1380df72-275a-11e7-93ae-92361f002671` (string, required)
+    + connection_id: `e5372365-d47a-467f-81d0-f35117864352` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
+
+    + Attributes (object)
+        + redirect_uri: `http://example3.com` (string, required)
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (`Connection`)
+
+### Refresh client secret [PATCH /api/clients/{id}/connections/{connection_id}/actions/refresh_secret]
+
+This method is used to refresh client secret for specified client connection
+Only legal entity owner can request new client secret for his own legal entity
+
+**Scopes required:** `connection:refresh_secret`
+
++ Parameters
+    + id: `1380df72-275a-11e7-93ae-92361f002671` (string, required)
+    + connection_id: `e5372365-d47a-467f-81d0-f35117864352` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (object)
+            + include `Connection`
+            + secret: `ZlFOaHBTR0d3Q0hQcDEraHVYdXBVZz09` (string, required)
+
+### Delete client connection [DELETE /api/clients/{id}/connections/{connection_id}]
+
+This method is used to **delete** specified client connection. 
+Deleted connection can't be restored and used again
+
+**Scopes required:** `connection:delete`
+
++ Parameters
+    + id: `1380df72-275a-11e7-93ae-92361f002671` (string, required)
+    + connection_id: `e5372365-d47a-467f-81d0-f35117864352` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
+
++ Response 200 (application/json)
+    + Attributes (object)
+        + meta (Response__Meta, fixed-type)
 
 ## Capitation reports [/api/capitation_reports]
 
@@ -2046,7 +2225,7 @@ Medication Dispense - Indicates that a medication product has been dispensed for
 
 **Sequence diagram**
 
-![Medication Dispense Sequence](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgTWVkaWNhdGlvbiBEaXNwZW5zZQpwYXJ0aWNpcGFudCBQaGFybWFjeQAIDUdXABcNZUhlYWx0aAoKIyBDcmVhdGUgbQBMCmQATggAQggtPkdXOiA8PAAkBwBuEz4-CkdXACEGQXV0aG9yaXplAA0FKwBjBwAeIQCBCwctPgAoCVZlcmlmeQCBDQxyZXF1ZXN0ABIaAIEyCCBwZXJpb2QAOxoAQwdlZCBwcm9ncmFtAFwkcwCBEhNHZXQgcmVpbWJ1cnNlbWVudCByYXRlAIFECi0AgwYIOiA8PFJlc3BvAIIoBiAgICAKICAgIGFsdCBQcm9jZXNzAINFFSAgICAgICAAg00JAIMECAAZGwBYByAgICAAgwMSAA4MAIMRDAAqJgCDFBJDaGFuZwCFABUgc3RhdHVzACoSAIF4HGVsc2UgUmVqZWN0AIFiLQAZGgCBWTUAKiUAgStibmQK&s=modern-blue)
+![Medication Dispense Sequence](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgUHJvY2VzcyBtZWRpY2F0aW9uIERpc3BlbnNlCgpQaGFybWFjeS0-R1c6IENyZWF0ZQAeDGQAIghHVwAdBkF1dGhvcml6AAwGRUhlYWx0aAAdHQAdBwAiC1ZlcmlmeQABLHkAgQAJIHBlcmlvZAA8GnJlcXVlc3RlZCBwcm9ncmFtAF0kAIESE0dldCByZWltYnVzZW1lbnQgcmF0AIFCCwCCMQg6IFJlc3BvAIJIBWFsdACCZQlNAIJbEyAgICAAgmcKADgKU2lnbgCCYBUAIw5HVzoAgzkUACENAIMVEgAOCACDIgkAIyAAgxcZRFMgAAoXQ2hhbmcAhCMVIHN0YXR1cwAPKQCDNwcAIhUAgmATZWxzZSBSZWplY3QAgk8jR1c6ACUIAIIFOwAjHwCBXUEAgVMUbmQKCg&s=modern-blue)
 
 ### Create Medication Dispense [POST /api/medication_dispenses{?code}]
 
@@ -2086,7 +2265,8 @@ This method is used to process created dispense
     
     + Attributes (object)
         + payment_id: F324H456 (string, optional)
-
+        + payment_amount: 50 (number, optional)
+        
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (object)
@@ -2347,6 +2527,7 @@ contractor_owner_id|true| підписант, зі сторони мед. зак
 contractor_base|true| на якій підставі діє підписант: закон/домовленість
 contractor_payment_details|true| об'єкт, що містить дані по рахунку, на який будуть здійснюватися виплати
 contractor_rmsp_amount|true| к-сть осіб, що обслуговувалися мед закладом (додаток 1.1 пункт 7)
+previous_request_id | false | опційне поле, яке вказує, що поточний запит на контракт є новою версією вказаного запиту
 contractor_divisions|true| масив id відділень мед. закладу, що включаються в договір
 contractor_employee_divisions|true| масив лікарів (на конкретних відділеннях), що входять да контракту та капітаційного звіту
 external_contractor_flag|true| наявність додатку 2 (підрядники, залучені до надання медичних послуг за Договором)
@@ -2410,6 +2591,7 @@ medical_service|true| послуга, що надається на відділ�
 {
   "contractor_owner_id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
   "contractor_base": "на підставі статуту",
+  "previous_request_id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
   "contractor_payment_details": {
     "bank_name": "Банк номер 1",
     "MFO": "351005",
@@ -2605,8 +2787,8 @@ Get Contract Request Details and Get Contract Request Printout Content and sign 
 ***Scope  contract_request:sign***
 
 This WS is designed to sign contract request from MSP side. Contract request's status must be in status ='NHS_SIGNED'.
-Tax_id in DS certeficate = contractor_owner_id.tax_id
-Method receives signed message (pkcs7) including signed content, digital signature of first signer, digital signature of second signer and signer public key in signed_content property. 
+EDRPOU in DS certeficate = contractor_owner_id.lega_entity.edrpou and suranme in DS=contractor_owner_id.party_id.last_name
+Method receives signed message (pkcs7) including signed content, digital signature of first signer, digital stamp of first signer, digital signature of second signer and signer public key in signed_content property. 
 All signature fields will be validated (including signer certificate authority). This service will store signed copy of Contract Request in Media Content Storage (will update previous version of file),created contract records and linked employees_divisions if signature is all checks is passed. 
 Object that need to be signed is returned by Get Contract request by ID, urgent, type='signed_content'. In response will be receive a link to download a file in pkcs7 format (signed by NHS side).
 This data must be signed.
@@ -2887,6 +3069,25 @@ Example data to sign in order to deactivate employee:
 + documents_relationship (array[Document], required)
 + phones (array[Phone], optional)
 
+### `Confidant_Person_v2`
++ relation_type: PRIMARY (enum, required)
+    - PRIMARY
+    - SECONDARY
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ birth_date: `1991-08-19` (string, required)
++ birth_country: `Україна` (string, required)
++ birth_settlement: `Вінниця` (string, required)
++ gender: MALE, FEMALE (enum[string], required)
++ tax_id: 3126509816 (string, optional)
++ secret: `secret` (string, required)
++ documents_person (array[Document], required)
++ documents_relationship (array[Document], required)
++ phones (array[Phone], optional)
++ email: emaill@example.com (string, optional)
++ `preferred_way_communication`: `email` (string, optional)
+
 ### `Emergency_Contact`
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
@@ -2955,6 +3156,7 @@ Example data to sign in order to deactivate employee:
 
 ### `cabinet_person_response`
 + include `Person`
++ unzr: `19900101-00099` (string, optional)
 + `emergency_contact`(`Emergency_Contact`)
 + `process_disclosure_data_consent`: true (boolean, required)
 
@@ -3029,10 +3231,61 @@ Example data to sign in order to deactivate employee:
     - family_doctor
 + overlimit: false (boolean, optional) - when doctor needs more declaration then in declaration_limit is, overlimit should be true
 
+### `Declaration_Request_Public_v2`
++ person (object, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
+    + first_name: Петро (string, required)
+    + last_name: Іванов (string, required)
+    + second_name: Миколайович (string, optional)
+    + birth_date: `1991-08-19` (string, required)
+    + birth_country: `Україна` (string, required)
+    + birth_settlement: `Вінниця` (string, required)
+    + gender: MALE, FEMALE (enum[string], required)
+    + email: email@example.com (string, optional)
+    + tax_id: 3126509816 (string, optional)
+    + secret: secret (string, required)
+    + documents (array, required)
+        + (Document)
+            + expiration_date: `1991-08-19` (string, optional)
+    + addresses (array[Address], required)
+    + phones (array[Phone], optional)
+    + `authentication_methods` (array[Authentication_Method], required)
+    + preferred_way_communication: email (enum, optional) - the way how a patient wants to be reached
+        - email
+        - phone
+    + `no_tax_id`: false (boolean, required) - fact of declining tax_id
+    + unzr: `19900101-00011` (string, optional) - the record number in the demographic register
+    + emergency_contact (object, required)
+        + include `Emergency_Contact`
+    + `confidant_person` (array[`Confidant_Person_v2`], optional) - Should be set if this Person is disabled, underage, etc.
+    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
+    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
++ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
++ division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
++ scope (enum, required)
+    - family_doctor
++ overlimit: false (boolean, optional) - when doctor needs more declaration then in declaration_limit is, overlimit should be true
+
 ### `Declaration_Request_Public_Response`
 + start_date: `2017-03-02` (string, required) - Should be defined on the client side.
 + end_date: `2017-03-02` (string, required) - Will be defined on eHealth side if it's not set.
 + person(`Person_Request`, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
+    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
+    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
++ scope (enum, required)
+    - family doctor
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
++ declaration_id: `8311ab82-e341-4da0-8a95-235ec9885e23` (string, required) - presetted id for future declaration 
+
+### `Declaration_Request_Public_Response_v2`
++ start_date: `2017-03-02` (string, required) - Should be defined on the client side.
++ end_date: `2017-03-02` (string, required) - Will be defined on eHealth side if it's not set.
++ person (object, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
+    + include `Person`
+    + `no_tax_id`: false (boolean, required) - fact of declining tax_id
+    + unzr: `19900101-00011` (string, optional) - the record number in the demographic register
+    + emergency_contact (object, required)
+        + include `Emergency_Contact`
+    + `confidant_person` (array[`Confidant_Person_v2`], optional) - Should be set if this Person is disabled, underage, etc.
     + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
     + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
 + scope (enum, required)
@@ -3131,6 +3384,7 @@ Example data to sign in order to deactivate employee:
 + start_date: `2017-03-02` (string, required)
 + end_date: `2017-03-02` (string, required)
 + person(`Person_Short`)
+    + unzr: `19910819-00011` (string, optional) - the record number in the demographic register
     + `emergency_contact` (`Emergency_Contact`, required)
     + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
 + employee (`Employee_Declaration_Short`)
@@ -3257,8 +3511,8 @@ Example data to sign in order to deactivate employee:
 + phones (array[Phone], optional)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
-+ declaration_limit: `2000` (number) - maximum number of declaration with a doctor.
-+ declaration_count: `1578` (number) - current number of declaration with a doctor.
++ declaration_limit: `2000` (number) - TO BE DEPRECATED, always zero! maximum number of declaration with a doctor.
++ declaration_count: `1578` (number) - TO BE DEPRECATED, always zero! current number of declaration with a doctor.
 
 ### `Party_Update`
 + include `Party_Short`
@@ -3270,6 +3524,7 @@ Example data to sign in order to deactivate employee:
 + phones (array[Phone], optional)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
++ declaration_limit: `2000` (number) - maximum number of declaration with a doctor.
 + educations (array[Education], optional)  - освіта
 + qualifications (array[Qualification], optional) - підвищення кваліфікації
 + specialities (array[Speciality_party], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
@@ -3375,7 +3630,7 @@ Example data to sign in order to deactivate employee:
 + position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: APPROVED, DISMISSED (enum, required)
++ status: APPROVED, DISMISSED (enum, required) 
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (`Party_Response_old`)
 + doctor (DoctorNew, optional)
@@ -3423,8 +3678,8 @@ Example data to sign in order to deactivate employee:
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + no_tax_id: true (boolean, optional) - true if employee doesn't have tax_id and false otherwise
     + include `Party_Short`
-    + declaration_limit: `2000` (number) - maximum number of declaration with a doctor.
-    + declaration_count: `1578` (number) - current number of declaration with a doctor.
+    + declaration_limit: `2000` (number) - TO BE DEPRECATED, always zero! maximum number of declaration with a doctor.
+    + declaration_count: `1578` (number) - TO BE DEPRECATED, always zero! current number of declaration with a doctor.
 + division (`Division_Short`)
 + `legal_entity` (`Legal_Entity_Short`)
 + doctor (DoctorNew_Short)
@@ -3587,6 +3842,18 @@ Example data to sign in order to deactivate employee:
 + created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
 + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
 + updated_by: `userid` (string, required)
+
+
+### `Legal_Entity_Related` 
++ merged_from_legal_entity (object, required)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - merged_from legal entity id
+    + name: Клініка Ноунейм (string, required) - full official name of legal entity
+    + edrpou: 5432345432 (string, required) -  Unified Register of Businesses and Organizations
++ reason: на підставі наказу №1111 (string, required) - the legit documents which prove the relationship between legal entities
++ is_active: true (boolean, required) - whether relationship between legal entities is active
+    - Default: true
++ inserted_at: `2005-10-30 10:45` (string, required) - timestamp
++ inserted_by: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - user id
 
 ## `Divisions`
 ### `Division`
@@ -3822,9 +4089,10 @@ Example data to sign in order to deactivate employee:
 
 ### Document
 + type: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
-+ number: 120518 (string, required) - document issue number
++ number: АА120518 (string, required) - document issue number
 + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, optional) - authority which issued the document
 + issued_at: `2017-02-28` (string, optional) - the date when document was issued
++ expiration_date: `2027-02-28` (string, optional) - the date when document expired, is necessery for those documents which has this date, ex, Temporary certificate, etc.
 
 ### `Medical_Certificate`
 + name: Диплом доктора медицини (string, required)
@@ -4199,6 +4467,84 @@ Example data to sign in order to deactivate employee:
 + include `Declaration_Request_Details_Public`
 + `media_content`: `http://cs5.pikabu.ru/post_img/big/2015/12/04/5/1449210847155432089.jpg`,`http://www.readersdigest.ca/wp-content/uploads/2011/01/4-ways-cheer-up-depressed-cat.jpg`  (array, required)
 
+## NHS Portal v2
+
+### `person_short_v2`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ status: `active` (enum, required)
+  - active
+  - inactive
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ birth_date: `1991-08-19` (string, required) - ISO Datetime.
++ birth_country: Україна (string, required) - країна народження
++ birth_settlement: Вінниця (string, required)
++ tax_id: 3126509816 (string, optional)
++ unzr: `19910819-00011` (string, optional)
++ gender (enum, required)
+    - FEMALE
+    - MALE
++ `authentication_method_current` (object, required)
+    + type: `OTP` (enum, required)
+        - OTP
+        - OFFLINE
+        - NA
+    + number: `+380937777785` (string, required)
++ documents (array[Document],optional) 
+
+### `Nhs_Declaration_v2`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
++ `legal_entity` (`Legal_Entity_Short`, required)
+  + addresses (array[Address], optional)
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
++ signed_at: `2017-03-02T10:45:16.000Z` (string, required)
++ status (enum, optional)
+    - active
+    - closed
++ person (`Person_Minimal`, required)
+    + birth_date: `1991-08-19` (string, required)
+    + birth_country: `Україна` (string, required)
+    + birth_settlement: `Вінниця` (string, required)
+    + gender: MALE, FEMALE (enum[string], required) + tax_id: 3126509816 (string, optional)
++ secret: secret (string, required)
++ documents (array[Document], required)
++ addresses (array[Address], required)
++ phones (array[Phone], optional)
++ `authentication_methods` (array[Authentication_Method], required)
++ preferred_way_communication: email (enum, optional) - the way how a patient wants to be reached
+    - email
+    - phone
++ `division` (`DivisionName`, required)
+  + addresses (array[Address], optional)
+  + phones (array[Phone], required)
+  + email: email@example.com (string, required) - division's email
+  + status: ACTIVE (enum, required)
+    - ACTIVE
+    - INACTIVE
+  + type: clinic (enum, required) - division type
+    - CLINIC
+    - AMBULANT_CLINIC
+    - FAP
+  + mountain_group: false (boolean, optional)
++ `employee` (object, required)
+   + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+   + position: P8 (string, required) - `Dictionary POSITION`
+   + start_date: `2017-03-02T10:45:16.000Z` (string, required)
+   + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
+   + status: APPROVED, DISMISSED (enum, required)
+   + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
+   + party (`Party_Short`)
+   + doctor (DoctorNew_Short, optional)
++ scope (enum, required)
+    - family_doctor
++ `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
++ reason: `manual_employee` (string, optional)
++ reason_description: `Згідно постанови 1 від 10.01.2017` (string, optional)
+
+
 ## Global Parameters and Products
 ### `Global_Parameters`
 + `declaration_term`: `30` (string, required) - термін дії декларації
@@ -4289,6 +4635,69 @@ Example data to sign in order to deactivate employee:
 + `container_dosage` (`Dosage_container`, required)
 + `package_qty`: 30 (number, required)
 + `package_min_qty`: 10 (number, required)
+
+## Complex FHIR Types
+### `Reference`
++ identifier (Identifier)
+
+### `Identifier`
++ `type`(Codeable_Concept, required) - Description of identifier
++ `value` : `9183a36b-4d45-4244-9339-63d81cd08d9c` (string, required)- The value that is unique
+
+### `Codeable_Concept`
++ `coding` (array, required, fixed-type)
+    + (object)
+        + include `Coding`
++ text (string, optional)
+
+### `Coding`
++ system : `eHealth/resources` (string, optional)
++ code : `patient` (string, required) - Symbol in syntax defined by the system
+
+### `Duration`
++ value: 10 (string, optional) - The value of the measured amount. The value includes an implicit precision in the presentation of the value
++ unit: `days` (string, optional) - A human-readable form of the unit
++ system: `http://unitsofmeasure.org` (string, optional) - The identification of the system that provides the coded form of the unit
++ code: d (string, optional) - A computer processable form of the unit in some unit representation system
+
+### `Period`
++ start : `2018-08-02T10:45:16.000Z`(string, required) - C? Starting time with inclusive boundary
++ end : `2018-08-02T11:00:00.000Z`(string, optional) - C? End time with inclusive boundary, if not ongoing
+
+### `Quantity`
++ value : `13,5` (number, required)
++ comparator : `>` (string, optional)
++ unit : `mg` (string, required)
++ system : `eHealth/units` (string, optional)
++ code: `mg` (string, optional)
+        
+
+### `Range`
++ low (Quantity, required)
++ high (Quantity, required)
+
+### Timing
++ event: `2017-04-20T19:14:13Z` (string, optional) - When the event occurs. ISO 8601 date and time in UTC timezone.
++ repeat (object, optional)
+    - One Of
+        + bounds_duration (Duration)
+        + bounds_range (Range)
+        + bounds_period (Period)
+    + count: 2 (number, optional) - Number of times to repeat
+    + count_max: 4 (number, optional) - Maximum number of times to repeat
+    + duration: 4 (number, optional) - How long when it happens
+    + duration_max: 6 (number, optional) - How long when it happens Max
+    + duration_unit: d (string, optional) - unit of time UCUM
+    + frequency: 1 (number, optional) - Event occurs frequency times per period
+    + frequency_max: 2 (number, optional) - Event occurs up to frequencyMax times per period
+    + period: 4 (number, optional) - Event occurs frequency times per period
+    + period_max: 6 (number, optional) - Upper limit of period
+    + period_unit: d (number, optional) - unit of time UCUM
+    + `day_of_week`: mon (array[string], optional) - day of week
+    + `time_of_day`: `2017-04-20T19:14:13Z` (string, optional) - Time of day for action
+    + when: WAKE (array[string], optional) - Regular life events the event is tied to
+    + offset: 4 (number, optional) - Minutes from event before or after
++ code (Codeable_Concept, optional)
 
 ## Medications
 ### `Innm_Request`
@@ -4388,7 +4797,9 @@ Example data to sign in order to deactivate employee:
 ### `Medication_Request`
 + `name` : `Амідарон` (string, required)
 + `manufacturer` (`Manufacturer`, optional)
-+ `code_atc`: `C01BD01` (string, optional)
++ `code_atc` (array, required)
+  + `М01АЕ01` ([string])
+  + `C01BD01` ([string])
 + `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `container` (`Dosage_container`, required)
 + `package_qty`: 30 (number, optional)
@@ -4403,7 +4814,9 @@ Example data to sign in order to deactivate employee:
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
 + `name` : `Амідарон` (string, required)
 + `manufacturer` (`Manufacturer`, optional)
-+ `code_atc`: `C01BD01` (string, optional)
++ `code_atc` (array, required)
+  + `М01АЕ01` ([string])
+  + `C01BD01` ([string])
 + `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `container` (`Dosage_container`, required)
 + `package_qty`: 30 (number, optional)
@@ -4672,6 +5085,7 @@ Example data to sign in order to deactivate employee:
     + (object)
         + include `Medication_Dispense_Detail_Response`
 + `payment_id`: 1239804 (string, optional) - receipt number for the paid medications
++ `payment_amount`: 50 (number, optional) - receipt amount which was paid by patient (UAH)
 + `status`: NEW (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
@@ -4736,7 +5150,9 @@ Example data to sign in order to deactivate employee:
     + `medications` (array, fixed, optional)
         + (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Identifier of brand medications
-            + `code_atc`: `С01BD01` (string, optional)
+            + `code_atc` (array, required)
+               + `М01АЕ01` ([string])
+               + `C01BD01` ([string])
             + include `Medication_Short`
             + `package_qty`: 30 (number, required) - qnty medications in the package
             + `details` (object, required)
@@ -4832,13 +5248,31 @@ Example data to sign in order to deactivate employee:
 
 
 ## Clients
-### Client (object)
+### Client_Deprecated (object)
 + id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - Unique client id
 + name: `Аптека 199` (string, required) - Client name
 + secret: `ZlFOaHBTR0d3Q0hQcDEraHVYdXBVZz09` (string, required)
 + redirect_uri: `http://example2.com` (string, required)
 + settings (object)
 + priv_settings (object)
+
+### Client (object)
++ id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - Unique client id
++ name: `eHealth portal` (string, required) - Client name.
++ settings (object) - Client settings.
++ user_id: `user-1380df72-275a-11e7-93ae-92361f002671` (string, required) - Owner-user internal ID, a UUID string.
++ `client_type_id`: `261d52f9-b355-4029-863d-8fc52e9d0b81` - Client Type identifier
++ is_blocked: `false` (string, required) - whether the client is marked as fraud
++ block_reason: `MSP has fakes doctors` (string, optional) - the reason to block
++ inserted_at: `2017-04-20T19:14:13Z` (string, required) - date and time, when the entity was created
++ updated_at: `2017-04-20T19:14:13Z` (string, required) - date and time, when the entity was updated
+
+## Connections
+### Connection
++ id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - Unique connection id
++ client_id: `c4a6d45f-2cf2-4e6d-909a-5962604ad63b` (string, required) - Unique connection id
++ consumer_id: `25c03af6-69bd-439e-b0dd-f1669b3dbbfd` (string, required) - Unique connection id
++ redirect_uri: `http://example2.com` (string, required)
 
 ## Events
 ### `Get_events`
@@ -4939,6 +5373,10 @@ Example data to sign in order to deactivate employee:
 + `start_date`: `2017-04-20` (string, required) - contract start date 
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + `id_form`: `PMD_1` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
++ `nhs_signer` (object, optional) 
+    + include (`Person_Minimal_Contract`)
++ `nhs_legal_entity` (object)
+    + include (`contract_legal_entity_details`)
 + `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
 + `nhs_contract_price`: `50000` (number, optional) - contract price
 + `nhs_payment_method`: `BACKWARD` (enum, optional) - payment method for contract
@@ -4951,6 +5389,8 @@ Example data to sign in order to deactivate employee:
 + `start_date`: `2017-04-20` (string, required) - contract start date 
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown only for requests in `APPROVED`, `PENDING_NHS_SIGN`, `NHS_SIGNED`, `SIGNED` statuses.
++ `previous_request_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - changed contract request id
++ `assignee_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - NHS employee which review contract request
 
 ### `Contract_request_Details_Full`
 + include `Contract_request_Details`
@@ -5044,6 +5484,7 @@ Example data to sign in order to deactivate employee:
 + is_suspended: false (string, required) - whether the contract is active or temporary suspended
 + id_form: `PMD` (string, required)
 + parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
++ `assignee_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - NHS employee which review contract request
 
 ### `Contract_Details`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract ID 
