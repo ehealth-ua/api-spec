@@ -113,7 +113,7 @@ Exposed client credentials may be blocked for a security reasons, you will need 
 
     + Attributes (object)
         + token (object)
-            + client_id: `6498d88e-97fb-47e2-85a5-99e884f888aa` (string, required) - Medical Service provider ID issued after legal_entity registration. Used to identify the context of the MSP/Pharmacy.
+            + `client_id`: `6498d88e-97fb-47e2-85a5-99e884f888aa` (string, required) - Medical Service provider ID issued after legal_entity registration. Used to identify the context of the MSP/Pharmacy.
             + client_secret: `msp-001-secret-key` (string, required) - Medical Information System secret key issued upon integration request. Used to identify application developer.
             + code: 299383828 (string, required) - oAuth code grant.
             + `grant_type`: authorization_code (string, fixed, required) - oAuth Grant Type. Currently only `authorization_code` is supported.
@@ -141,7 +141,7 @@ In future, you will be able to refresh access tokens to extend `access_token` li
 
     + Attributes (object)
         + token (object)
-            + client_id: `6498d88e-97fb-47e2-85a5-99e884f888aa` (string, required) - Medical Service provider ID issued after legal_entity registration. Used to identify the context of the MSP/Pharmacy.
+            + `client_id`: `6498d88e-97fb-47e2-85a5-99e884f888aa` (string, required) - Medical Service provider ID issued after legal_entity registration. Used to identify the context of the MSP/Pharmacy.
             + client_secret: `msp-001-secret-key` (string, required) - Medical Service provider secret key issued upon integration request. Used to identify MSP.
             + refresh_token: `my-oauth-refresh-token` (string, required) - oAuth refresh token.
             + `grant_type`: refresh_token (string, fixed) - oAuth Grant Type. Currently only `authorization_code` is supported.
@@ -1183,6 +1183,8 @@ List consists of legal entities with parameter `is_active = true`.
                 - NOT_VERIFIED
                 - VERIFIED
             + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
         + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
@@ -1323,6 +1325,8 @@ Signed content MUST consists of JSON object with Legal Entity data:
                 - NOT_VERIFIED
                 - VERIFIED
             + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
         + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
@@ -1342,6 +1346,8 @@ Signed content MUST consists of JSON object with Legal Entity data:
                 - NOT_VERIFIED
                 - VERIFIED
             + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
             + is_active: true (boolean, required)
             + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
             + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
@@ -2164,8 +2170,8 @@ Use this method to reject previously created and signed Medication request.
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + `Reason`: `Помилка призначення. Несумісні препарпти.` (string, optional) - Medication request reject reason
-
+       + `Reason`: `Помилка призначення. Несумісні препарпти.` (string, optional) - Medication request reject reason
+        
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
@@ -2382,6 +2388,9 @@ List of events that are stored to EventDB:
 - declaration status changed
 - medication request status changed
 - medication dispense status changed
+- contract_request status change
+- contract status change
+- person status change
 
 Entity_type variants:
 - Declaration
@@ -2389,6 +2398,9 @@ Entity_type variants:
 - EmployeeRequest
 - MedicationRequest
 - Employee
+- ContractRequest
+- Contract
+- Person
 
 In the EventDB events are kept during one month or till 10K. The duration and amount of events are parametrized.
 
@@ -2484,6 +2496,13 @@ This method is used to abtain list of events with filters.
 
 # Group Public. Contracts
 
+Note: In the new version of API contracts(relese TBD) will be divided into two types - capitation and reimbursement. Each type will be managed by its own route. The type of the contract should be declared in the URL like this:
+```
+/api/contract_requests/capitation
+/api/contract_requests/reimbursement
+```
+If contract_type is not defined in the URL it counts as a capitation contract.
+
 ## Contract request [/api/contract_requests]
 
 ###Business logic
@@ -2494,7 +2513,8 @@ The detailed flow is described in a schema below:
 
 ![Contract request flow](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgQ29udHJhY3QgcmVxdWVzdHMKCnBhcnRpY2lwYW50IE1TUCBhcyBtc3AACg1lSGVhbHRoIGFzIGVoAAYFACkNRG9jdW1lbnQgc3RvcmFnZSBhcwADCABRDU5IUyBhcyBuaHMKCm1zcC0-AEYHOiA8PEluaXRpYWxpemUgYwCBFQ8-PgoAbwcAJwtHZW5lcmF0ZSBVUkxzABYKbXNwOiA8PFJlc3BvbnNlIHdpdGggaWQgYW5kACUFPj4AdAYAgSMHOiBVcGxvYWQgZACBPAdzAIETBgBCBVNpZ24AfBEgdXNpbmcgZGlnaXRhbCBzaWduYXR1cmUgAIFBEUNyZWF0AIE5FW5ocwCBbw1HZXQAgWQRcyBsaQAEKSBkZXRhaWxzPj4KCmFsdCBBcHByb3YAgjgSCiAgICAAbhBVcGQAgREXACUJbmhzAIFgLwBVFQCAfxggYnkgTkhTPj4KZWxzZSBEZWNsaW4AgSIcAElHAFEYPj4KZW5kIACFExIAgwwdAAkkAIMeCwCFcRAAggEcTVNQAINiKHByaW50b3UAhEsGZW4AhGYJAIMQMwCFFxAAhXoWAIMzCQCBTDQAhn4JRG93bgCHBAUAiQkFYWxseQCGVgVlZACFMhIAhxIPABgZXG4AhysIAIgABTJuZACFFAsAiG8QAIFDGQCCdQYKb3B0IFRlcm1pbgCHQBQAhlMFAIlCEAAVGgCDSQplbmQK&s=modern-blue)
 
-### Public. Initialize Contract Request [POST /api/contract_requests]
+Using this API could be created both reimbursement and capitation contracts.
+### Public. Initialize Contract Request [POST /api/contract_requests/{contract_type}]
 
 ***Scope  contract_request:create***
 
@@ -2510,16 +2530,21 @@ This web service allows to initialize contract request creation by generating li
     + Attributes (Response__Process_OK)
         + data (object)
             + include `Init_contract_request_response`
+            
 
-### Pubic. Create Contract Request [POST /api/contract_requests/{id}]
+
+### Public. Create Contract Request [POST /api/contract_requests/{contract_type}/{id}]
 
 ***Scope  contract_request:create***
 
 This web service allows to create contract request, using contract_request_id, generated by Initialize Contract Request WS. 
 As an input parameters should be transfered signed data in PKCS7 format. Digital signiture should be applied to data filled by legal entity owner and MD5 HASH of provided files (statuste and equipment agreement).
-#### Generic contract_request object scheme to be signed
+In DS EDRPOU/DRFO must be equal to contractor_legal_entity.edrpou
+#### Contract_request object scheme to be signed
 The following tables describes contract_request object fields and it`s child objects.
-#####Contract_request
+
+There are two types of schemas depending on contract_type - capitation version and reimbursement version
+#####Capitation Contract_request
 
 Attribute |Is required| Description
 ----------|-----------|-------------
@@ -2538,6 +2563,25 @@ id_form|true| словник `CONTRACT_TYPE`, поки що лише один в
 contract_number|false| human-redable номер контракту
 statute_md5|true| хеш завантаженого документу (статуту)
 additional_document_md5|true| хеш завантаженого документу (додатковий документ)
+consent_text|true|
+
+The following tables describes contract_request object fields and it`s child objects.
+#####Reimbursement Contract_request
+
+Attribute |Is required| Description
+----------|-----------|-------------
+contractor_owner_id|true| підписант, зі сторони мед. закладу
+contractor_base|true| на якій підставі діє підписант: закон/домовленість
+contractor_payment_details|true| об'єкт, що містить дані по рахунку, на який будуть здійснюватися виплати
+previous_request_id | false | опційне поле, яке вказує, що поточний запит на контракт є новою версією вказаного запиту
+contractor_divisions|true| масив id відділень мед. закладу, що включаються в договір
+start_date|false| пункт 9.2 - цей договір діє з (рік має бути поточний або настпуний)
+end_date|false| пункт 9.2 - цей договір діє по (рік має співпадати з роком у start_date)
+id_form|true| словник `CONTRACT_TYPE`, поки що лише один вид Договір на ПМД
+contract_number|false| human-redable номер контракту
+statute_md5|true| хеш завантаженого документу (статуту)
+additional_document_md5|true| хеш завантаженого документу (додатковий документ)
+medical_program_id|true| ідентифікатор державної програми компенсації, що є субєктом договору
 consent_text|true|
 
 ####Contractor_payment_details
@@ -2586,9 +2630,10 @@ medical_service|true| послуга, що надається на відділ�
     > 2.2 In case you don't have external_contractors - external_contractors_flag should be set as FALSE and external_contractors array must empty.
 
 ####JSON example
-
+Capitation version:
 ```
 {
+  "contract_type": "capitation",
   "contractor_owner_id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
   "contractor_base": "на підставі статуту",
   "previous_request_id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
@@ -2635,6 +2680,33 @@ medical_service|true| послуга, що надається на відділ�
   "consent_text": "Погоджуюсь з публічними правилами"
 }
 ```
+Reimbursement version:
+```
+{
+  "contract_type": "reimbursement",
+  "contractor_owner_id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
+  "contractor_base": "на підставі статуту",
+  "previous_request_id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
+  "contractor_payment_details": {
+    "bank_name": "Банк номер 1",
+    "MFO": "351005",
+    "payer_account": "32009102701026"
+  },
+
+  "contractor_divisions": [
+    "id: `2922a240-63db-404e-b730-09222bfeb2dd`"
+  ],
+  
+  "start_date": "2017-04-20",
+  "end_date": "2017-04-20",
+  "id_form": "PMD_1",
+  "contract_number": "0000-9EAX-XT7X-3115",
+  "statute_md5": "db218b04eff70f86f40c1572ce8ca16a",
+  "additional_document_md5": "ac642b04eff40f86f40c1572ce8ca16a",
+  "medical_program_id": "3922a240-63db-404e-b730-09222bfeb2d1"
+  "consent_text": "Погоджуюсь з публічними правилами"
+}
+```
 
 
 + Request (application/json)
@@ -2649,10 +2721,17 @@ medical_service|true| послуга, що надається на відділ�
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + include `Contract_request_Details_Full`
+            + include `Contract_request_Details_Capitation`
+            
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Contract_request_Details_Reimbursement`
+            
+            
 
 
-### Public. Get Contract Requests list [GET /api/contract_requests{?id,contractor_legal_entity_id,edrpou,contractor_owner_id,nhs_signer_id,issue_city,status,contract_number,page,page_size}]
+### Public. Get Contract Requests list [GET /api/contract_requests/{contract_type}/{?id,contractor_legal_entity_id,edrpou,contractor_owner_id,nhs_signer_id,issue_city,status,contract_number,page,page_size}]
 
 ***Scope  contract_request:read***
 
@@ -2673,6 +2752,7 @@ This method is designed to obtain list of contract request with filters. This me
         - TERMINATED
         - NHS_SIGNED
     + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
+    + program_id: `2075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of a program that is a subject of reimbursement contract
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
 
@@ -2684,9 +2764,14 @@ This method is designed to obtain list of contract request with filters. This me
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
-        + data (array[`Contract_request_list`])
+        + data (array[`Contract_request_list_capitation`])
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[`Contract_request_list_reimbursement`])
+        
+        
 
-### Public. Get Contract Request Details [GET /api/contract_requests/{id}]
+### Public. Get Contract Request Details [GET /api/contract_requests/{contract_type}/{id}]
 
 ***Scope  contract_request:read***
 
@@ -2704,11 +2789,18 @@ This method is designed to get full information of contract request by id
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + include `Contract_request_Details`
+            + include `Contract_request_Details_Capitation`
         + urgent (object, required)
             + documents (array[`contract_media_content`], optional)
 
-### Public. Approve Contract Request by MSP [PATCH /api/contract_requests/{id}/actions/approve_msp]
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Contract_request_Details_Reimbursement`
+        + urgent (object, required)
+            + documents (array[`contract_media_content`], optional)
+
+### Public. Approve Contract Request by MSP [PATCH /api/contract_requests/{contract_type}/{id}/actions/approve_msp]
 
 ***Scope  contract_request:approve***
 
@@ -2731,9 +2823,15 @@ Only after that NHS employee can sign the contract request.
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Contract_request_Details`
+            + include `Contract_request_Details_Capitation`
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_request_Details_Reimbursement`
 
-### Public. Terminate Contract Request by MSP [PATCH /api/contract_requests/{id}/actions/terminate]
+### Public. Terminate Contract Request by MSP [PATCH /api/contract_requests/{contract_type}/{id}/actions/terminate]
 
 ***Scope  contract_request:terminate***
 
@@ -2756,9 +2854,16 @@ This WS is designed to terminate contract request by contractor. Contract reques
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Contract_request_Details`
+            + include `Contract_request_Details_Reimbursement`
 
-### Public. Get Contract Request Printout Content [GET /api/contract_requests/{id}/printout_content]
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_request_Details_Capitation`
+
+### Public. Get Contract Request Printout Content [GET /api/contract_requests/{contract_type}/{id}/printout_content]
 
 ***Scope  contract_request:read***
 
@@ -2782,7 +2887,7 @@ Get Contract Request Details and Get Contract Request Printout Content and sign 
 
 
 
-### Public. Sign Contract Request by MSP [PATCH /api/contract_requests/{id}/actions/sign_msp]
+### Public. Sign Contract Request by MSP [PATCH /api/contract_requests/{contract_type}/{id}/actions/sign_msp]
 
 ***Scope  contract_request:sign***
 
@@ -2792,6 +2897,8 @@ Method receives signed message (pkcs7) including signed content, digital signatu
 All signature fields will be validated (including signer certificate authority). This service will store signed copy of Contract Request in Media Content Storage (will update previous version of file),created contract records and linked employees_divisions if signature is all checks is passed. 
 Object that need to be signed is returned by Get Contract request by ID, urgent, type='signed_content'. In response will be receive a link to download a file in pkcs7 format (signed by NHS side).
 This data must be signed.
+
+In DS EDRPOU/DRFO must be equal to contractor_legal_entity.edrpou
 
 > **Note!** In response you will receive Contract object.
 
@@ -2812,10 +2919,16 @@ This data must be signed.
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Contract_Details`
+            + include `Contract_Details_Capitation`
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_Details_Reimbursement`
 
 ## Contracts [/api/contract]
-### Public. Get Contracts list [GET /api/contracts{?id,contractor_legal_entity_id,edrpou,contractor_owner_id,nhs_signer_id,is_suspended,status,contract_number,date_from_start_date,date_to_start_date,date_from_end_date,date_to_end_date,page,page_size}]
+### Public. Get Contracts list [GET /api/contracts/{contract_type}/{?id,contractor_legal_entity_id,edrpou,contractor_owner_id,nhs_signer_id,is_suspended,status,contract_number,date_from_start_date,date_to_start_date,date_from_end_date,date_to_end_date,page,page_size}]
 
 ***Scope  contract:read***
 
@@ -2836,6 +2949,7 @@ This method is designed to obtain list of contracts with filters. This mothod re
     + date_from_end_date: `2018-01-01` (string, optional)
     + date_to_end_date: `2019-01-01` (string, optional)
     + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
+    + program_id: `2075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of a program that is a subject of reimbursement contract
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
 
@@ -2847,9 +2961,12 @@ This method is designed to obtain list of contracts with filters. This mothod re
     
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
-        + data (array[Contracts_list])
+        + data (array[`Contracts_list_capitation`])
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[`Contracts_list_reimbursement`])
 
-### Public. Get Contract Details [GET /api/contracts/{id}]
+### Public. Get Contract Details [GET /api/contracts/{contract_type}/{id}]
 
 ***Scope  contract:read***
 
@@ -2867,11 +2984,17 @@ This method is designed to get full information of contract by id
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + include `Contract_Details`
+            + include `Contract_Details_Capitation`
+        + urgent (object, required)
+            + documents (array[`contract_media_content`], optional)
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Contract_Details_Reimbursement`
         + urgent (object, required)
             + documents (array[`contract_media_content`], optional)
 
-### Public. Get Contract Employees [GET /api/contracts/{contract_id}/employees{?is_active,employee_id,division_id,page,page_size}]
+### Public. Get Contract Employees [GET /api/contracts/{contract_id}/capitation/employees{?is_active,employee_id,division_id,page,page_size}]
 
 ***Scope  contract:read***
 
@@ -2905,7 +3028,7 @@ The data received in response can be changed and signed in order to update emplo
                     + `contract_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract identifier
                        
 
-### Public. Update Contract Employees [PATCH /api/contracts/{contract_id}/employees/actions/update]
+### Public. Update Contract Employees [PATCH /api/contracts/{contract_id}/capitation/employees/actions/update]
 
 ***Scope  contract:write***
 
@@ -2957,7 +3080,7 @@ Example data to sign in order to deactivate employee:
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + include `Contract_Details`
+            + include `Contract_Details_Capitation`
 
 # Data Structures
 ## Responses
@@ -4655,7 +4778,7 @@ Example data to sign in order to deactivate employee:
 + code : `patient` (string, required) - Symbol in syntax defined by the system
 
 ### `Duration`
-+ value: 10 (string, optional) - The value of the measured amount. The value includes an implicit precision in the presentation of the value
++ value: 10 (number, optional) - The value of the measured amount. The value includes an implicit precision in the presentation of the value
 + unit: `days` (string, optional) - A human-readable form of the unit
 + system: `http://unitsofmeasure.org` (string, optional) - The identification of the system that provides the coded form of the unit
 + code: d (string, optional) - A computer processable form of the unit in some unit representation system
@@ -4670,14 +4793,23 @@ Example data to sign in order to deactivate employee:
 + unit : `mg` (string, required)
 + system : `eHealth/units` (string, optional)
 + code: `mg` (string, optional)
-        
+
+### `Simple_Quantity`
++ value : `13,5` (number, required)
++ unit : `mg` (string, required)
++ system : `eHealth/units` (string, optional)
++ code: `mg` (string, optional)
+
+### `Ratio`
++ numerator (Quantity, required)
++ denominator (Quantity, required)
 
 ### `Range`
 + low (Quantity, required)
 + high (Quantity, required)
 
 ### Timing
-+ event: `2017-04-20T19:14:13Z` (string, optional) - When the event occurs. ISO 8601 date and time in UTC timezone.
++ event: `2017-04-20T19:14:13Z` (array[string], optional) - When the event occurs. ISO 8601 date and time in UTC timezone.
 + repeat (object, optional)
     - One Of
         + bounds_duration (Duration)
@@ -4692,12 +4824,29 @@ Example data to sign in order to deactivate employee:
     + frequency_max: 2 (number, optional) - Event occurs up to frequencyMax times per period
     + period: 4 (number, optional) - Event occurs frequency times per period
     + period_max: 6 (number, optional) - Upper limit of period
-    + period_unit: d (number, optional) - unit of time UCUM
+    + period_unit: d (string, optional) - unit of time UCUM
     + `day_of_week`: mon (array[string], optional) - day of week
-    + `time_of_day`: `2017-04-20T19:14:13Z` (string, optional) - Time of day for action
+    + `time_of_day`: `2017-04-20T19:14:13Z` (array[string], optional) - Time of day for action
     + when: WAKE (array[string], optional) - Regular life events the event is tied to
     + offset: 4 (number, optional) - Minutes from event before or after
 + code (Codeable_Concept, optional)
+    + coding (array, fixed-type)
+        + (Coding)
+            + system: `eHealth/timing_abbreviation` (string)
+
+### `Dose_and_Rate`
++ type (Codeable_Concept, optional)
+    + coding (array, fixed-type)
+        + (Coding)
+            + system: `eHealth/dose_and_rate` (string, required)
+            + code: 'ordered' (string, required)
+- One Of
+    + dose_range (Range)
+    + dose_quantity (Simple_Quantity)
+- One Of
+    + rate_ratio (Ratio)
+    + rate_range (Range)
+    + rate_quantity (Simple_Quantity)
 
 ## Medications
 ### `Innm_Request`
@@ -4872,7 +5021,7 @@ Example data to sign in order to deactivate employee:
 + `medication_request_allowed`: true (boolean, required) - indicator whether medication is allowed to use in new medication request
 + `reimbursement` (object, required)
     + include `Reimbursement`
-+ `is_active` : true (boolean, required) - flag for activation/deactiovation
++ `is_active` : true (boolean, required) - flag for activation/deactivation
 + include `System_Logging`
 
 ### `Program_medications_List`
@@ -5303,6 +5452,7 @@ Example data to sign in order to deactivate employee:
 + `signed_content_encoding`: `base64` (string, required)
 
 ### `Contract_request_Request`
++ `contract_type`: `CAPITATION`(string,required)
 + `contractor_owner_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - person which represent legal entity
 + `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
 + `contractor_payment_details` (object, required)
@@ -5322,8 +5472,24 @@ Example data to sign in order to deactivate employee:
 + `id_form`: `PMD_1` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
 + `contract_number`: `0000-9EAX-XT7X-3115` (string, optional) - number of existing VERIFIED contract
 
-### `Contract_request_list`
-+ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
+
+### `Contract_request_Request_reimbursement`
++ `contract_type`: `REIMBURSEMENT`(string, required)
++ `contractor_owner_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - person which represent legal entity
++ `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
++ `contractor_payment_details` (object, required)
+    + include (`Payment_details`, required)
++ `contractor_divisions` (array, required)
+    + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
++ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ `id_form`: `PMD_1` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
++ `contract_number`: `0000-9EAX-XT7X-3115` (string, optional) - number of existing VERIFIED contract
++ `medical_program_id`: `3914a240-63db-404e-b730-09222bfeb2d0` (string, required) - id of a medical program that is a subject of reimbursment contract
+
+### `Contract_request_list_capitation`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID
++ `contract_type`: `CAPITATION`(string, required)
 + `contractor_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
 + `contractor_owner_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - person which represent legal entity
 + `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
@@ -5340,9 +5506,32 @@ Example data to sign in order to deactivate employee:
 + `parent_contract_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - parent contract id
 + `start_date`: `2017-04-20` (string, required) - contract start date 
 + `end_date`: `2017-04-20` (string, required) - contract end date
+
+
+
+### `Contract_request_list_reimbursement`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID
++ `contract_type`: `REIMBURSEMENT`(string, required)
++ `contractor_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
++ `contractor_owner_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - person which represent legal entity
++ `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
++ status: `NEW` (string, required) - contract_request status
++ status_reason: `Не відповідає попереднім домовленостям`(string, optional) - reason of status theat is setted bu nhs
++ `nhs_signer_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - person which represents nhs
++ `nhs_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - nhs legal entity ID
++ `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
++ issue_city: `Київ` (string, optional) - place of contract request
+
++ `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
++ contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
++ contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
++ `parent_contract_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - parent contract id
++ `start_date`: `2017-04-20` (string, required) - contract start date 
 + `end_date`: `2017-04-20` (string, required) - contract end date
++ `medical_program_id`: `12e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - id of a medical program that is a subject for reimbursement contract
 
 ### `Contract_request_Update`
++ `contract_type`: `CAPITATION`
 + `nhs_signer_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - id of signer from nhs side 
 + `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
 + `nhs_contract_price`: `50000` (number, optional) - contract price
@@ -5350,8 +5539,9 @@ Example data to sign in order to deactivate employee:
 + `issue_city`: `Київ` (string, optional) - place of contract request
 + `miscellaneous`: `Жодна зі сторін не має права передавати права і зобов’язання за цим контрактом третій стороні без письмової на те згоди іншої сторони` (string, optional) - miscellaneous of a contract
 
-### `Contract_request_Details`
+### `Contract_request_Details_Capitation`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
++ `contract_type`: `CAPITATION`(string,required)
 + `contractor_legal_entity`(object, required)
     + include (`contract_legal_entity_details`)
 + `contractor_owner` (object, required)
@@ -5392,8 +5582,49 @@ Example data to sign in order to deactivate employee:
 + `previous_request_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - changed contract request id
 + `assignee_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - NHS employee which review contract request
 
+
+
+### `Contract_request_Details_Reimbursement`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
++ `contract_type`: `REIMBURSEMENT`(string,required)
++ `contractor_legal_entity`(object, required)
+    + include (`contract_legal_entity_details`)
++ `contractor_owner` (object, required)
+    + include (`Person_Minimal_Contract`)
++ `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
++ `contractor_payment_details` (object, required)
+    + include (`Payment_details`, required)
+
++ `contractor_divisions` (array, fixed, required)
+    + (object)
+        + include `Contractor_divisions`
+
+
++ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ `id_form`: `RMB-1` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
++ `nhs_signer` (object, optional) 
+    + include (`Person_Minimal_Contract`)
++ `nhs_legal_entity` (object)
+    + include (`contract_legal_entity_details`)
++ `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
++ `nhs_contract_price`: `50000` (number, optional) - contract price
++ `nhs_payment_method`: `BACKWARD` (enum, optional) - payment method for contract
++ status: `NEW` (string, required) - contract_request status
++ status_reason: `Не відповідає попереднім домовленостям`(string, optional) - reason of status that was set
++ issue_city: `Київ` (string, optional) - place of contract request
++ contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
++ contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
++ `parent_contract_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - parent contract id
++ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown only for requests in `APPROVED`, `PENDING_NHS_SIGN`, `NHS_SIGNED`, `SIGNED` statuses.
++ `previous_request_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - changed contract request id
++ `assignee_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - NHS employee which review contract request
++ `medical_program_id`: `12e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - id of a medical program that is a subject for reimbursement contract
+
 ### `Contract_request_Details_Full`
-+ include `Contract_request_Details`
++ include `Contract_request_Details_Capitation`
 
 ### `Contract_request_Docs`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
@@ -5460,8 +5691,9 @@ Example data to sign in order to deactivate employee:
 + working_hours (`workinghours`) - optional field, business hours by each day weekly, doesn't make any influence on business process and will be shown on portal and map.
 + mountain_group: false (boolean, optional)
 
-### `Contracts_list`
+### `Contracts_list_capitation`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract ID 
++ `contract_type`: `CAPITATION` (string, required)
 + `contractor_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
 + `contractor_owner` (object, required)
     + include (`Person_Minimal_Contract`)
@@ -5486,8 +5718,39 @@ Example data to sign in order to deactivate employee:
 + parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
 + `assignee_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - NHS employee which review contract request
 
-### `Contract_Details`
+
+### `Contracts_list_reimbursement`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract ID 
++ `contract_type`: `REIMBURSEMENT` (string, required)
++ `contractor_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
++ `contractor_owner` (object, required)
+    + include (`Person_Minimal_Contract`)
++ `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
++ status: `VERIFIED` (string, required) - contract_request status
++ `contractor_divisions` (array, required, fixed)
+    + (object)
+        + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
+        + name: Бориспільське відділення Клініки Ноунейм (string, required) - the full name of division
+
++ `nhs_signer_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - person which represents nhs
++ `nhs_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - nhs legal entity ID
++ `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
++ `issue_city`: `Київ` (string, optional) - place of contract request
++ `nhs_contract_price`: `50000` (number, optional) - contract price
++ contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
++ contract_request_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract request id
++ `start_date`: `2017-04-20` (string, required) - contract start date
++ `end_date`: `2018-04-20` (string, required) - contract start date
++ is_suspended: false (string, required) - whether the contract is active or temporary suspended
++ id_form: `RMB` (string, required)
++ parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
++ `assignee_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - NHS employee which review contract request
++ `medical_program_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - id of a medical program that is a subject of a reimbursement contract
+
+
+### `Contract_Details_Capitation`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract ID 
++ `contract_type`: `CAPITATION` (string, required)
 + `start_date`: `2017-04-20` (string, required) - contract start date 
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + `contractor_legal_entity`(object, required)
@@ -5524,6 +5787,44 @@ Example data to sign in order to deactivate employee:
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + id_form: `PMD` (string, required)
 + parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
+
+
+
+### `Contract_Details_Reimbursement`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract ID 
++ `contract_type`: `REIMBURSEMENT` (string, required)
++ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ `contractor_legal_entity`(object, required)
+    + include (`contract_legal_entity_details`)
++ `contractor_owner` (object, required)
+    + include (`Person_Minimal_Contract`)
++ `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
++ `contractor_payment_details` (object, required)
+    + include (`Payment_details`, required)
+
++ `contractor_divisions` (array, fixed, required)
+    + (object)
+        + include `Contractor_divisions`
+
+
++ `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
+
++ `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
++ status: `VERIFIED` (string, required) - contract status
++ status_reason: `не було виконано умов контракту` (string, optional) - the reason of terminated status 
++ `nhs_signer` (object, optional) 
+    + include (`Person_Minimal_Contract`)
++ `nhs_legal_entity` (object)
+    + include (`contract_legal_entity_details`)
++ issue_city: `Київ` (string, optional) - place of contract request
++ contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
++ contract_request_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - contract request id
++ is_suspended: false (boolean, required) - whether the contract is active or temporary suspended
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ id_form: `RMB` (string, required)
++ parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
++ `medical_program_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - id of a medical program that is a subject of a reimbursement contract
 
 ### `Capitation_report`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - Unique report id
