@@ -1555,6 +1555,20 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
             + code: 200 (number)
         + data (array[`Response_Settlement`])
 
+### Get settlement details by ID [GET /api/uaddresses/settlements/{id}]
+
+Use this method to obtain city details. 
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - settlement_id
+
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (`Response_Settlement`)
+
 ## Search Regions [/api/uaddresses/regions]
 
 ### List Of Regions By Search Params [GET /api/uaddresses/regions{?name,koatuu,page,page_size}]
