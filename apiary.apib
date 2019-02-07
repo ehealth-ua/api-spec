@@ -333,6 +333,9 @@ After sign new declaration all previously created pending (status one of the fol
             + division (`Division_Declaration`, required)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
             + channel: `MIS` (enum, required) - channel that invoke declaration create service
+            + `preferred_way_communication`: email (enum, optional)
+                - email
+                - phone
         + urgent (object, required)
             + `authentication_method_current` (object, required)
                 + type: `OTP` (enum, required)
@@ -350,6 +353,54 @@ After sign new declaration all previously created pending (status one of the fol
             + type: unverified (string, required)
             + message: `Unverified phone number` (string, required)
 
+### Create Declaration Request V2 [POST /api/v2/declaration_requests]
+
+This method is used to create Declaration Request (as part of Declaration creation process) via new api. New version changes person search and adds new fields to request.
+Two version are available temporary, in the future only this version will exist.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + `declaration_request` (Declaration_Request_Public_v2)
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + seed: hash (string, required)
+            + include `Declaration_Request_Public_Response_v2`
+            + status: `NEW` (string, required)
+            + employee (Employee_Minimal, required)
+            + `legal_entity` (`Medical_Service_Provider`, required)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + division (`Division_Declaration`, required)
+            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + channel: `MIS` (enum, required) - channel that invoke declaration create service
+            + `preferred_way_communication`: email (enum, optional)
+                - email
+                - phone
+        + urgent (object, required)
+            + `authentication_method_current` (object, required)
+                + type: `OTP` (enum, required)
+                    - OTP
+                    - OFFLINE
+                    - NA
+                + number: `+38093*****85` (string, required)
+            + documents (array[`media_content`], optional)
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Unverified phone number` (string, required)
 
 ### Approve Declaration Request [PATCH /api/declaration_requests/{id}/actions/approve]
 
@@ -361,7 +412,7 @@ In case if authentication_method is OTP, request example:
   "verification_code": 3748
 }
 ```
-In case if authentication_method is OFFLINE, request body should be empty. 
+In case if authentication_method is OFFLINE or N/A, request body should be empty. 
 Before approve patient's scanned documents should be uploaded to the ([Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program))
 as well as scanned signed declaration (with type person.DECLARATION_FORM).
 All links are generated for one one-page document in jpeg format. Document should be no more than 10MB.
@@ -396,6 +447,14 @@ Clients can use signed URL's to directly access Minio storage and upload files v
             + division (`Division_Details`, required)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
             + channel: `MIS` (enum, required) - channel that invoke declaration create service
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: request_malformed (string, required)
+            + message: `This doctor has X declarations and could not sign more` (string, required)
 
 ### Reject Declaration Request [PATCH /api/declaration_requests/{id}/actions/reject]
 
@@ -530,6 +589,7 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
           "birth_settlement": "Вінниця",
           "gender": "MALE",
           "tax_id": "3126509816",
+          "email": "confidant_person@email.com",
           "secret": "secret",
           "documents_person": [
             {
@@ -689,6 +749,7 @@ Method returns shortened details, to obtain full information - get Declaration D
     + `declaration_number`: `0000-12H4-245D` (string, optional) - unique human redable number of declaration.
     + status: active (string, optional)
         + Default: active
+    + reason: offline (string, optional) - filter declaration by reason
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -817,6 +878,8 @@ Response structure differs depending on employee type:
 * User Info
 * Doctor info
 
+`Declaration_limit` and `declaration_count` are mooved to approve declaration request error, temporary are left in response with `0` value. 
+
 + Parameters
     + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
@@ -871,7 +934,10 @@ Employee_Request consist of the three mandatory parts:
 * Employee info
 * User Info
 
-Additionally to register/update Physician the `Doctor info` should be passed.
+**For DOCTOR or PHARMACIST:**
+* Doctor ot Pharmacist info
+
+Additionally to register/update Physician the `Doctor info` for Doctors and `Pharmacist info` for Pharmacist should be passed.
 
 When the `Employee_Request` will be posted the Invitation e-mail with a request
 secret token will be sent to the User specified in the request.
@@ -910,7 +976,10 @@ Employee_Request consist of the three mandatory parts:
 * Employee info
 * User Info
 
-Additionally to register/update Physician the `Doctor info` should be passed.
+**For DOCTOR or PHARMACIST:**
+* Doctor ot Pharmacist info
+
+Additionally to register/update Physician the `Doctor info` for Doctors and `Pharmacist info` for Pharmacist should be passed.
 
 When the `Employee_Request` will be posted the Invitation e-mail with a request
 secret token will be sent to the User specified in the request.
@@ -1887,7 +1956,7 @@ There are following age groups right now:
 
 ### Get drugs list [GET /api/drugs{?innm_id,innm_name,innm_sctid,innm_dosage_form,innm_dosage_id,innm_dosage_name,medication_code_atc,medical_program_id,page,page_size}]
 
-Get drugs list by filters.
+This endpoint returns list of drugs. Each drug contains all allowed package forms and related innm.
 
 **Scopes required:** `drug:read`
 
@@ -2033,6 +2102,13 @@ This method is used to create Medication request Request (as a part of Medicatio
             + code: 201 (number)
         + data (object)
             + include `Medication_request_Request_Public_Response`
+        + urgent (object, required)
+            + `authentication_method_current` (object, required)
+                + type: `OTP` (enum, required)
+                    - OTP
+                    - OFFLINE
+                    - NA
+                + number: `+38093*****85` (string, required)
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -2484,7 +2560,7 @@ Invoke Get Medication request by ID to obtain previously created medication requ
         "dispense_valid_to": "2018-11-19",
         "dispense_valid_from": "2018-10-19",
         "created_at": "2018-10-19",
-        "reason": "Помилка призначення. Несумісні препарати."
+        "reject_reason": "Помилка призначення. Несумісні препарати."
     }
 ```
 
@@ -2505,7 +2581,9 @@ Invoke Get Medication request by ID to obtain previously created medication requ
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
         + data (`Medication_request_Public_Response`)
-            + include (`Medication_request_Reject_Public_Response`)
+            + `rejected_at`: `2017-04-20T19:14:13Z` (string, required) - Reject date - ISO 8601 date and time in UTC timezone.
+            + `rejected_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - Rejected user identifier
+            + `reject_reason` : `Помилка призначення. Несумісні препарати.` (string, required) - Medication request reject reason 
 
 ### Resend Medication Request [PATCH /api/medication_requests/{id}/actions/resend]
 
@@ -3166,7 +3244,6 @@ medical_service|true| послуга, що надається на відділ�
 Capitation version:
 ```
 {
-  "contract_type": "capitation",
   "contractor_owner_id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
   "contractor_base": "на підставі статуту",
   "previous_request_id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
@@ -3177,7 +3254,7 @@ Capitation version:
   },
   "contractor_rmsp_amount": 50000,
   "contractor_divisions": [
-    "id: `2922a240-63db-404e-b730-09222bfeb2dd`"
+    "adeac295-0d39-4a8e-8e16-9526787de3f1"
   ],
   "contractor_employee_divisions": [
     {
@@ -3199,7 +3276,7 @@ Capitation version:
       "divisions": [
         {
           "id": "2922a240-63db-404e-b730-09222bfeb2dd",
-          "medical_service": "Послуга ПМД"
+          "medical_service": "PHC_SERVICES"
         }
       ]
     }
@@ -3210,13 +3287,12 @@ Capitation version:
   "contract_number": "0000-9EAX-XT7X-3115",
   "statute_md5": "db218b04eff70f86f40c1572ce8ca16a",
   "additional_document_md5": "ac642b04eff40f86f40c1572ce8ca16a",
-  "consent_text": "Погоджуюсь з публічними правилами"
+  "consent_text": "Цією заявою Заявник висловлює бажання укласти договір про медичне обслуговування населення за програмою державних гарантій медичного обслуговування населення (далі – Договір) на умовах, визначених в оголошенні про укладення договорів про медичне обслуговування населення (далі – Оголошення). Заявник підтверджує, що: 1. на момент подання цієї заяви Заявник має чинну ліцензію на провадження господарської діяльності з медичної практики та відповідає ліцензійним умовам з медичної практики; 2. Заявник надає медичні послуги, пов’язані з первинною медичною допомогою (далі – ПМД); 3. Заявник зареєстрований в електронній системі охорони здоров’я (далі – Система); 4. уповноважені особи та медичні працівники, які будуть залучені до виконання Договору, зареєстровані в Системі та отримали електронний цифровий підпис (далі – ЕЦП); 5. в кожному місці надання медичних послуг Заявника наявне матеріально-технічне оснащення, передбачене розділом І Примірного табелю матеріально-технічного оснащення закладів охорони здоров’я та фізичних осіб – підприємців, які надають ПМД, затвердженого наказом Міністерства охорони здоров’я України від 26 січня 2018 року № 148; 6. установчими або іншими документами не обмежено право керівника Заявника підписувати договори від імені Заявника без попереднього погодження власника. Якщо таке право обмежено, у тому числі щодо укладання договорів, ціна яких перевищує встановлену суму, Заявник повідомить про це Національну службу здоров’я та отримає необхідні погодження від власника до моменту підписання договору зі сторони Заявника; 7. інформація, зазначена Заявником у цій Заяві та доданих до неї документах, а також інформація, внесена Заявником (його уповноваженими особами) до Системи, є повною та достовірною. Заявник усвідомлює, що у разі зміни інформації, зазначеної Заявником у цій заяві та (або) доданих до неї документах Заявник зобов’язаний повідомити про такі зміни НСЗУ протягом трьох робочих днів з дня настання таких змін шляхом надсилання інформації про такі зміни на електронну пошту dohovir@nszu.gov.ua, з одночасним внесенням таких змін в Систему. Заявник усвідомлює, що законодавством України передбачена відповідальність за подання недостовірної інформації органам державної влади."
 }
 ```
 Reimbursement version:
 ```
 {
-  "contract_type": "reimbursement",
   "contractor_owner_id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
   "contractor_base": "на підставі статуту",
   "previous_request_id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
@@ -3225,19 +3301,17 @@ Reimbursement version:
     "MFO": "351005",
     "payer_account": "32009102701026"
   },
-
   "contractor_divisions": [
-    "id: `2922a240-63db-404e-b730-09222bfeb2dd`"
+    "adeac295-0d39-4a8e-8e16-9526787de3f1"
   ],
-  
-  "start_date": "2017-04-20",
-  "end_date": "2017-04-20",
+  "start_date": "2019-04-20",
+  "end_date": "2020-04-19",
   "id_form": "PMD_1",
-  "contract_number": "0000-9EAX-XT7X-3115",
+  "contract_number": "0000-9EAX-XT7X",
   "statute_md5": "db218b04eff70f86f40c1572ce8ca16a",
   "additional_document_md5": "ac642b04eff40f86f40c1572ce8ca16a",
   "medical_program_id": "3922a240-63db-404e-b730-09222bfeb2d1"
-  "consent_text": "Погоджуюсь з публічними правилами"
+  "consent_text": "Цією заявою Заявник висловлює бажання укласти договір про медичне обслуговування населення за програмою державних гарантій медичного обслуговування населення (далі – Договір) на умовах, визначених в оголошенні про укладення договорів про медичне обслуговування населення (далі – Оголошення). Заявник підтверджує, що: 1. на момент подання цієї заяви Заявник має чинну ліцензію на провадження господарської діяльності з медичної практики та відповідає ліцензійним умовам з медичної практики; 2. Заявник надає медичні послуги, пов’язані з первинною медичною допомогою (далі – ПМД); 3. Заявник зареєстрований в електронній системі охорони здоров’я (далі – Система); 4. уповноважені особи та медичні працівники, які будуть залучені до виконання Договору, зареєстровані в Системі та отримали електронний цифровий підпис (далі – ЕЦП); 5. в кожному місці надання медичних послуг Заявника наявне матеріально-технічне оснащення, передбачене розділом І Примірного табелю матеріально-технічного оснащення закладів охорони здоров’я та фізичних осіб – підприємців, які надають ПМД, затвердженого наказом Міністерства охорони здоров’я України від 26 січня 2018 року № 148; 6. установчими або іншими документами не обмежено право керівника Заявника підписувати договори від імені Заявника без попереднього погодження власника. Якщо таке право обмежено, у тому числі щодо укладання договорів, ціна яких перевищує встановлену суму, Заявник повідомить про це Національну службу здоров’я та отримає необхідні погодження від власника до моменту підписання договору зі сторони Заявника; 7. інформація, зазначена Заявником у цій Заяві та доданих до неї документах, а також інформація, внесена Заявником (його уповноваженими особами) до Системи, є повною та достовірною. Заявник усвідомлює, що у разі зміни інформації, зазначеної Заявником у цій заяві та (або) доданих до неї документах Заявник зобов’язаний повідомити про такі зміни НСЗУ протягом трьох робочих днів з дня настання таких змін шляхом надсилання інформації про такі зміни на електронну пошту dohovir@nszu.gov.ua, з одночасним внесенням таких змін в Систему. Заявник усвідомлює, що законодавством України передбачена відповідальність за подання недостовірної інформації органам державної влади."
 }
 ```
 
@@ -3260,9 +3334,6 @@ Reimbursement version:
     + Attributes (Response__Process_OK)
         + data (object)
             + include `Contract_request_Details_Reimbursement`
-            
-            
-
 
 ### Public. Get Contract Requests list [GET /api/contract_requests/{contract_type}/{?id,contractor_legal_entity_id,edrpou,contractor_owner_id,nhs_signer_id,issue_city,status,contract_number,page,page_size}]
 
@@ -3279,11 +3350,13 @@ This method is designed to obtain list of contract request with filters. This me
     + edrpou: `12345678` (string, optional) - legal entity edrpou
     + status: `NEW` (enum, optional) - current status on contract request.
         - NEW
+        - IN_PROCESS
         - APPROVED
         - DECLINED
-        - SIGNED
         - TERMINATED
+        - `PENDING_NHS_SIGN`
         - NHS_SIGNED
+        - SIGNED
     + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
     + program_id: `2075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of a program that is a subject of reimbursement contract
     + page: 2 (number, optional) - Page number.
@@ -3719,6 +3792,7 @@ Example data to sign in order to deactivate employee:
 + birth_country: `Україна` (string, required)
 + birth_settlement: `Вінниця` (string, required)
 + gender: MALE, FEMALE (enum[string], required)
++ email: confidant_person@example.com (string, optional)
 + tax_id: 3126509816 (string, optional)
 + secret: `secret` (string, required)
 + documents_person (array[Document], required)
@@ -3742,7 +3816,6 @@ Example data to sign in order to deactivate employee:
 + documents_relationship (array[Document], required)
 + phones (array[Phone], optional)
 + email: emaill@example.com (string, optional)
-+ `preferred_way_communication`: `email` (string, optional)
 
 ### `Emergency_Contact`
 + first_name: Петро (string, required)
@@ -3900,8 +3973,12 @@ Example data to sign in order to deactivate employee:
     + tax_id: 3126509816 (string, optional)
     + secret: secret (string, required)
     + documents (array, required)
-        + (Document)
-            + expiration_date: `1991-08-19` (string, optional)
+        + include
+            + type: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
+            + number: АА120518 (string, required) - document issue number
+            + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+            + issued_at: `2017-02-28` (string, required) - the date when document was issued
+            + expiration_date: `2027-02-28` (string, optional) - the date when document expired, is necessery for those documents which has this date, ex, Temporary certificate, etc.
     + addresses (array[Address], required)
     + phones (array[Phone], optional)
     + `authentication_methods` (array[Authentication_Method], required)
@@ -4167,8 +4244,8 @@ Example data to sign in order to deactivate employee:
 + phones (array[Phone], optional)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
-+ declaration_limit: `2000` (number) - TO BE DEPRECATED, always zero! maximum number of declaration with a doctor.
-+ declaration_count: `1578` (number) - TO BE DEPRECATED, always zero! current number of declaration with a doctor.
++ declaration_limit: `0` (number) - TO BE DEPRECATED, always zero! maximum number of declaration with a doctor.
++ declaration_count: `0` (number) - TO BE DEPRECATED, always zero! current number of declaration with a doctor.
 
 ### `Party_Update`
 + include `Party_Short`
@@ -4334,8 +4411,8 @@ Example data to sign in order to deactivate employee:
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + no_tax_id: true (boolean, optional) - true if employee doesn't have tax_id and false otherwise
     + include `Party_Short`
-    + declaration_limit: `2000` (number) - TO BE DEPRECATED, always zero! maximum number of declaration with a doctor.
-    + declaration_count: `1578` (number) - TO BE DEPRECATED, always zero! current number of declaration with a doctor.
+    + declaration_limit: `0` (number) - TO BE DEPRECATED, always zero! maximum number of declaration with a doctor.
+    + declaration_count: `0` (number) - TO BE DEPRECATED, always zero! current number of declaration with a doctor.
 + division (`Division_Short`)
 + `legal_entity` (`Legal_Entity_Short`)
 + doctor (DoctorNew_Short)
@@ -5313,7 +5390,7 @@ Example data to sign in order to deactivate employee:
 ### `Duration`
 + value: 10 (number, optional) - The value of the measured amount. The value includes an implicit precision in the presentation of the value
 + unit: `days` (string, optional) - A human-readable form of the unit
-+ system: `http://unitsofmeasure.org` (string, optional) - The identification of the system that provides the coded form of the unit
++ system: `eHealth/ucum/units` (string, optional) - The identification of the system that provides the coded form of the unit
 + code: d (string, optional) - A computer processable form of the unit in some unit representation system
 
 ### `Period`
@@ -5324,22 +5401,22 @@ Example data to sign in order to deactivate employee:
 + value : `13,5` (number, required)
 + comparator : `>` (string, optional)
 + unit : `mg` (string, required)
-+ system : `eHealth/units` (string, optional)
++ system : `eHealth/ucum/units` (string, optional)
 + code: `mg` (string, optional)
 
 ### `Simple_Quantity`
 + value : `13,5` (number, required)
 + unit : `mg` (string, required)
-+ system : `eHealth/units` (string, optional)
++ system : `eHealth/ucum/units` (string, optional)
 + code: `mg` (string, optional)
 
 ### `Ratio`
-+ numerator (Quantity, required)
-+ denominator (Quantity, required)
++ numerator (Simple_Quantity, required)
++ denominator (Simple_Quantity, required)
 
 ### `Range`
-+ low (Quantity, required)
-+ high (Quantity, required)
++ low (Simple_Quantity, required)
++ high (Simple_Quantity, required)
 
 ### Timing
 + event: `2017-04-20T19:14:13Z` (array[string], optional) - When the event occurs. ISO 8601 date and time in UTC timezone.
@@ -5365,7 +5442,7 @@ Example data to sign in order to deactivate employee:
 + code (Codeable_Concept, optional)
     + coding (array, fixed-type)
         + (Coding)
-            + system: `eHealth/timing_abbreviation` (string)
+            + system: `TIMING_ABBREVIATIONS` (string)
 
 ### `Dose_and_Rate`
 + type (Codeable_Concept, optional)
@@ -5661,7 +5738,7 @@ Example data to sign in order to deactivate employee:
 + `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
 + `medication_id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required) - `Medication (type INNM_DOSAGE) identifier`
 + `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
-+ `medical_program_id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string) - `Medical program Identifier`
++ `medical_program_id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string, optional) - `Medical program Identifier`
 + intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT 
     - plan - The request represents an intention to ensure something occurs without providing an authorization for others to act.
     - order - The request represents a request/demand and authorization for action.
@@ -5715,13 +5792,20 @@ Example data to sign in order to deactivate employee:
 + `employee` (Employee_Minimal, required)
 + `person` (`Person_Medication_Request`)            
 + `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
-+ `medical_program` (`Medical_Program_Response`, required)
++ `medical_program` (`Medical_Program_Response`, optional)
++ intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT 
+    - plan - The request represents an intention to ensure something occurs without providing an authorization for others to act.
+    - order - The request represents a request/demand and authorization for action.
++ category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
+    - community - Includes requests for medications to be administered or consumed by the patient in their home
 + `context`(Reference, required, fixed-type)
     + identifier (Identifier)
         + type (Codeable_Concept)
             + coding (array, fixed-type)
                 + (Coding)
                     + code: `encounter` (string)
++ `dosage_instruction` (array, optional, fixed-type)
+    + (Dosage_Instruction)
 
 ### `Qualify_Medication_request_Request_List_program_post_data`
 + `id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string,required) - `Medical program Identifier`
@@ -5790,10 +5874,12 @@ Example data to sign in order to deactivate employee:
 ## `medical_programs`
 ### `medical_programs_request`
 + `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
++ `same_mnn_in_treatment_period`: true (boolean, required) - Allow to create new medication request with the same mnn in one treatment period
 
 ### `medical_programs_response`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
 + `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
++ `same_mnn_in_treatment_period`: true (boolean, required) - Allow to create new medication request with the same mnn in one treatment period
 + `is_active`: `true` (boolean, required) - Is medical program active or not. True - Active; False - Inactive
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
@@ -5825,13 +5911,23 @@ Example data to sign in order to deactivate employee:
 + `employee` (Employee_Minimal, required)
 + `person` (`Person_Medication_Request`)            
 + `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
-+ `medical_program` (`Medical_Program_Response`, required)
++ `medical_program` (`Medical_Program_Response`, optional)
++ intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT 
+    - plan - The request represents an intention to ensure something occurs without providing an authorization for others to act.
+    - order - The request represents a request/demand and authorization for action.
++ category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
+    - community - Includes requests for medications to be administered or consumed by the patient in their home
 + `context`(Reference, required, fixed-type)
     + identifier (Identifier)
         + type (Codeable_Concept)
             + coding (array, fixed-type)
                 + (Coding)
                     + code: `encounter` (string)
++ `dosage_instruction` (array, optional, fixed-type)
+    + (Dosage_Instruction)
++ `rejected_at`: `2017-04-20T19:14:13Z` (string, optional) - Reject date - ISO 8601 date and time in UTC timezone.
++ `rejected_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, optional) - Rejected user identifier
++ `reject_reason` : `Помилка призначення. Несумісні препарати.` (string, optional) - Medication request reject reason 
 
 ### `Medication_request_Reject_Public_Response`
 + `rejected_at`: `2017-04-20T19:14:13Z` (string, required) - Reject date - ISO 8601 date and time in UTC timezone.
