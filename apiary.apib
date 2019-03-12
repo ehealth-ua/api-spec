@@ -510,6 +510,7 @@ All signature fields will be validated (including signer certificate authority).
 This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
 
 Signed content MUST consists of JSON object with Declaration Request data and printout template. Object that need to be signed is returned by `Get Declaration request by ID` response, `JSON.Path: $.data`.
+Patient must re-read and sign declaration print form and after that `patient_signed` should be changed to TRUE.  
 
 Declaration request can be signed either by doctor or admin (user with scope `declaration_request:sign`) from legal entity as in declaration request.
 
@@ -1105,8 +1106,6 @@ Method returns only **requested** parameters, birth place and second name in add
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
     + `birth_certificate`: 123456 (string, optional) - birth_certificate is optional parameter for search
-    + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 + Request (application/json)
 
     + Headers
@@ -1114,7 +1113,7 @@ Method returns only **requested** parameters, birth place and second name in add
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (Response__Process_OK)
         + data (array[`Person_Short`])
 
 + Response 403 (application/json)
@@ -1262,7 +1261,7 @@ List consists of legal entities with parameter `is_active = true`.
 
 ### Create/Update Legal Entity [PUT]
 
-Use this method to register a new Legal Entity.
+Use this method to register a new Legal Entity or update existing one.
 
 New Legal Entity is created with 
 status = ACTIVE
@@ -1371,6 +1370,74 @@ Signed content MUST consists of JSON object with Legal Entity data:
   }
 }
 ```
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + `signed_legal_entity_request`: `...` (string, required)
+        + `signed_content_encoding`: base64 (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include Legal_Entity_Response_Public
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+            + `mis_verified`: NOT_VERIFIED (enum, required)
+                - NOT_VERIFIED
+                - VERIFIED
+            + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include `Legal_Entity_Response_Public`
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+            + `mis_verified`: NOT_VERIFIED (enum, required)
+                - NOT_VERIFIED
+                - VERIFIED
+            + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
+            + is_active: true (boolean, required)
+            + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
+            + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
+            + created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
+            + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
+            + updated_by: `userid` (string, required)
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
+
+### Create/Update Legal Entity V2 [PUT /api/legal_entities/v2]
+
+Key features and main differences from V1:
+
+* *create/update legal entity with multiple types (ex. MSP/PHARMACY)*
+
+* *modified licenses structure in order to cover multiple legal entity types*
+
+There is a [**dummy method Create/Update legal entity V2**](https://uaehealthapi.docs.apiary.io/#reference/dummy.-create-legal-entity/dummy-for-legal-entity/create/update-legal-entity-v2) that describes the latest legal entity data model and can be used as documentation.
 
 + Request (application/json)
 
@@ -2126,7 +2193,6 @@ All signature fields will be validated (including signer certificate authority).
 This service will store signed copy of Medication request Request in Media Content Storage and create Medication request if signature is all checks is passed.
 
 Signed content MUST consists of JSON object with Medication request Request data. Object that need to be signed is returned by `Get Medication request Request by ID` response, `JSON.Path: $.data`.
-The only field that can and must be changed is JSON.Path: `$.data.employee_signed`. It should be changed to `true`.
 
 **Important**
 Invoke Get Medication request Request by ID to obtain seed - Hash of previous block in Medication request Request chain or other random component that should be signed with Medication request Request.
@@ -2646,7 +2712,7 @@ Medication Dispense - Indicates that a medication product has been dispensed for
 This method is used to dispense medications to patient
 
 + Parameters
-    + `code`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional)
+    + `code`: `3114` (string, optional)
 
 + Request (application/json)
 
@@ -2655,7 +2721,8 @@ This method is used to dispense medications to patient
             Authorization: Bearer mF_9.B5f-4.1JqM
     
     + Attributes (object)
-        + include `Medication_Dispense_Request`
+        + medication_dispense (object)
+            + include `Medication_Dispense_Request`
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
@@ -2922,7 +2989,7 @@ Invoke Get Medication dispanse details to obtain previously created medication d
             + (object)
                 + include `Medication_Dispense_Response`
 
-### Get Medication Dispense by ID [PATCH /api/medication_dispenses/{id}]
+### Get Medication Dispense by ID [GET /api/medication_dispenses/{id}]
 
 + Parameters
     + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
@@ -3104,6 +3171,48 @@ This method is used to abtain list of events with filters.
                 + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
             + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
 
+### Create/Update Legal Entity V2 [PUT /dummy/legal_entities/v2]
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + include Legal_Entity_Request_Public_V2
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include Legal_Entity_Request_Public
+            + status: VERIFIED (enum, required)
+                - VERIFIED
+                - DECLINED
+                - VERIFICATION_EXP
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include Legal_Entity_Request_Public
+            + status: VERIFIED (enum, required)
+                - VERIFIED
+                - DECLINED
+                - VERIFICATION_EXP
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
 
 # Group Public. Contracts
 
@@ -3155,6 +3264,7 @@ In DS EDRPOU/DRFO must be equal to contractor_legal_entity.edrpou
 The following tables describes contract_request object fields and it`s child objects.
 
 There are two types of schemas depending on contract_type - capitation version and reimbursement version
+For reimbursement version only documents are optional.ci
 #####Capitation Contract_request
 
 Attribute |Is required| Description
@@ -3176,7 +3286,6 @@ statute_md5|true| хеш завантаженого документу (стат
 additional_document_md5|true| хеш завантаженого документу (додатковий документ)
 consent_text|true|
 
-The following tables describes contract_request object fields and it`s child objects.
 #####Reimbursement Contract_request
 
 Attribute |Is required| Description
@@ -3190,8 +3299,8 @@ start_date|false| пункт 9.2 - цей договір діє з (рік ма�
 end_date|false| пункт 9.2 - цей договір діє по (рік має співпадати з роком у start_date)
 id_form|true| словник `CONTRACT_TYPE`, поки що лише один вид Договір на ПМД
 contract_number|false| human-redable номер контракту
-statute_md5|true| хеш завантаженого документу (статуту)
-additional_document_md5|true| хеш завантаженого документу (додатковий документ)
+statute_md5|false| хеш завантаженого документу (статуту)
+additional_document_md5|false| хеш завантаженого документу (додатковий документ)
 medical_program_id|true| ідентифікатор державної програми компенсації, що є субєктом договору
 consent_text|true|
 
@@ -3287,7 +3396,7 @@ Capitation version:
   "contract_number": "0000-9EAX-XT7X-3115",
   "statute_md5": "db218b04eff70f86f40c1572ce8ca16a",
   "additional_document_md5": "ac642b04eff40f86f40c1572ce8ca16a",
-  "consent_text": "Цією заявою Заявник висловлює бажання укласти договір про медичне обслуговування населення за програмою державних гарантій медичного обслуговування населення (далі – Договір) на умовах, визначених в оголошенні про укладення договорів про медичне обслуговування населення (далі – Оголошення). Заявник підтверджує, що: 1. на момент подання цієї заяви Заявник має чинну ліцензію на провадження господарської діяльності з медичної практики та відповідає ліцензійним умовам з медичної практики; 2. Заявник надає медичні послуги, пов’язані з первинною медичною допомогою (далі – ПМД); 3. Заявник зареєстрований в електронній системі охорони здоров’я (далі – Система); 4. уповноважені особи та медичні працівники, які будуть залучені до виконання Договору, зареєстровані в Системі та отримали електронний цифровий підпис (далі – ЕЦП); 5. в кожному місці надання медичних послуг Заявника наявне матеріально-технічне оснащення, передбачене розділом І Примірного табелю матеріально-технічного оснащення закладів охорони здоров’я та фізичних осіб – підприємців, які надають ПМД, затвердженого наказом Міністерства охорони здоров’я України від 26 січня 2018 року № 148; 6. установчими або іншими документами не обмежено право керівника Заявника підписувати договори від імені Заявника без попереднього погодження власника. Якщо таке право обмежено, у тому числі щодо укладання договорів, ціна яких перевищує встановлену суму, Заявник повідомить про це Національну службу здоров’я та отримає необхідні погодження від власника до моменту підписання договору зі сторони Заявника; 7. інформація, зазначена Заявником у цій Заяві та доданих до неї документах, а також інформація, внесена Заявником (його уповноваженими особами) до Системи, є повною та достовірною. Заявник усвідомлює, що у разі зміни інформації, зазначеної Заявником у цій заяві та (або) доданих до неї документах Заявник зобов’язаний повідомити про такі зміни НСЗУ протягом трьох робочих днів з дня настання таких змін шляхом надсилання інформації про такі зміни на електронну пошту dohovir@nszu.gov.ua, з одночасним внесенням таких змін в Систему. Заявник усвідомлює, що законодавством України передбачена відповідальність за подання недостовірної інформації органам державної влади."
+  "consent_text": "Цією заявою Заявник висловлює бажання укласти договір про реімбурсацію з Національною службою здоров'я України та підтверджує, що на момент подання цієї заяви Заявник провадить господарську діяльність на підставі ліцензії на провадження господарської діяльності з роздрібної торгівлі лікарськими засобами та відповідає ліцензійним умовам. Заявник усвідомлює, що у разі зміни інформації, зазначеної Заявником у цій заяві та (або) доданих до неї документах Заявник зобов'язаний повідомити про такі зміни НСЗУ протягом трьох робочих днів з дня настання таких змін шляхом надсилання інформації про такі зміни на електронну пошту dohovir@nszu.gov.ua, з одночасним внесенням таких змін в Систему. Заявник усвідомлює, що законодавством України передбачена відповідальність за подання недостовірної інформації органам державної влади."
 }
 ```
 Reimbursement version:
@@ -4527,6 +4636,28 @@ Example data to sign in order to deactivate employee:
     + `consent_text`: `Consent text` (string, required)
     + `consent`: `true` (boolean, required)
 
+### `Legal_Entity_Request_Public_V2`
++ name: Клініка Ноунейм (string, required) - full official name of legal entity also the name to show on public sources [as map, portal etc]
++ short_name: Ноунейм (string, optional) - short name of legal entity
++ public_name: Ноунейм (string, optional) 
++ `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE` State or private type of legal entity
++ `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`  - business form [as ТОВ/ФОП/ДП/КП]
++ edrpou: 32323454 (string, required) - Unified Register of Businesses and Organizations
++ addresses (array[Address], required) - The max items of array is 2: REGISTRATION - required, RESIDENCE - optional. DIVISION is exception: REGISTRATION - optional, RESIDENCE - required
++ phones (array[Phone], required)
++ email: email@example.com (string, required) - email to contact person in charge from legal entity
++ website: `www.msp.com.ua` (string, optional) - legal entity website
++ receiver_funds_code: `AB12345` (string, optional) - treasury registration code [Код одержувача/розпорядника бюджетних коштів для Казначейства. Вказується за наявності.]
++ beneficiary: `Борисов Борис Борисович` (string, optional) - legal owner of legal entity [нформація про власника ЗОЗ, для ФОП не заповнюється]
++ owner(`Owner`,required)
++ `medical_service_provider` (MSP_V2)
++ `archive`(array[Archive], optional) 
++ security (object, fixed-type)
+    + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri is used in oauth2.0 flow
++ public_offer(object, fixed-type)
+    + `consent_text`: `Consent text` (string, required)
+    + `consent`: `true` (boolean, required)
+
 ### `Legal_Entity_Response_Public`
 + name: Клініка Ноунейм (string, required) - full official name of legal entity also the name to show on public sources [as map, portal etc]
 + short_name: Ноунейм (string, optional) - short name of legal entity
@@ -4542,7 +4673,19 @@ Example data to sign in order to deactivate employee:
 + website: `www.msp.com.ua` (string, optional) - legal entity website
 + receiver_funds_code: `AB12345` (string, optional) - treasury registration code [Код одержувача/розпорядника бюджетних коштів для Казначейства. Вказується за наявності.]
 + beneficiary: `Борисов Борис Борисович` (string, optional) - legal owner of legal entity [нформація про власника ЗОЗ, для ФОП не заповнюється]
-+ `medical_service_provider` (MSP)
++ `medical_service_provider` (object, required)
+    + licenses (array, required, fixed)
+        + (object)
+            + license_number: fd123443 (string, optional)
+            + type: MSP (string, optional) - License type `Dictionary LICENSE_TYPE`
+            + kveds: 86.10 (array, optional) - Ukrainian Industry Classification System, there is a check that at least one of required kveds provided for specific license type
+            + issued_by: Кваліфікацйна комісія (string, required)
+            + issued_date: `2017-02-28` (string, required)
+            + expiry_date: `2017-02-28` (string, optional)
+            + `active_from_date`: `2017-02-28` (string, required)
+            + what_licensed: реалізація наркотичних засобів (string, optional)
+            + order_no: ВА43234 (string, required) - номер наказу
+    + accreditation (MSP_Accreditation, optional)
 + `archive`(array[Archive], optional) 
 + security (object, fixed-type)
     + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri is used in oauth2.0 flow
@@ -4746,6 +4889,10 @@ Example data to sign in order to deactivate employee:
 + licenses (array[MSP_License], required)
 + accreditation (MSP_Accreditation, optional)
 
+### `MSP_V2`
++ licenses (array[MSP_License_V2], required)
++ accreditation (MSP_Accreditation, optional)
+
 ## `Ukr_med_registries`
 ### `ukr_med_registry`
 + edrpou: 5432345432 (string, required)
@@ -4876,6 +5023,17 @@ Example data to sign in order to deactivate employee:
 
 ### `MSP_License`
 + license_number: fd123443 (string, optional)
++ issued_by: Кваліфікацйна комісія (string, required)
++ issued_date: `2017-02-28` (string, required)
++ expiry_date: `2017-02-28` (string, optional)
++ `active_from_date`: `2017-02-28` (string, required)
++ what_licensed: реалізація наркотичних засобів (string, optional)
++ order_no: ВА43234 (string, required) - номер наказу
+
+### `MSP_License_V2`
++ license_number: fd123443 (string, optional)
++ type: MSP (string, required) - License type `Dictionary LICENSE_TYPE`
++ kveds: 86.10 (array, required) - Ukrainian Industry Classification System, there is a check that at least one of required kveds provided for specific license type
 + issued_by: Кваліфікацйна комісія (string, required)
 + issued_date: `2017-02-28` (string, required)
 + expiry_date: `2017-02-28` (string, optional)
@@ -5565,6 +5723,7 @@ Example data to sign in order to deactivate employee:
 + `package_min_qty`: 10 (number, optional)
 + `certificate` : `UA/4514/01/01` (string, optional)
 + `certificate_expired_at` : `2021-02-09` (string, optional)
++ daily_dosage: 12 (string, optional) - Daily dose of medication, recommended by WHO
 + `ingredients` (array, required)
     + (object)
         + include `Ingredient_request`
@@ -5580,6 +5739,7 @@ Example data to sign in order to deactivate employee:
 + `container` (`Dosage_container`, required)
 + `package_qty`: 30 (number, optional)
 + `package_min_qty`: 10 (number, optional)
++ daily_dosage: 12 (string, optional) - Daily dose of medication, recommended by WHO
 + `certificate` : `UA/4514/01/01` (string, optional)
 + `certificate_expired_at` : `2021-02-09` (string, optional)
 + `ingredients` (array, required)
@@ -5864,6 +6024,10 @@ Example data to sign in order to deactivate employee:
 + `innm_id`: `5052fcaf-58a0-461b-9e98-d60243a1773e` (string, required) - INNM Identifier
 + `innm_name`: `Амлодипін` (string, required) - INNM name
 + `reimbursement_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
++ wholesale_price: 25.14 (number, optional) - Wholesale pricing per package, UAH
++ consumer_price: 34.03 (number, optional) - Retail price for packaging, UAH
++ `reimbursement_daily_dosage`: 1.4438 (number, optional) - The amount of the compensation of the daily dose of the medical product, UAH
++ `estimated_payment_amount`: 5.15 (number, optional) - Amount of additional payment for packing, UAH
 
 ### `Qualify_by_ID_Request_for_Medication_request_Responce`
 + include `Qualify_Medication_request_Request_Responce`
@@ -6502,7 +6666,8 @@ Example data to sign in order to deactivate employee:
 + `nhs_contract_price`: `50000` (number, optional) - contract price
 + `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
 + status: `VERIFIED` (string, required) - contract status
-+ status_reason: `не було виконано умов контракту` (string, optional) - the reason of terminated status 
++ reason: `не було виконано умов контракту` (string, optional) - additional the reason of terminated status 
++ `status_reason`: `default` (string, optional) - the reason of terminated status 
 + `nhs_signer` (object, optional) 
     + include (`Person_Minimal_Contract`)
 + `nhs_legal_entity` (object)
