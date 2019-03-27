@@ -1227,7 +1227,6 @@ List consists of legal entities with parameter `is_active = true`.
                     - NOT_VERIFIED
                     - VERIFIED
                 + `nhs_verified`: false (boolean, required)
-                + `edr_verified`: false (boolean, required)
 
 ### Get Legal Entity by ID [GET /api/legal_entities/{id}]
 
@@ -1252,7 +1251,6 @@ List consists of legal entities with parameter `is_active = true`.
                 - NOT_VERIFIED
                 - VERIFIED
             + `nhs_verified`: false (boolean, required)
-            + `edr_verified`: false (boolean, required)
             + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
             + nhs_comment: `comment` (string, optional) - nhs's comment
         + urgent (object, optional)
@@ -1395,7 +1393,6 @@ Signed content MUST consists of JSON object with Legal Entity data:
                 - NOT_VERIFIED
                 - VERIFIED
             + `nhs_verified`: false (boolean, required)
-            + `edr_verified`: false (boolean, required)
             + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
             + nhs_comment: `comment` (string, optional) - nhs's comment
         + urgent (object, optional)
@@ -1432,7 +1429,7 @@ Signed content MUST consists of JSON object with Legal Entity data:
                 + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
             + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
 
-### Create/Update Legal Entity V2 [PUT /api/v2/legal_entities]
+### Create/Update Legal Entity V2 [PUT /api/legal_entities/v2]
 
 Key features and main differences from V1:
 
@@ -1464,7 +1461,6 @@ There is a [**dummy method Create/Update legal entity V2**](https://uaehealthapi
                 - NOT_VERIFIED
                 - VERIFIED
             + `nhs_verified`: false (boolean, required)
-            + `edr_verified`: false (boolean, required)
             + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
             + nhs_comment: `comment` (string, optional) - nhs's comment
         + urgent (object, optional)
@@ -2740,7 +2736,7 @@ This method is used to dispense medications to patient
 This method is used to process created dispense
 
 **Important**
-Invoke Get Medication dispanse details to obtain previously created medication dispense. In order to process dispense `payment_id (optional)` and `payment_amount` should be added. 
+Invoke Get Medication dispanse details to obtain previously created medication dispense. In order to process dispense `payment_id` and `payment_amount` should be added. 
 
 **Signed object example:**
 ```
@@ -3064,10 +3060,6 @@ Reimbursement Report combines information about Medication Dispenses and corresp
 
 Event Manager is used to collect different events (like `ATTRIBUTE_CHANGED`, `OBJECT_ADDED` etc) from different sources and store them in one place. At the moment only statuses are monitored. All changed statuses are stored to EventDB.
 
-Event types
-- StatusChangeEvent
-- StateChangeEvent
-
 List of events that are stored to EventDB:
 - employee request status changed
 - employee status changed
@@ -3077,7 +3069,6 @@ List of events that are stored to EventDB:
 - contract_request status change
 - contract status change
 - person status change
-- contract's is_suspended change
 
 Entity_type variants:
 - Declaration
@@ -3405,7 +3396,7 @@ Capitation version:
   "contract_number": "0000-9EAX-XT7X-3115",
   "statute_md5": "db218b04eff70f86f40c1572ce8ca16a",
   "additional_document_md5": "ac642b04eff40f86f40c1572ce8ca16a",
-  "consent_text": "Цією заявою Заявник висловлює бажання укласти договір про медичне обслуговування населення за програмою державних гарантій медичного обслуговування населення (далі – Договір) на умовах, визначених в оголошенні про укладення договорів про медичне обслуговування населення (далі – Оголошення). Заявник підтверджує, що: 1. на момент подання цієї заяви Заявник має чинну ліцензію на провадження господарської діяльності з медичної практики та відповідає ліцензійним умовам з медичної практики; 2. Заявник надає медичні послуги, пов’язані з первинною медичною допомогою (далі – ПМД); 3. Заявник зареєстрований в електронній системі охорони здоров’я (далі – Система); 4. уповноважені особи та медичні працівники, які будуть залучені до виконання Договору, зареєстровані в Системі та отримали електронний цифровий підпис (далі – ЕЦП); 5. в кожному місці надання медичних послуг Заявника наявне матеріально-технічне оснащення, передбачене розділом І Примірного табелю матеріально-технічного оснащення закладів охорони здоров’я та фізичних осіб – підприємців, які надають ПМД, затвердженого наказом Міністерства охорони здоров’я України від 26 січня 2018 року № 148; 6. установчими або іншими документами не обмежено право керівника Заявника підписувати договори від імені Заявника без попереднього погодження власника. Якщо таке право обмежено, у тому числі щодо укладання договорів, ціна яких перевищує встановлену суму, Заявник повідомить про це Національну службу здоров’я та отримає необхідні погодження від власника до моменту підписання договору зі сторони Заявника; 7. інформація, зазначена Заявником у цій Заяві та доданих до неї документах, а також інформація, внесена Заявником (його уповноваженими особами) до Системи, є повною та достовірною. Заявник усвідомлює, що у разі зміни інформації, зазначеної Заявником у цій заяві та (або) доданих до неї документах Заявник зобов’язаний повідомити про такі зміни НСЗУ протягом трьох робочих днів з дня настання таких змін шляхом надсилання інформації про такі зміни на електронну пошту dohovir@nszu.gov.ua, з одночасним внесенням таких змін в Систему. Заявник усвідомлює, що законодавством України передбачена відповідальність за подання недостовірної інформації органам державної влади."
+  "consent_text": "Цією заявою Заявник висловлює бажання укласти договір про реімбурсацію з Національною службою здоров'я України та підтверджує, що на момент подання цієї заяви Заявник провадить господарську діяльність на підставі ліцензії на провадження господарської діяльності з роздрібної торгівлі лікарськими засобами та відповідає ліцензійним умовам. Заявник усвідомлює, що у разі зміни інформації, зазначеної Заявником у цій заяві та (або) доданих до неї документах Заявник зобов'язаний повідомити про такі зміни НСЗУ протягом трьох робочих днів з дня настання таких змін шляхом надсилання інформації про такі зміни на електронну пошту dohovir@nszu.gov.ua, з одночасним внесенням таких змін в Систему. Заявник усвідомлює, що законодавством України передбачена відповідальність за подання недостовірної інформації органам державної влади."
 }
 ```
 Reimbursement version:
@@ -3429,7 +3420,7 @@ Reimbursement version:
   "statute_md5": "db218b04eff70f86f40c1572ce8ca16a",
   "additional_document_md5": "ac642b04eff40f86f40c1572ce8ca16a",
   "medical_program_id": "3922a240-63db-404e-b730-09222bfeb2d1"
-  "consent_text": "Цією заявою Заявник висловлює бажання укласти договір про реімбурсацію з Національною службою здоров'я України та підтверджує, що на момент подання цієї заяви Заявник провадить господарську діяльність на підставі ліцензії на провадження господарської діяльності з роздрібної торгівлі лікарськими засобами та відповідає ліцензійним умовам. Заявник усвідомлює, що у разі зміни інформації, зазначеної Заявником у цій заяві та (або) доданих до неї документах Заявник зобов'язаний повідомити про такі зміни НСЗУ протягом трьох робочих днів з дня настання таких змін шляхом надсилання інформації про такі зміни на електронну пошту dohovir@nszu.gov.ua, з одночасним внесенням таких змін в Систему. Заявник усвідомлює, що законодавством України передбачена відповідальність за подання недостовірної інформації органам державної влади."
+  "consent_text": "Цією заявою Заявник висловлює бажання укласти договір про медичне обслуговування населення за програмою державних гарантій медичного обслуговування населення (далі – Договір) на умовах, визначених в оголошенні про укладення договорів про медичне обслуговування населення (далі – Оголошення). Заявник підтверджує, що: 1. на момент подання цієї заяви Заявник має чинну ліцензію на провадження господарської діяльності з медичної практики та відповідає ліцензійним умовам з медичної практики; 2. Заявник надає медичні послуги, пов’язані з первинною медичною допомогою (далі – ПМД); 3. Заявник зареєстрований в електронній системі охорони здоров’я (далі – Система); 4. уповноважені особи та медичні працівники, які будуть залучені до виконання Договору, зареєстровані в Системі та отримали електронний цифровий підпис (далі – ЕЦП); 5. в кожному місці надання медичних послуг Заявника наявне матеріально-технічне оснащення, передбачене розділом І Примірного табелю матеріально-технічного оснащення закладів охорони здоров’я та фізичних осіб – підприємців, які надають ПМД, затвердженого наказом Міністерства охорони здоров’я України від 26 січня 2018 року № 148; 6. установчими або іншими документами не обмежено право керівника Заявника підписувати договори від імені Заявника без попереднього погодження власника. Якщо таке право обмежено, у тому числі щодо укладання договорів, ціна яких перевищує встановлену суму, Заявник повідомить про це Національну службу здоров’я та отримає необхідні погодження від власника до моменту підписання договору зі сторони Заявника; 7. інформація, зазначена Заявником у цій Заяві та доданих до неї документах, а також інформація, внесена Заявником (його уповноваженими особами) до Системи, є повною та достовірною. Заявник усвідомлює, що у разі зміни інформації, зазначеної Заявником у цій заяві та (або) доданих до неї документах Заявник зобов’язаний повідомити про такі зміни НСЗУ протягом трьох робочих днів з дня настання таких змін шляхом надсилання інформації про такі зміни на електронну пошту dohovir@nszu.gov.ua, з одночасним внесенням таких змін в Систему. Заявник усвідомлює, що законодавством України передбачена відповідальність за подання недостовірної інформації органам державної влади."
 }
 ```
 
@@ -3752,7 +3743,7 @@ The data received in response can be changed and signed in order to update emplo
                     + `contract_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract identifier
                        
 
-### Public. Update Contract Employees [PATCH /api/contracts/{contract_id}/employees/actions/update]
+### Public. Update Contract Employees [PATCH /api/contracts/{contract_id}/capitation/employees/actions/update]
 
 ***Scope  contract:write***
 
@@ -4773,8 +4764,6 @@ Example data to sign in order to deactivate employee:
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + `legal_entity_id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
 + include Division
-+ dls_id: `2872985` (string, optional)
-+ dls_verified: true (boolean, optional)
 
 ### `Division_Declaration`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -4788,8 +4777,6 @@ Example data to sign in order to deactivate employee:
     - AMBULANT_CLINIC
     - FAP
 + external_id: `3213213` (string, optional)
-+ dls_id: `2872985` (string, optional)
-+ dls_verified: true (boolean, optional)
 
 
 ### `Division_Details_Cabinet`
@@ -4810,8 +4797,6 @@ Example data to sign in order to deactivate employee:
 + status: ACTIVE (enum, required)
     - ACTIVE
     - INACTIVE
-+ dls_id: `2872985` (string, optional)
-+ dls_verified: true (boolean, optional)
 
 ### `Division_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -4825,8 +4810,6 @@ Example data to sign in order to deactivate employee:
     - ACTIVE
     - INACTIVE
 + mountain_group: false (boolean, optional)
-+ dls_id: `2872985` (string, optional)
-+ dls_verified: true (boolean, optional)
 
 ### `crud_division_post`
 + include `Division`
@@ -4838,8 +4821,6 @@ Example data to sign in order to deactivate employee:
     - ACTIVE
     - INACTIVE
 + mountain_group: false (boolean, optional)
-+ dls_id: `2872985` (string, optional)
-+ dls_verified: true (boolean, optional)
 
 ## `Owners`
 ### `Owner`
@@ -5923,7 +5904,7 @@ Example data to sign in order to deactivate employee:
     - order - The request represents a request/demand and authorization for action.
 + category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
     - community - Includes requests for medications to be administered or consumed by the patient in their home
-+ `context`(Reference, optional, fixed-type)
++ `context`(Reference, required, fixed-type)
     + identifier (Identifier)
         + type (Codeable_Concept)
             + coding (array, fixed-type)
@@ -5946,7 +5927,7 @@ Example data to sign in order to deactivate employee:
     - order - The request represents a request/demand and authorization for action.
 + category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
     - community - Includes requests for medications to be administered or consumed by the patient in their home
-+ `context`(Reference, optional, fixed-type)
++ `context`(Reference, required, fixed-type)
     + identifier (Identifier)
         + type (Codeable_Concept)
             + coding (array, fixed-type)
@@ -5977,7 +5958,7 @@ Example data to sign in order to deactivate employee:
     - order - The request represents a request/demand and authorization for action.
 + category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
     - community - Includes requests for medications to be administered or consumed by the patient in their home
-+ `context`(Reference, optional, fixed-type)
++ `context`(Reference, required, fixed-type)
     + identifier (Identifier)
         + type (Codeable_Concept)
             + coding (array, fixed-type)
@@ -6686,7 +6667,7 @@ Example data to sign in order to deactivate employee:
 + `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
 + status: `VERIFIED` (string, required) - contract status
 + reason: `не було виконано умов контракту` (string, optional) - additional the reason of terminated status 
-+ `status_reason`: `default` (string, optional) - the reason of terminated status
++ `status_reason`: `default` (string, optional) - the reason of terminated status 
 + `nhs_signer` (object, optional) 
     + include (`Person_Minimal_Contract`)
 + `nhs_legal_entity` (object)
@@ -6777,4 +6758,3 @@ Example data to sign in order to deactivate employee:
                 + `18-39`: 24 (number, required)
                 + `40-65`: 31 (number, required)
                 + `65+`: 36 (number, required)
-                
