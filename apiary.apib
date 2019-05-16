@@ -134,11 +134,6 @@ In future, you will be able to refresh access tokens to extend `access_token` li
 
 + Request (application/json)
 
-    + Headers
-
-            X-CSRF-Token: my-csrf-token
-            Authorization: Bearer mF_9.B5f-4.1JqM
-
     + Attributes (object)
         + token (object)
             + `client_id`: `6498d88e-97fb-47e2-85a5-99e884f888aa` (string, required) - Medical Service provider ID issued after legal_entity registration. Used to identify the context of the MSP/Pharmacy.
@@ -150,7 +145,7 @@ In future, you will be able to refresh access tokens to extend `access_token` li
     + Attributes (Response_OK)
         + meta (Response__Meta)
             + code: 201 (number)
-        + data (Access_Token)
+        + data (Access_Token_1)
 
 ## Dictionaries [/api/dictionaries]
 
@@ -830,7 +825,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /api/employees{?no_tax_id,tax_id,party_id,edrpou,legal_enyity_id,division_id,status,employee_type,page,page_size}]
+### Get Employees List [GET /api/employees{?no_tax_id,tax_id,party_id,edrpou,legal_entity_id,division_id,status,employee_type,page,page_size}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -843,7 +838,7 @@ Method returns shortened details (for DOCTOR and PHARMACIST - additional returns
     + tax_id: 3015492561 (string, optional)
     + party_id: 3015492561 (string, optional)
     + edrpou: 38782323 (string, optional) - filter employees by legal_entity edrpou
-    + `legal_enyity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional) - filter employees by legal_entity id
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional) - filter employees by legal_entity id
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + status: APPROVED (enum, optional) - filet employees by status
         - APPROVED
@@ -1183,7 +1178,7 @@ This method allows to reset (set to **NA**) person authentication method.
 
 ## Legal Entities [/api/legal_entities]
 
-### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,settlement_id,type,owner_property,status,mis_verified,nhs_verified,page,page_size}]
+### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,settlement_id,type,owner_property,status,nhs_verified,page,page_size}]
 
 Use this method to get list of legal entities filtering by parameters.
 List consists of legal entities with parameter `is_active = true`.
@@ -2692,10 +2687,7 @@ Only Medication dispenses linked to medication request id will be shown. If you 
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
-        + data (array)
-            + (object)
-                + include `Medication_Dispense_Response`
-
+        + data (array[Medication_Dispense_Response])
 
 ## Medication Dispense [/api/medication_dispenses]
 
@@ -2714,6 +2706,7 @@ Medication Dispense - Indicates that a medication product has been dispensed for
 ### Create Medication Dispense [POST /api/medication_dispenses{?code}]
 
 This method is used to dispense medications to patient
+Full list of all validations can be found [here](https://edenlab.atlassian.net/wiki/x/-Jcz)
 
 + Parameters
     + `code`: `3114` (string, optional)
@@ -2729,11 +2722,18 @@ This method is used to dispense medications to patient
             + include `Medication_Dispense_Request`
 
 + Response 201 (application/json)
-    + Attributes (Response_OK)
+    + Attributes (Response__Process_OK)
         + meta (Response__Meta)
             + code: 201 (number)
-        + data (object)
-            + include `Medication_Dispense_Response`
+        + data (`Medication_Dispense_Response`)
+
++ Response 409 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 409 (number)
+        + error (Response__Error)
+            + message: `Invalid division dls status` (string)
+            + type: `request_conflict` (string)
 
 ### Process Medication Dispense [PATCH /api/medication_dispenses/{id}/actions/process]
 
@@ -3964,6 +3964,11 @@ Example data to sign in order to deactivate employee:
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
 
+### `Person_Minimal_Declaration_Request`
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
+
 ### `Person_Minimal_Contract`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + party (object)
@@ -4179,7 +4184,7 @@ Example data to sign in order to deactivate employee:
     - active
     - pending_verification
     - terminated
-+ person (Person_Minimal)
++ person (Person_Minimal_Declaration_Request)
 + employee (Employee_Minimal)
 + `legal_entity` (`MSP_Short`)
 + division (`Division_Short_List`)
@@ -4930,7 +4935,7 @@ Example data to sign in order to deactivate employee:
 
 ## `Access_Tokens`
 ### `Access_Token`
-+ value: `my-oauth-token` (string, required) - oAuth access token.
++ value: `SnNRdCtvU0tTOENBV2dLRUZwNmIzZz09` (string, required) - oAuth access token.
 + user_id: `3ff33ced-69dc-415a-b231-c6446898335a` (string, required) - User identifier
 + name: `access_token` (string, required) - oAuth token name
 + id: `3ff33ced-69dc-415a-b231-c6446898335a` - oAuth token identifier
@@ -4943,15 +4948,14 @@ Example data to sign in order to deactivate employee:
     + client_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Client ID of authorized user.
 
 ### `Access_Token_1`
-+ value: `my-oauth-token` (string, required) - oAuth access token.
++ value: `SnNRdCtvU0tTOENBV2dLRUZwNmIzZz09` (string, required) - oAuth access token.
 + user_id: `3ff33ced-69dc-415a-b231-c6446898335a` (string, required) - User identifier
 + name: `change_password_token` (string, required) - oAuth token name
 + id: `3ff33ced-69dc-415a-b231-c6446898335a` - oAuth token identifier
 + expires_at: 1498749591 (number, required) - expiration date-time timestamp
 + details (object)
-    + scope: `user:change_password` (string, required) - List of scopes that is required in application business logic, separated by space
-    + redirect_uri: `http://example.com/` (string, required) - Redirect URI
-    + `grant_type`: `change_password` 
+    + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space
+    + `grant_type`: `refresh_token` 
     + client_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Client ID of authorized user.
 
 
@@ -4991,7 +4995,6 @@ Example data to sign in order to deactivate employee:
 + number: АА120518 (string, required) - document issue number
 + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, optional) - authority which issued the document
 + issued_at: `2017-02-28` (string, optional) - the date when document was issued
-+ expiration_date: `2027-02-28` (string, optional) - the date when document expired, is necessery for those documents which has this date, ex, Temporary certificate, etc.
 
 ### `Medical_Certificate`
 + name: Диплом доктора медицини (string, required)
@@ -6040,13 +6043,13 @@ Example data to sign in order to deactivate employee:
 + `medication_name`: `Амлодипін-КВ ` (string, required) - Medication name
 + `form` :  PILL (string, optional) - `Dictionary MEDICATION_FORM`
 + `manufacturer` (`Manufacturer`, optional)
-+ `innm_id`: `5052fcaf-58a0-461b-9e98-d60243a1773e` (string, required) - INNM Identifier
-+ `innm_name`: `Амлодипін` (string, required) - INNM name
 + `reimbursement_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
 + wholesale_price: 25.14 (number, optional) - Wholesale pricing per package, UAH
 + consumer_price: 34.03 (number, optional) - Retail price for packaging, UAH
 + `reimbursement_daily_dosage`: 1.4438 (number, optional) - The amount of the compensation of the daily dose of the medical product, UAH
 + `estimated_payment_amount`: 5.15 (number, optional) - Amount of additional payment for packing, UAH
++ `package_min_qty`: 20 (number, optional) - indivisible part of medicine pacage
++ `package_qty`: 20 (number, optional) - quantity of medicine in a pacage
 
 ### `Qualify_by_ID_Request_for_Medication_request_Responce`
 + include `Qualify_Medication_request_Request_Responce`
@@ -6092,7 +6095,7 @@ Example data to sign in order to deactivate employee:
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `division` (`Division_Details`, required)
 + `employee` (Employee_Minimal, required)
-+ `person` (`Person_Medication_Request`)            
++ `person` (`Person_Medication_Request`, required)          
 + `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response`, optional)
 + intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT 
@@ -6125,7 +6128,7 @@ Example data to sign in order to deactivate employee:
 + dispensed_by: `Іванов Іван Іванович` (string, optional) - in case pharmacist uses owner's token this field should be filled with pharmacist's name
 + `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
 + `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required) - Active medical program within which medications are going to be provided
-+ `details` (array, fixed, required)
++ `dispense_details` (array, fixed, required)
     + (object)
         + include `Medication_Dispense_Detail_Request`
 
@@ -6140,9 +6143,7 @@ Example data to sign in order to deactivate employee:
 + `legal_entity` (`Legal_Entity_Short`, required) - Active legal entity (Pharmacy) the division belongs to Identifier
 + `division` (`Division_Short`, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
 + `medical_program` (`Medical_Program_Response`, required) - Active medical program within which medications are going to be provided
-+ `details` (array, fixed, required)
-    + (object)
-        + include `Medication_Dispense_Detail_Response`
++ `details` (array[`Medication_Dispense_Detail_Response`], fixed, required)
 + `payment_id`: 1239804 (string, optional) - receipt number for the paid medications
 + `payment_amount`: 50 (number, optional) - receipt amount which was paid by patient (UAH)
 + `status`: NEW (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
@@ -6170,7 +6171,6 @@ Example data to sign in order to deactivate employee:
 ### `Reimbursement_Report_Response`
 + `medication_request` (object, required)
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
-    + `request_number`: `0000-243P-1X53-EH38` (string) - Public medication request human readable number
     + `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
     + `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
     + `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
@@ -6196,15 +6196,11 @@ Example data to sign in order to deactivate employee:
         + `second_name`: `Миколайович` (string, optional)
         + `position`: `P6` (string, required) - `Dictionary POSITION`
         + `employee_type`: `DOCTOR` (string) - `Dictionary: EMPLOYEE_TYPE`
-    + `innm_dosage` (object, required)
-        + `id`: `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
-        + `name`: `Амідарон` (string, required)
-        + `form`:  PILL (string, required) - `Dictionary MEDICATION_FORM`
-        + `medication_qty`:10 (number, required) - qnty of INNM_DOSAGE
     + `medical_program` (`Medical_Program_Response`, required)
 + `medication_dispense`(object, optional)
     + `id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, optional) - Medication dispense Identifier
     + `dispensed_at`: `2017-08-17` (string, optional) - date of dispense
+    + `dispensed_by`: `Аннова Анна Анновна` (string, required) - in case pharmacist uses owner's token this field should be filled with pharmacist's name
     + `status`: NEW (string, optional) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
     + `medications` (array, fixed, optional)
         + (object)
@@ -6777,4 +6773,3 @@ Example data to sign in order to deactivate employee:
                 + `18-39`: 24 (number, required)
                 + `40-65`: 31 (number, required)
                 + `65+`: 36 (number, required)
-                
