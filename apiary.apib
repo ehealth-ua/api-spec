@@ -9,7 +9,6 @@ This is a **MIS-related consumers  part** of API documentation for Ukrainian Hea
 * Global Medical Institutions and Doctors Registries
 * Partnership Relation Management (PRM) module that describes business relations between this 3 entities.
 
-* [eHealth API and issue tracker](https://github.com/ehealth-ua/api-spec)
 
 This API design in based on [Nebo #15 API Design Manifest](http://docs.apimanifest.apiary.io/).
 
@@ -737,6 +736,8 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
 
 Use this method to obrain list of Declarations for an `empolee_id` and legal_entity_id. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
+**Scopes required:** `declaration:read`
+
 Method returns shortened details, to obtain full information - get Declaration Details by it's ID.
 
 + Parameters
@@ -760,6 +761,9 @@ Method returns shortened details, to obtain full information - get Declaration D
         + data (array[`nhs_declaration_list_Public`])
 
 ### Get Declaration by ID [GET /api/declarations/{id}]
+This method allows to recive detailed information about person Declaration by declaration ID.
+
+**Scopes required:** `declaration:read`
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - request identifier
@@ -1196,9 +1200,6 @@ List consists of legal entities with parameter `is_active = true`.
     + status: ACTIVE (enum, optional)
         - ACTIVE
         - CLOSED
-    + mis_verified: VERIFIED (enum, optional)
-        - VERIFIED
-        - NOT_VERIFIED 
     + `nhs_verified`: false (boolean, optional)
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
@@ -1248,6 +1249,71 @@ List consists of legal entities with parameter `is_active = true`.
                 - VERIFIED
             + `nhs_verified`: false (boolean, required)
             + `edr_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+
+### Get Legal Entities V2 [GET /api/v2/legal_entities{?edrpou,legal_entity_id,settlement_id,type,status,nhs_verified,page,page_size}]
+
+Use this method to get list of legal entities filtering by parameters.
+List consists of legal entities with parameter `is_active = true`.
+
++ Parameters
+    + `edrpou`: `341086` (string, optional)
+    + `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
+    + settlement_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
+    + type: MSP (enum, optional)
+        - MSP
+        + Default: MSP
+    + status: ACTIVE (enum, optional)
+        - ACTIVE
+        - CLOSED
+    + `nhs_verified`: false (boolean, optional)
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array)
+            + (object)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+                + include Legal_Entity_Response_Public_V2
+                + status: ACTIVE (enum, required)
+                    - ACTIVE
+                    - CLOSED
+                    - SUSPENDED
+
+### Get Legal Entity by ID V2 [GET /api/v2/legal_entities/{id}]
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include Legal_Entity_Response_Public_V2
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+                - SUSPENDED
+            + `nhs_verified`: false (boolean, required)
             + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
             + nhs_comment: `comment` (string, optional) - nhs's comment
         + urgent (object, optional)
@@ -1431,9 +1497,11 @@ Signed content MUST consists of JSON object with Legal Entity data:
 
 Key features and main differences from V1:
 
-* *create/update legal entity with multiple types (ex. MSP/PHARMACY)*
+* *legal entity types and licenses are created/updated one by one, i.e. one legal entity type and one license are accepted in one call*
 
-* *modified licenses structure in order to cover multiple legal entity types*
+* *medical_services_providers structure is removed, accreditation and license parameters are moved to the root*
+
+* *added EDR integration in order to validate and enrich legal entity data*
 
 There is a [**dummy method Create/Update legal entity V2**](https://uaehealthapi.docs.apiary.io/#reference/dummy.-create-legal-entity/dummy-for-legal-entity/create/update-legal-entity-v2) that describes the latest legal entity data model and can be used as documentation.
 
@@ -1451,15 +1519,12 @@ There is a [**dummy method Create/Update legal entity V2**](https://uaehealthapi
     + Attributes (Response__Process_OK)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include Legal_Entity_Response_Public
+            + include Legal_Entity_Response_Public_V2
             + status: ACTIVE (enum, required)
                 - ACTIVE
                 - CLOSED
-            + `mis_verified`: NOT_VERIFIED (enum, required)
-                - NOT_VERIFIED
-                - VERIFIED
+                - SUSPENDED
             + `nhs_verified`: false (boolean, required)
-            + `edr_verified`: false (boolean, required)
             + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
             + nhs_comment: `comment` (string, optional) - nhs's comment
         + urgent (object, optional)
@@ -1477,9 +1542,7 @@ There is a [**dummy method Create/Update legal entity V2**](https://uaehealthapi
             + status: ACTIVE (enum, required)
                 - ACTIVE
                 - CLOSED
-            + `mis_verified`: NOT_VERIFIED (enum, required)
-                - NOT_VERIFIED
-                - VERIFIED
+                - SUSPENDED
             + `nhs_verified`: false (boolean, required)
             + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
             + nhs_comment: `comment` (string, optional) - nhs's comment
@@ -2087,10 +2150,12 @@ Method returns shortened details, to obtain full information - Get Medication re
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-
+            
 + Response 200 (application/json)
-    + Attributes (`Response_Collection_V2`)
-        + data (array[`Medication_request_Request_Public_Response`]) 
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+        + data (object)
+            + include `Medication_request_Request_Public_Response`
  
 
 ### Get Medication Request Request by ID [GET /api/medication_request_requests/{id}]
@@ -3153,10 +3218,9 @@ This method is used to abtain list of events with filters.
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include Legal_Entity_Request_Public
-            + status: VERIFIED (enum, required)
-                - VERIFIED
-                - DECLINED
-                - VERIFICATION_EXP
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
         + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
@@ -3169,10 +3233,13 @@ This method is used to abtain list of events with filters.
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include Legal_Entity_Request_Public
-            + status: VERIFIED (enum, required)
-                - VERIFIED
-                - DECLINED
-                - VERIFICATION_EXP
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+                - SUSPENDED
+            + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
         + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
@@ -3195,11 +3262,14 @@ This method is used to abtain list of events with filters.
     + Attributes (Response__Process_OK)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include Legal_Entity_Request_Public
-            + status: VERIFIED (enum, required)
-                - VERIFIED
-                - DECLINED
-                - VERIFICATION_EXP
+            + include Legal_Entity_Response_Public_V2
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+                - SUSPENDED
+            + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
         + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
@@ -3211,11 +3281,11 @@ This method is used to abtain list of events with filters.
     + Attributes (Response__Process_OK)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include Legal_Entity_Request_Public
-            + status: VERIFIED (enum, required)
-                - VERIFIED
-                - DECLINED
-                - VERIFICATION_EXP
+            + include Legal_Entity_Response_Public_V2
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+                - SUSPENDED
         + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
@@ -4644,29 +4714,38 @@ Example data to sign in order to deactivate employee:
 + owner(`Owner`,required)
 + `medical_service_provider` (MSP)
 + `archive`(array[Archive], optional) 
-+ security (object, fixed-type)
++ security (object, required, fixed-type)
     + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri is used in oauth2.0 flow
 + public_offer(object, fixed-type)
     + `consent_text`: `Consent text` (string, required)
     + `consent`: `true` (boolean, required)
 
 ### `Legal_Entity_Request_Public_V2`
-+ name: Клініка Ноунейм (string, required) - full official name of legal entity also the name to show on public sources [as map, portal etc]
-+ short_name: Ноунейм (string, optional) - short name of legal entity
-+ public_name: Ноунейм (string, optional) 
-+ `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE` State or private type of legal entity
-+ `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`  - business form [as ТОВ/ФОП/ДП/КП]
 + edrpou: 32323454 (string, required) - Unified Register of Businesses and Organizations
-+ addresses (array[Address], required) - The max items of array is 2: REGISTRATION - required, RESIDENCE - optional. DIVISION is exception: REGISTRATION - optional, RESIDENCE - required
++ type: PRIMARY_CARE (string, required) - type of legal entity
++ residence_address (Address, optional) - address where the legal entity is physically located
 + phones (array[Phone], required)
 + email: email@example.com (string, required) - email to contact person in charge from legal entity
 + website: `www.msp.com.ua` (string, optional) - legal entity website
 + receiver_funds_code: `AB12345` (string, optional) - treasury registration code [Код одержувача/розпорядника бюджетних коштів для Казначейства. Вказується за наявності.]
 + beneficiary: `Борисов Борис Борисович` (string, optional) - legal owner of legal entity [нформація про власника ЗОЗ, для ФОП не заповнюється]
 + owner(`Owner`,required)
-+ `medical_service_provider` (MSP_V2)
++ accreditation (MSP_Accreditation, optional)
+- One of
+    + license (object, required)
+        + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
+        + type: MSP (string, required) - License type `Dictionary LICENSE_TYPE`
+        + license_number: fd123443 (string, optional)
+        + issued_by: Кваліфікацйна комісія (string, required)
+        + issued_date: `2017-02-28` (string, required)
+        + expiry_date: `2017-02-28` (string, optional)
+        + `active_from_date`: `2017-02-28` (string, required)
+        + what_licensed: реалізація наркотичних засобів (string, optional)
+        + order_no: ВА43234 (string, required) - номер наказу
+    + license (object, required)
+        + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `archive`(array[Archive], optional) 
-+ security (object, fixed-type)
++ security (object, required, fixed-type)
     + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri is used in oauth2.0 flow
 + public_offer(object, fixed-type)
     + `consent_text`: `Consent text` (string, required)
@@ -4703,6 +4782,32 @@ Example data to sign in order to deactivate employee:
 + `archive`(array[Archive], optional) 
 + security (object, fixed-type)
     + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri is used in oauth2.0 flow
++ public_offer(object, fixed-type)
+    + `consent_text`: `Consent text` (string, required)
+    + `consent`: `true` (boolean, required)
+
+### `Legal_Entity_Response_Public_V2`
++ `edr` (edr_data, required)
++ edrpou: 32323454 (string, required) - Unified Register of Businesses and Organizations
++ type: PRIMARY_CARE (string, required) - type of legal entity [PRIMARY_CARE/OUTPATIENT/PHARMACY]. MIS can't be created using this WS.
++ residence_address (Address, optional) - address where the legal entity is physically located
++ phones (array[Phone], required)
++ email: email@example.com (string, required) - email to contact person in charge from legal entity
++ website: `www.msp.com.ua` (string, optional) - legal entity website
++ receiver_funds_code: `AB12345` (string, optional) - treasury registration code [Код одержувача/розпорядника бюджетних коштів для Казначейства. Вказується за наявності.]
++ beneficiary: `Борисов Борис Борисович` (string, optional) - legal owner of legal entity [нформація про власника ЗОЗ, для ФОП не заповнюється]
++ accreditation (MSP_Accreditation, optional)
++ license (object, required)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + type: MSP (string, optional) - License type `Dictionary LICENSE_TYPE`
+    + license_number: fd123443 (string, optional)
+    + issued_by: Кваліфікацйна комісія (string, required)
+    + issued_date: `2017-02-28` (string, required)
+    + expiry_date: `2017-02-28` (string, optional)
+    + `active_from_date`: `2017-02-28` (string, required)
+    + what_licensed: реалізація наркотичних засобів (string, optional)
+    + order_no: ВА43234 (string, required) - номер наказу
++ `archive`(array[Archive], optional) 
 + public_offer(object, fixed-type)
     + `consent_text`: `Consent text` (string, required)
     + `consent`: `true` (boolean, required)
@@ -4744,6 +4849,37 @@ Example data to sign in order to deactivate employee:
     - Default: true
 + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
 + inserted_by: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - user id
+
+## `EDR`
+### `edr_data`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ name: Клініка Ноунейм (string, required) - full official name of legal entity also the name to show on public sources [as map, portal etc]
++ short_name: Ноунейм (string, optional) - short name of legal entity
++ public_name: Ноунейм (string, optional)
++ `legal_form`: 140 (string, optional) - `Dictionary LEGAL_FORM`
++ edrpou: 54323454 (string, required) -  Unified Register of Businesses and Organizations
++ kveds (array, required)
+    + (object)
+        + name: `Діяльність лікарняних закладів` (string, required)
+        + code: `86.10` (string, required)
+        + is_primary: true (boolean, required)
++ `registration_address` (`registration_address`, required)
++ state: 1 (number, required)
+
+### `registration_address`
++ zip: `02090`
++ country: `УКРАЇНА`
++ address: `Волинська обл., місто Луцьк ВУЛИЦЯ КОНЯКІНА буд. 14 кв. 144`
++ parts (object)
+    + atu: `Волинська обл., місто Луцьк`
+    + atu_code: `0710100000`
+    + street: `ВУЛИЦЯ КОНЯКІНА`
+    + house_type: `буд.`
+    + house: `14`
+    + building_type: null
+    + building: ``
+    + num_type: `кв.`
+    + num: `144`
 
 ## `Divisions`
 ### `Division`
@@ -4848,6 +4984,19 @@ Example data to sign in order to deactivate employee:
 
 ## `Owners`
 ### `Owner`
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ tax_id: 3015492563 (string, required)
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ gender: MALE (string, required) - `Dictionary GENDER`
++ email: `email@example.com` (string, required)
++ documents (array[Document], optional)
++ phones (array[Phone], optional)
++ position (string, required): `P6`- `Dictionary POSITION`
+
+### `Owner_V2`
++ employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
@@ -5535,6 +5684,62 @@ Example data to sign in order to deactivate employee:
 + `created_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
+## Medical programs
+### `Medical_Program_Response`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ name: `Fee-For-Service` (string, required)
+
+### `Program_Service_Response`
++ id: `c290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ program_id: `b290f1ee-6c54-4b01-90e6-d701748f0852` (string, required)
+- One Of
+    + service_id: `d290f1ee-6c54-4b01-90e6-d701748f0853` (string, optional)
+    + `service_group_id`:  `f290f1ee-6c54-4b01-90e6-d701748f0854`(string, optional)
++ consumer_price: 15 (number, required)
++ description: `text` (string, optional)
++ request_allowed: true (boolean, required)
++ is_active: true (boolean, required)
++ inserted_at: `2019-04-20T19:14:13Z` (string, required)
++ inserted_by: `f290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ updated_at: `2019-04-20T19:14:13Z` (string, required)
++ updated_by: `f290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
+## `Service_dictionary`
+### `Service`
++ id: `d5a5d991-0bf7-476f-b3cf-bec73f044b2e` (string, required)
++ name: `Ультразвукове дослідження черевного відділу стравоходу' (string, required)
++ code: `JF2 01` (string, required)
++ is_active: true (boolean, required)
++ parent_id: null (string, optional)
++ category: `imaging` (string, required)
++ is_composition: false (boolean, required)
++ request_allowed: true (boolean, required)
++ `inserted_at`: `2018-08-02T10:45:16.000Z` (string, required)
++ `inserted_by`: `d5a5d991-0bf7-476f-b3cf-bec73f044b2e` (string, required) - id of user who has inserted record
++ `updated_at`: `2018-08-02T10:45:16.000Z` (string, required)
++ `updated_by`: `d5a5d991-0bf7-476f-b3cf-bec73f044b2e` (string, required) - id of user who has inserted record
+
+### `Service_group`
++ id: `e5a5d991-0bf7-476f-b3cf-bec73f044b2e` (string, required)
++ name: `Ультразвукові дослідження' (string, required)
++ code: `FJ` (string, required)
++ is_active: true (boolean, required)
++ request_allowed: false (boolean, required)
++ `inserted_at`: `2018-08-02T10:45:16.000Z` (string, required)
++ `inserted_by`: `d5a5d991-0bf7-476f-b3cf-bec73f044b2e` (string, required) - id of user who has inserted record
++ `updated_at`: `2018-08-02T10:45:16.000Z` (string, required)
++ `updated_by`: `d5a5d991-0bf7-476f-b3cf-bec73f044b2e` (string, required) - id of user who has inserted record
+
+### `Service_in_group`
++ include (Service_group)
++ groups (array, optional, fixed-type)
+    + (Service_group)
+        + id: `75a5d991-0bf7-476f-b3cf-bec73f044b2e` (string, required)
+        + name: `Ультразвукові дослідження в гастроентерології' (string, required)
+        + code: `2FJ` (string, required)
+        + services (array, optional, fixed-type)
+             + (`Service`)
+
 ## Drugs
 ### `Drug_Response`
 + `id`: `ae9bf68e-3c98-4027-9211-535f7dad7a87` (string, required)
@@ -5785,9 +5990,7 @@ Example data to sign in order to deactivate employee:
 + `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `container` (`Dosage_container`, required)
 
-### `Medical_Program_Response`
-+ `id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string, required) - `Medical program Identifier`
-+ `name`: `program 'DOSTUPNI LIKI'` (string, required) - `Medical program name`
+
 
 
 ### `Program_medications_Request`
@@ -6118,7 +6321,6 @@ Example data to sign in order to deactivate employee:
 ### `Medication_request_Reject_Public_Response`
 + `rejected_at`: `2017-04-20T19:14:13Z` (string, required) - Reject date - ISO 8601 date and time in UTC timezone.
 + `rejected_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - Rejected user identifier
-+ `reject_reason` : `Помилка призначення. Несумісні препарати.` (string, required) - Medication request reject reason 
 
 
 ## `Medication Dispense`
@@ -6160,7 +6362,7 @@ Example data to sign in order to deactivate employee:
 + `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
 
 ### `Medication_Dispense_Detail_Response`
-+ `medication` (`Medication_Short`, required) - Identifier of brand medications 
++ `medication` (`Medication_Short`, required) - Identifier of brand medications
 + `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
 + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
 + `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
@@ -6197,7 +6399,9 @@ Example data to sign in order to deactivate employee:
         + `position`: `P6` (string, required) - `Dictionary POSITION`
         + `employee_type`: `DOCTOR` (string) - `Dictionary: EMPLOYEE_TYPE`
     + `medical_program` (`Medical_Program_Response`, required)
-+ `medication_dispense`(object, optional)
+    + `medication` (`Medication_Short`, required) - Identifier of brand medications 
+    + `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
+    + `medication_dispense`(object, optional)
     + `id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, optional) - Medication dispense Identifier
     + `dispensed_at`: `2017-08-17` (string, optional) - date of dispense
     + `dispensed_by`: `Аннова Анна Анновна` (string, required) - in case pharmacist uses owner's token this field should be filled with pharmacist's name
