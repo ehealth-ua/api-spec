@@ -2170,9 +2170,10 @@ At least one query parameter must be provided
         + data (`Employee_role_response`)
             - status: INACTIVE
 
-## User details [/api/oauth/users]
+## User details [/oauth/users]
 
-### Get my user details [GET /api/oauth/user]
+
+### Get my user details [GET /oauth/user]
 
 Returns my user details based on user in access_token
 
@@ -2183,6 +2184,7 @@ Returns my user details based on user in access_token
     + Headers
 
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: c2778f3064753ea70de870a53795f5c9
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -2927,7 +2929,7 @@ Invoke Get Medication request by ID to obtain previously created medication requ
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
         + data (`Medication_request_Public_Response`)
-            + `rejected_at`: `2017-04-20T19:14:13Z` (string, required) - Reject date - ISO 8601 date and time in UTC timezone.
+             + `rejected_at`: `2017-04-20T19:14:13Z` (string, required) - Reject date - ISO 8601 date and time in UTC timezone.
             + `rejected_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - Rejected user identifier
             + `reject_reason` : `Помилка призначення. Несумісні препарати.` (string, required) - Medication request reject reason
 
@@ -5015,32 +5017,33 @@ Assuming that all required business processes and validations is implemented on 
     + `confidant_person` (array[`Confidant_Person_v2`], optional) - Should be set if this Person is disabled, underage, etc.
     + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
     + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
-+ legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider identifier.
+    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider identifier.
 
 ### `Patient_Request_Public_Response`
-+ start_date: `2019-10-10` (string, required) - Should be defined on the client side.
-+ end_date: `2019-10-10` (string, required) - Will be defined on eHealth side if it's not set.
 + person (object, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
-    + include `Person`
+    + include `Person_v2`
     + unzr: `19900101-00011` (string, optional) - the record number in the demographic register
     + emergency_contact (object, required)
         + include `Emergency_Contact`
-    + `confidant_person` (array[`Confidant_Person_v2`], optional) - Should be set if this Person is disabled, underage, etc.
+    + confidant_person (array, optional) - Should be set if this Person is disabled, underage, etc.
+         + include
+            + relation_type: PRIMARY (enum, required) 
+                - PRIMARY
+                - SECONDARY
+            + id: `5fdeb780-3485-4a06-aacf-58ef3a61bc0e` (string, required) - Registered MPI identifier.
+            + documents_relationship (array[Document], required)
     + patient_signed: false (boolean, required) - Факт подписания заявки на створеня персони без декларації.
     + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
 
 
 ### `Patient_short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Id створеної персони
-+ start_date: `2017-03-02` (string, required)
-+ end_date: `2017-03-02` (string, required)
 + signed_at: `2017-03-02T00:00:00.000Z` (string, required)
 + status (enum, required)
     - active
     - pending_verification
     - terminated
 + `patient_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
-+ `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + inserted_at: `2017-07-06T16:54:05.161571Z` (string, required)
 + is_active: true (boolean, required)
 + reason: `manual_employee` (string, optional)
@@ -5048,14 +5051,11 @@ Assuming that all required business processes and validations is implemented on 
 
 ### `Patient_Request_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - unique id of declaration
-+ start_date: `2017-03-02` (string, required)
-+ end_date: `2025-03-02` (string, required)
 + status (enum, required)
     - active
     - pending_verification
     - terminated
 + person (Person_Minimal_Declaration_Request)
-+ `legal_entity` (`MSP_Short`)
 
 ## Party
 ### `Party_Short`
@@ -5395,17 +5395,17 @@ Assuming that all required business processes and validations is implemented on 
 + owner(`Owner_V2`,required)
 + accreditation (MSP_Accreditation, optional)
 - One of
-    + license (object)
-        + type: MSP (string) - License type `Dictionary LICENSE_TYPE`
+    + license (object, required)
+        + type: MSP (string, required) - License type `Dictionary LICENSE_TYPE`
         + license_number: fd123443 (string, optional)
-        + issued_by: Кваліфікацйна комісія (string)
-        + issued_date: `2017-02-28` (string)
+        + issued_by: Кваліфікацйна комісія (string, required)
+        + issued_date: `2017-02-28` (string, required)
         + expiry_date: `2017-02-28` (string, optional)
-        + `active_from_date`: `2017-02-28` (string)
+        + `active_from_date`: `2017-02-28` (string, required)
         + what_licensed: реалізація наркотичних засобів (string, optional)
-        + order_no: ВА43234 (string) - номер наказу
-    + license (object)
-        + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string)
+        + order_no: ВА43234 (string, required) - номер наказу
+    + license (object, required)
+        + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `archive`(array[Archive], optional)
 + security (object, required, fixed-type)
     + `redirect_uri`: `https://example.com` (string, required, fixed) - Redirect uri is used in oauth2.0 flow
@@ -5551,6 +5551,7 @@ Assuming that all required business processes and validations is implemented on 
 + email: email@example.com (string, required) - division's email
 + working_hours (`workinghours`) - optional field, business hours by each day weekly, doesn't make any influence on business process and will be shown on portal and map.
 + type: CLINIC (enum, required) - `Dictionary DIVISION_TYPE`
++ legal_entity_id: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
 + external_id: `3213213` (string, optional)
 + location (Location, optional) - optional field. geographical location, if it's empty, division won't be shown on a map.
 
@@ -6858,7 +6859,7 @@ Assuming that all required business processes and validations is implemented on 
 
 ### `Dosage_Instruction`
 + sequence: 1 (number, optional) - The order of the dosage instructions
-+ text: `0.25mg PO every 6-12 hours as needed for menses from Jan 15-20, 2015.  Do not exceed more than 4mg per day` (string, optional) - Free text dosage instructions e.g. SIG
++ text: `0.25mg PO every 6-12 hours as needed for menses from Jan 15-20, 2015.  Do not exceed more than 4mg per day` (string, required) - Free text dosage instructions e.g. SIG
 + `additional_instruction` (array, optional, fixed-type)
     + (Codeable_Concept)
         + coding (array, fixed-type)
@@ -6890,8 +6891,8 @@ Assuming that all required business processes and validations is implemented on 
             + system: `eHealth/SNOMED/administration_methods` (string)
             + code: `419747000` (string)
 + `dose_and_rate` (Dose_and_Rate, optional)
-+ `max_dose_per_period` (Ratio, optional)
-+ `max_dose_per_administration` (Simple_Quantity, optional)
++ `max_dose_per_period` (Ratio, required)
++ `max_dose_per_administration` (Simple_Quantity, required)
 + `max_dose_per_lifetime` (Simple_Quantity, optional)
 
 ### `Qualify_Medication_request_Request_Responce`
