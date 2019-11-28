@@ -4897,57 +4897,6 @@ Assuming that all required business processes and validations is implemented on 
     - family doctor
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 
-### `Patient_Request_Public`
-+ person (object, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
-    + id: `b993201f-a3ab-492e-b58b-fcc0826a500d` (string, optional) - person id, that should be changed.
-    + first_name: Петро (string, required)
-    + last_name: Іванов (string, required)
-    + second_name: Миколайович (string, optional)
-    + birth_date: `1991-08-19` (string, required)
-    + birth_country: `Україна` (string, required)
-    + birth_settlement: `Вінниця` (string, required)
-    + gender: MALE, FEMALE (enum[string], required)
-    + email: email@example.com (string, optional)
-    + tax_id: 3126509816 (string, required)
-    + secret: secret (string, required)
-    + documents (array, required)
-        + include
-            + type: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
-            + number: АА120518 (string, required) - document issue number
-            + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
-            + issued_at: `2017-02-28` (string, required) - the date when document was issued
-            + expiration_date: `2027-02-28` (string, optional) - the date when document expired, is necessery for those documents which has this date, ex, Temporary certificate, etc.
-    + addresses (array[Address], required)
-    + phones (array[Phone], optional)
-    + `authentication_methods` (array[Authentication_Method_Patient_Request], required)
-    + preferred_way_communication: email (enum, optional) - the way how a patient wants to be reached
-        - email
-        - phone
-    + unzr: `19900101-00011` (string, optional) - the record number in the demographic register
-    + emergency_contact (object, required)
-        + include `Emergency_Contact`
-    + `confidant_person` (array[`Confidant_Person_v2`], optional) - Should be set if this Person is disabled, underage, etc.
-    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
-    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider identifier.
-
-### `Patient_Request_Public_Response`
-+ person (object, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
-    + include `Person_v2`
-    + unzr: `19900101-00011` (string, optional) - the record number in the demographic register
-    + emergency_contact (object, required)
-        + include `Emergency_Contact`
-    + confidant_person (array, optional) - Should be set if this Person is disabled, underage, etc.
-         + include
-            + relation_type: PRIMARY (enum, required) 
-                - PRIMARY
-                - SECONDARY
-            + id: `5fdeb780-3485-4a06-aacf-58ef3a61bc0e` (string, required) - Registered MPI identifier.
-            + documents_relationship (array[Document], required)
-    + patient_signed: false (boolean, required) - Факт подписания заявки на створеня персони без декларації.
-    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
-
-
 ### `Patient_short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Id створеної персони
 + signed_at: `2017-03-02T00:00:00.000Z` (string, required)
