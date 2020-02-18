@@ -2756,7 +2756,7 @@ Use this method to reject previously created and signed Medication request.
 
 **Important**
 
-Invoke Get Medication request by ID to obtain previously created medication request. In order to reject medication request `reason` should be added.
+Invoke Get Medication request by ID to obtain previously created medication request. In order to reject medication request `reject_reason (optional)` and `reject_reason_code (required)` should be added.
 
 **Note!** that medication request with intent *plan* and *order* has different structure.
 
@@ -2908,7 +2908,8 @@ Invoke Get Medication request by ID to obtain previously created medication requ
         "dispense_valid_to": "2018-11-19",
         "dispense_valid_from": "2018-10-19",
         "created_at": "2018-10-19",
-        "reject_reason": "Помилка призначення. Несумісні препарати."
+        "reject_reason": "Помилка призначення. Несумісні препарати.",
+        "reject_reason_code": "INCORRECT_DOSAGE"
     }
 ```
 
@@ -2929,9 +2930,10 @@ Invoke Get Medication request by ID to obtain previously created medication requ
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
         + data (`Medication_request_Public_Response`)
-             + `rejected_at`: `2017-04-20T19:14:13Z` (string, required) - Reject date - ISO 8601 date and time in UTC timezone.
-            + `rejected_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - Rejected user identifier
-            + `reject_reason` : `Помилка призначення. Несумісні препарати.` (string, required) - Medication request reject reason
+            + `rejected_at`: `2017-04-20T19:14:13Z` (string, required, nullable) - Reject date - ISO 8601 date and time in UTC timezone.
+            + `rejected_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required, nullable) - Rejected user identifier
+            + `reject_reason`: `Помилка призначення. Несумісні препарати.` (string, optional, nullable) - Medication request reject reason
+            + `reject_reason_code`: `INCORRECT_DOSAGE` (string, required, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
 
 ### Resend Medication Request [PATCH /api/medication_requests/{id}/actions/resend]
 
@@ -2989,7 +2991,7 @@ Medication Dispense - Indicates that a medication product has been dispensed for
 ### Create Medication Dispense [POST /api/medication_dispenses{?code}]
 
 This method is used to dispense medications to patient
-Full list of all validations can be found [here](https://edenlab.atlassian.net/wiki/x/-Jcz)
+Full list of all validations can be found [here](https://e-health-ua.atlassian.net/wiki/spaces/EH/pages/583403856/Create+Medication+Dispense)
 
 **Important** In case medications are dispensed to patient under specific medical program, program participant id must be provided also
 
@@ -3363,6 +3365,7 @@ List of events that are stored to EventDB:
 - contract status change
 - person status change
 - contract's is_suspended change
+- service request status change
 
 Entity_type variants:
 - Declaration
@@ -3373,6 +3376,7 @@ Entity_type variants:
 - ContractRequest
 - Contract
 - Person
+- ServiceRequest
 
 In the EventDB events are kept during one month or till 10K. The duration and amount of events are parametrized.
 
@@ -5809,6 +5813,8 @@ Assuming that all required business processes and validations is implemented on 
 + declarations: 100 (number, required)
 + msps: 2 (number, required)
 + doctors: 15 (number, required)
++ medication_requests_active: 2 (number, required)
++ medication_requests_completed: 3 (number, required)
 
 ### DivisionName
 + id: `asSbcy12sYs8c` (string, required)
@@ -6261,6 +6267,8 @@ Assuming that all required business processes and validations is implemented on 
 + `id`: `ae9bf68e-3c98-4027-9211-535f7dad7a87` (string, required)
 + `name`: `Аміодарон 200мг таблетки` (string, required)
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `max_daily_dosage`: 200 (number, required) - Max daily dosage
++ `daily_dosage`: 50 (number, required) - Daily dosage
 + `innm` (`Innm_Public_Response_Short`, required)
 + `dosage` (`Dosage_drug`, required)
 + `packages` (array [`Medication_package`], required)
@@ -6841,9 +6849,12 @@ Assuming that all required business processes and validations is implemented on 
                     + code: `encounter` (string)
 + `dosage_instruction` (array, optional, fixed-type)
     + (Dosage_Instruction)
-+ `rejected_at`: `2017-04-20T19:14:13Z` (string, optional) - Reject date - ISO 8601 date and time in UTC timezone.
-+ `rejected_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, optional) - Rejected user identifier
-+ `reject_reason` : `Помилка призначення. Несумісні препарати.` (string, optional) - Medication request reject reason
++ `rejected_at`: (string, optional, nullable) - Reject date - ISO 8601 date and time in UTC timezone.
++ `rejected_by`: (string, optional, nullable) - Rejected user identifier
++ `reject_reason`: (string, optional, nullable) - Medication request reject reason
++ `reject_reason_code`: (string, required, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
++ is_blocked: false (boolean, required) - Whether medication request is blocked or not
++ block_reason: `Підозра на фрод` (string, optional) - Block reason description
 
 ### `Medication_request_Reject_Public_Response`
 + `rejected_at`: `2017-04-20T19:14:13Z` (string, required) - Reject date - ISO 8601 date and time in UTC timezone.
