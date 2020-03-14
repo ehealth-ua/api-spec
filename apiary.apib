@@ -29,8 +29,8 @@ the below table reflects actual API endpoints for all the ehealth environments
 Env     | Host
 --------|-----
 DEMO    | https://api.demo.edenlab.com.ua
-PREPROD | https://api-preprod.ehealth-ukraine.org
-PROD    | https://api.ehealth-ukraine.org
+PREPROD | https://api-preprod.ehealth.gov.ua
+PROD    | https://api.ehealth.gov.ua
 
 ##oAuth [/api/oauth]
 
@@ -72,8 +72,8 @@ Use following HOSTs for oAuth 2.0 Authentication
 Env     | Host
 --------|-----
 DEMO    | https://auth.demo.edenlab.com.ua
-PREPROD | https://auth-preprod.ehealth-ukraine.org
-PROD    | https://auth.ehealth-ukraine.org
+PREPROD | https://auth-preprod.ehealth.gov.ua
+PROD    | https://auth.ehealth.gov.ua
 
 You MUST redirect your users to this URL to obtain oAuth Code Grant (which is later exchanged to Access Token).
 
@@ -361,7 +361,7 @@ In case if authentication_method is OFFLINE or N/A, request body should be empty
 Before approve patient's scanned documents should be uploaded to the ([Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program)).
 All links are generated for one one-page document in jpeg format. Document should be no more than 10MB.
 If make declaration request via cabinet then nothing must be uploaded to URL.
-Clients can use signed URL's to directly access [s3 storage](https://storage.ehealth-ukraine.org/) and upload files via API.
+Clients can use signed URL's to directly access [s3 storage](https://storage.ehealth.gov.ua/) and upload files via API.
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
