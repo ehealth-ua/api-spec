@@ -214,6 +214,427 @@ Method is used to verify that provided in declarartion request phone number is v
     + Attributes (Response_OK)
         + data (Response_verification_by_phone)
 
+## Person Requests [/api/person_requests]
+[Person Request]() is a life-cycle entity that is used to create person WITHOUT [Declarations]().
+
+
+### Create/Update Person Request [POST /api/person_requests]
+
+This method is used to create Person Request (as part of Person creation w/o declaration process).
+Upon successful completion of the whole process, a person is created in MPI.
+
+
+**NOTE:** Also this method allows you to update the person’s data according to his id, which was previously found.
+A block with information about authentication methods must be transferred when the person is created. But it is prohibited to transfer it when updating the person.
+
+This table shows which fields are required for specific action:
+
+Actions   | person.id     | person.authentication_methods
+----------|---------------|--------------------
+**Create**    |      -        | required
+**Update**    | required      |     -
+
+      
+
+There are three methods of authentication - OTP, OFFLINE and the THIRD_PERSON. A person > 14 years  can have OTP or OFFLINE.
+A person < 14 years can only have authentication method =  third person.
+
+More detailed information - https://e-health-ua.atlassian.net/wiki/x/KoAfIw
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+
+    + Attributes (object)
+        + person (required)
+            + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
+            + include (Person_info_Public, required)
+        + patient_signed: false (boolean, required) - Факт подписания заявки на збереження/створення персоны.
+        + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+        + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + status: SIGNED (enum, optional)
+                - NEW
+                - APPROVED
+                - SIGNED
+                - CANCELLED
+                - REJECTED
+            + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+            + person (required)
+                + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
+                + include (Person_info_Public, required)
+            + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
+            + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+            + channel: `MIS` (enum, required) - channel that invoke person request create service
+            + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
+        + urgent (object, required)
+            + `authentication_method_current` (array[`Authentication_Method`], required)
+            <!--+ `authentication_methods` (array [`Authentication_Methods_Patient_Response`], required)-->
+            + documents (array[`media_content`], optional)
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Unverified phone number` (string, required)
+
+
+### Approve Person Request [PATCH /api/person_requests/{id}/actions/approve]
+
+Use this method to approve previously created Person Request.
+
+In case if authentication_method is OTP or THIRD_PERSON, request example:
+```
+{
+  "verification_code": 6598
+}
+```
+
+In case if authentication_method is OFFLINE or N/A, request body should be empty.
+Before approve patient's scanned documents should be uploaded to the ([Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program)).
+All links are generated for one one-page document in jpeg format. Document should be no more than 10MB.
+Clients can use signed URL's to directly access [s3 storage](https://storage.ehealth.gov.ua/) and upload files via API.
+
+More detailed information - https://e-health-ua.atlassian.net/wiki/x/QgAjIw
+
++ Parameters
+    + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+
+    + Attributes (object)
+        + `verification_code`: 6598 (number, optional) - required if authentication_method is OTP
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + status: SIGNED (enum, optional)
+                - NEW
+                - APPROVED
+                - SIGNED
+                - CANCELLED
+                - REJECTED
+            + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+            + person (required)
+                + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
+                + include (Person_info_Public, required)
+            + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
+            + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+            + content: `Person content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + channel: `MIS` (enum, required) - channel that invoke patient create service
+            + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: forbidden (string, required)
+            + message: `Invalid verification code` (string, required)
+
+### Reject Person Request [PATCH /api/person_requests/{id}/actions/reject]
+
+Use this method to reject previously created Person Request.
+
+More detailed information - https://e-health-ua.atlassian.net/wiki/x/MYDAIw
+
++ Parameters
+    + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (object)
+            + status: SIGNED (enum, optional)
+                - NEW
+                - APPROVED
+                - SIGNED
+                - CANCELLED
+                - REJECTED
+            + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required
+            + person (required)
+                + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
+                + include (Person_info_Public, required)
+            + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
+            + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+            + content: `Person content` (string, optional) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + channel: `MIS` (enum, required) - channel that invoke patient create service
+            + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
+
+
+### Sign Person Request [PATCH /api/person_requests/{id}/actions/sign]
+
+This method is used to sign Person Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property.
+All signature fields will be validated (including signer certificate authority).
+
+This service will store signed copy of Person Request in Media Content Storage, created or update MPI records  if signature is all checks is passed.
+
+Signed content MUST consists of JSON object with Person Request data and printout template. Object that need to be signed is returned by `Get Person request by ID` or `Approve Person request` response, `JSON.Path: $.data`.
+Person must re-read and sign person request print form and after that `patient_signed` should be changed to TRUE.
+
+Person request can be signed either by doctor or admin (user with scope `person_request:write`) from legal entity as in person request.
+
+More detailed information - https://e-health-ua.atlassian.net/wiki/x/QQAiIw
+
+**Signed object example:**
+```
+{
+  "status": "APPROVED",
+  "id": "eeebb86d-5cba-43c9-885b-6482ecaf826b",
+  "person": {
+    "id": "13001c60-45a0-4b5a-b425-9505e1de18bd",
+    "first_name": "Петро",
+    "last_name": "Іванов",
+    "second_name": "Миколайович",
+    "birth_date": "2009-07-05",
+    "birth_country": "Україна",
+    "birth_settlement": "Вінниця",
+    "gender": "MALE",
+    "email": "email@example.com",
+    "no_tax_id": false,
+    "tax_id": "3999869394",
+    "secret": "secret",
+    "documents": [
+      {
+        "type": "BIRTH_CERTIFICATE",
+        "number": "АА120518",
+        "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
+        "issued_at": "2017-02-28",
+        "expiration_date": "2027-02-28"
+      }
+    ],
+    "addresses": [
+      {
+        "type": "RESIDENCE",
+        "country": "UA",
+        "area": "Житомирська",
+        "region": "Бердичівський",
+        "settlement": "Київ",
+        "settlement_type": "CITY",
+        "settlement_id": "b075f148",
+        "street_type": "STREET",
+        "street": "вул. Ніжинська",
+        "building": "15",
+        "apartment": "23",
+        "zip": "02090"
+      }
+    ],
+    "phones": [
+      {
+        "type": "MOBILE",
+        "number": "+380503410870"
+      }
+    ],
+    "authentication_methods": [
+      {
+        "type": "THIRD_PERSON",
+        "value": "+380508887700",
+        "alias": "husband"
+      }
+    ],
+    "unzr": "20090705-00011",
+    "emergency_contact": {
+      "first_name": "Петро",
+      "last_name": "Іванов",
+      "second_name": "Миколайович",
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380503410870"
+        }
+      ]
+    },
+    "confidant_person": [
+      {
+        "relation_type": "PRIMARY",
+        "first_name": "Петро",
+        "last_name": "Іванов",
+        "second_name": "Миколайович",
+        "birth_date": "1972-10-26",
+        "birth_country": "Україна",
+        "birth_settlement": "Вінниця",
+        "gender": "MALE",
+        "tax_id": "2659719350",
+        "secret": "secret",
+        "documents_person": [
+          {
+            "type": "PASSPORT",
+            "number": "АА120518",
+            "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
+            "issued_at": "2017-02-28"
+          }
+        ],
+        "documents_relationship": [
+          {
+            "type": "PASSPORT",
+            "number": "АА120518",
+            "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
+            "issued_at": "2017-02-28"
+          }
+        ],
+        "phones": [
+          {
+            "type": "MOBILE",
+            "number": "+380503410870"
+          }
+        ],
+        "email": "emaill@example.com"
+      }
+    ],
+    "preferred_way_communication": "email"
+  },
+  "patient_signed": true,
+  "process_disclosure_data_consent": true,
+  "content": "<html><body><p>signed person data</p></body></html>",
+  "channel": "MIS"
+  "authorize_with": "cc949559-5dfe-420f-ac05-065e443b2cc6"
+}
+```
+
++ Parameters
+    + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            mds_drfo: 2534157686
+
+    + Attributes (object)
+        + `signed_content`: `ewogICJzdGF0dXMiOiAiQVBQUk9WRUQiLAogICJpZCI6ICJlZWViYjg2ZC01Y2JhLTQzYzktODg1Yi02NDgyZWNhZjgyNmIiLAogICJwZXJzb24iOiB7CiAgICAiaWQiOiAiMTMwMDFjNjAtNDVhMC00YjVhLWI0MjUtOTUwNWUxZGUxOGJkIiwKICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgImxhc3RfbmFtZSI6ICLQhtCy0LDQvdC+0LIiLAogICAgInNlY29uZF9uYW1lIjogItCc0LjQutC+0LvQsNC50L7QstC40YciLAogICAgImJpcnRoX2RhdGUiOiAiMjAwOS0wNy0wNSIsCiAgICAiYmlydGhfY291bnRyeSI6ICLQo9C60YDQsNGX0L3QsCIsCiAgICAiYmlydGhfc2V0dGxlbWVudCI6ICLQktGW0L3QvdC40YbRjyIsCiAgICAiZ2VuZGVyIjogIk1BTEUiLAogICAgImVtYWlsIjogImVtYWlsQGV4YW1wbGUuY29tIiwKICAgICJub190YXhfaWQiOiBmYWxzZSwKICAgICJ0YXhfaWQiOiAiMzk5OTg2OTM5NCIsCiAgICAic2VjcmV0IjogInNlY3JldCIsCiAgICAiZG9jdW1lbnRzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiQklSVEhfQ0VSVElGSUNBVEUiLAogICAgICAgICJudW1iZXIiOiAi0JDQkDEyMDUxOCIsCiAgICAgICAgImlzc3VlZF9ieSI6ICLQoNC+0LrQuNGC0L3Rj9C90YHRjNC60LjQvCDQoNCSINCT0KMg0JzQktChINCa0LjRl9Cy0YHRjNC60L7RlyDQvtCx0LvQsNGB0YLRliIsCiAgICAgICAgImlzc3VlZF9hdCI6ICIyMDE3LTAyLTI4IiwKICAgICAgICAiZXhwaXJhdGlvbl9kYXRlIjogIjIwMjctMDItMjgiCiAgICAgIH0KICAgIF0sCiAgICAiYWRkcmVzc2VzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiUkVTSURFTkNFIiwKICAgICAgICAiY291bnRyeSI6ICJVQSIsCiAgICAgICAgImFyZWEiOiAi0JbQuNGC0L7QvNC40YDRgdGM0LrQsCIsCiAgICAgICAgInJlZ2lvbiI6ICLQkdC10YDQtNC40YfRltCy0YHRjNC60LjQuSIsCiAgICAgICAgInNldHRsZW1lbnQiOiAi0JrQuNGX0LIiLAogICAgICAgICJzZXR0bGVtZW50X3R5cGUiOiAiQ0lUWSIsCiAgICAgICAgInNldHRsZW1lbnRfaWQiOiAiYjA3NWYxNDgiLAogICAgICAgICJzdHJlZXRfdHlwZSI6ICJTVFJFRVQiLAogICAgICAgICJzdHJlZXQiOiAi0LLRg9C7LiDQndGW0LbQuNC90YHRjNC60LAiLAogICAgICAgICJidWlsZGluZyI6ICIxNSIsCiAgICAgICAgImFwYXJ0bWVudCI6ICIyMyIsCiAgICAgICAgInppcCI6ICIwMjA5MCIKICAgICAgfQogICAgXSwKICAgICJwaG9uZXMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICJudW1iZXIiOiAiKzM4MDUwMzQxMDg3MCIKICAgICAgfQogICAgXSwKICAgICJhdXRoZW50aWNhdGlvbl9tZXRob2RzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiVEhJUkRfUEVSU09OIiwKICAgICAgICAidmFsdWUiOiAiKzM4MDUwODg4NzcwMCIsCiAgICAgICAgImFsaWFzIjogImh1c2JhbmQiCiAgICAgIH0KICAgIF0sCiAgICAidW56ciI6ICIyMDA5MDcwNS0wMDAxMSIsCiAgICAiZW1lcmdlbmN5X2NvbnRhY3QiOiB7CiAgICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICAgInBob25lcyI6IFsKICAgICAgICB7CiAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICAgIH0KICAgICAgXQogICAgfSwKICAgICJjb25maWRhbnRfcGVyc29uIjogWwogICAgICB7CiAgICAgICAgInJlbGF0aW9uX3R5cGUiOiAiUFJJTUFSWSIsCiAgICAgICAgImZpcnN0X25hbWUiOiAi0J/QtdGC0YDQviIsCiAgICAgICAgImxhc3RfbmFtZSI6ICLQhtCy0LDQvdC+0LIiLAogICAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICAgICAiYmlydGhfZGF0ZSI6ICIxOTcyLTEwLTI2IiwKICAgICAgICAiYmlydGhfY291bnRyeSI6ICLQo9C60YDQsNGX0L3QsCIsCiAgICAgICAgImJpcnRoX3NldHRsZW1lbnQiOiAi0JLRltC90L3QuNGG0Y8iLAogICAgICAgICJnZW5kZXIiOiAiTUFMRSIsCiAgICAgICAgInRheF9pZCI6ICIyNjU5NzE5MzUwIiwKICAgICAgICAic2VjcmV0IjogInNlY3JldCIsCiAgICAgICAgImRvY3VtZW50c19wZXJzb24iOiBbCiAgICAgICAgICB7CiAgICAgICAgICAgICJ0eXBlIjogIlBBU1NQT1JUIiwKICAgICAgICAgICAgIm51bWJlciI6ICLQkNCQMTIwNTE4IiwKICAgICAgICAgICAgImlzc3VlZF9ieSI6ICLQoNC+0LrQuNGC0L3Rj9C90YHRjNC60LjQvCDQoNCSINCT0KMg0JzQktChINCa0LjRl9Cy0YHRjNC60L7RlyDQvtCx0LvQsNGB0YLRliIsCiAgICAgICAgICAgICJpc3N1ZWRfYXQiOiAiMjAxNy0wMi0yOCIKICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJkb2N1bWVudHNfcmVsYXRpb25zaGlwIjogWwogICAgICAgICAgewogICAgICAgICAgICAidHlwZSI6ICJQQVNTUE9SVCIsCiAgICAgICAgICAgICJudW1iZXIiOiAi0JDQkDEyMDUxOCIsCiAgICAgICAgICAgICJpc3N1ZWRfYnkiOiAi0KDQvtC60LjRgtC90Y/QvdGB0YzQutC40Lwg0KDQkiDQk9CjINCc0JLQoSDQmtC40ZfQstGB0YzQutC+0Zcg0L7QsdC70LDRgdGC0ZYiLAogICAgICAgICAgICAiaXNzdWVkX2F0IjogIjIwMTctMDItMjgiCiAgICAgICAgICB9CiAgICAgICAgXSwKICAgICAgICAicGhvbmVzIjogWwogICAgICAgICAgewogICAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgICAgICB9CiAgICAgICAgXSwKICAgICAgICAiZW1haWwiOiAiZW1haWxsQGV4YW1wbGUuY29tIgogICAgICB9CiAgICBdLAogICAgInByZWZlcnJlZF93YXlfY29tbXVuaWNhdGlvbiI6ICJlbWFpbCIKICB9LAogICJwYXRpZW50X3NpZ25lZCI6IHRydWUsCiAgInByb2Nlc3NfZGlzY2xvc3VyZV9kYXRhX2NvbnNlbnQiOiB0cnVlLAogICJjb250ZW50IjogIjxodG1sPjxib2R5PjxwPnNpZ25lZCBwZXJzb24gZGF0YTwvcD48L2JvZHk+PC9odG1sPiIsCiAgImNoYW5uZWwiOiAiTUlTIgp9` (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (`Patient_short`)
+        
+
+### Get Person Request by ID [GET /api/person_requests/{id}]
+
++ Parameters
+    + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required) - request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + status: SIGNED (enum, optional)
+                - NEW
+                - APPROVED
+                - SIGNED
+                - CANCELLED
+                - REJECTED
+            + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+            + person (required)
+                + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
+                + include (Person_info_Public, required)
+            + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
+            + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+            + content: `Person content` (string, optional) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + channel: `MIS` (enum, required) - channel that invoke person request create service
+                - MIS
+            + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
+        + urgent (object, required)
+            + `authentication_method_current` (array[`Authentication_Method`], required)
+            <!--+ `authentication_methods` (array [`Authentication_Methods_Patient_Response`], required)-->
+            + documents (array[`media_content`], optional)
+
+### Get Person Requests List [GET /api/person_requests{?legal_entity_id,status,page,page_size}]
+
+Use this method to obrain list of Person Requests. 
+If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor or Admin is interested in current UI section.
+
+Service returns only person request related to the same legal entity as the user.
+
+Method returns shortened details, to obtain full information - get Person Request it by it's ID.
+
+More detailed information - https://e-health-ua.atlassian.net/wiki/x/BADDIw
+
++ Parameters
+    + status: APPROVED (enum, optional)
+        - NEW
+        - APPROVED
+        - SIGNED
+        - REJECTED
+        - CANCELLED
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[`Patient_Request_Short`])
+
+
+### Resend Authorization OTP on Person Request [POST /api/person_requests/{id}/actions/resend_otp]
+
+This method is used when you need to re-send SMS to a person who approve creating or updating data about himself.
+
+
+More detailed information - https://e-health-ua.atlassian.net/wiki/x/N4DrJ
+
++ Parameters
+    + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+    
+    <!--+ Attributes (object)
+        + type: `THIRD_PERSON` (enum, optional)
+            - OTP
+            - OFFLINE
+            - THIRD_PERSON
+        + alias: `husband` (string, optional)-->
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (OTP)
+
 ## Declaration Requests [/api/declaration_requests]
 
 [Declaration Request]() is a life-cycle entity that is used to perform operations on [Declarations]().
@@ -228,6 +649,9 @@ Use this method to obrain list of Declaration Requests for an `empolee_id`. If y
 Also we suggest use `employee_id` and `legal_entity_id` to make sure that end-user understands context of actions that he or she will perform.
 
 Method returns shortened details, to obtain full information - get Declaration Request it by it's ID.
+
+**Important**
+This endpoint returns all declaration requests that were created through V2 and V3. If the declaration request was created according to version 3, then the block `person` will be empty.
 
 + Parameters
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
@@ -253,6 +677,9 @@ Method returns shortened details, to obtain full information - get Declaration R
 
 ### Get Declaration Request by ID [GET /api/declaration_requests/{id}]
 
+This endpoint shows the declaration requests which are created by V2 and V3. Due to the fact that structure of declaration request V2 is different from the structure of decl request V3 , so not all fields of decl request v3 can be displayed.
+Block `person` became optional.
+
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - request identifier
 
@@ -275,6 +702,7 @@ Method returns shortened details, to obtain full information - get Declaration R
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
             + include `Declaration_Request_Public_Response`
+                + id: `53af47ba-d9eb-4a87-a2f7-4114adcf1fc4` (string, required)
             + employee (Employee_Minimal)
             + `legal_entity` (`Medical_Service_Provider`)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -293,7 +721,7 @@ Method returns shortened details, to obtain full information - get Declaration R
                 + number: `+38093*****85` (string, required)
             + documents (array[`media_content`], optional)
 
-### Create Declaration Request [POST]
+### Create Declaration Request - [POST /api/v2/declaration_requests]
 
 This method is used to create Declaration Request (as part of Declaration creation process). Fields descriptions are listed in request Example view.
 
@@ -678,8 +1106,8 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (`Declaration_short`)
-
-
+        
+        
 ## Declarations [/api/declarations]
 
 ### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,status,declaration_number,page,page_size}]
@@ -1070,7 +1498,16 @@ Method returns only **requested** parameters, birth place and second name in add
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
-        + data (array[`Person_Short`])
+        + data (array)
+            + object(`Person_Short`)
+                + merged_persons (array, required)
+                    + object ()
+                        + id: `57e30ea3-16f1-4f8e-adcd-1a05e99e2d22` (string, optional) - identifier of the relation of persons who are compared during the deduplication process
+                        + inserted_at: `2019-05-08T15:34:00Z` (string, optional)
+                        + merge_person_id: `bdadc2a7-7283-4f24-bc99-8d8d9808af80` (string, optional) - identifier of a person who is recognized as a duplicate and subsequently deactivated
+                        + person_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - identifier of the person who as a result of the deduplication is recognized as true and subsequently left active
+                        + updated_at: `2019-05-08T15:34:00Z` (string, optional)
+
 
 + Response 403 (application/json)
     + Attributes (Response_Error)
@@ -1136,6 +1573,142 @@ This method allows to reset (set to **NA**) person authentication method.
         + error (Response__Error, fixed-type)
             + type: `forbidden`
             + message: `Not found active declaration with person for this legal entity!` (string)
+
+### Get Person Authentication methods [GET /api/persons/{id}/authentication_methods]
+
+This method allows to find the active person's authentication methods.
+
+
++ Parameters
+    + id: `030d5c41-a945-41ac-89d1-b7c6d1c226c7` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (array[`Person_auth_methods`])
+        
+
++ Response 403 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta, fixed-type)
+            + code: 403 (number)
+        + error (Response__Error, fixed-type)
+            + type: `forbidden`
+            + message: `Such person not found` (string)
+
+### Create authentication method request [POST /api/persons/{id}/authentication_method_requests]
+
+This process describes adding an additional authentication method to an existing person, update authentication method and delete it.
+
+Confluence - https://e-health-ua.atlassian.net/wiki/x/FwC_J
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+
+    + Attributes (object)
+        + include (`Authentication_methods_request`)
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + status: `NEW` (string, required)
+            + channel: `MIS` (enum, required) - channel that invoke add auth methods
+        + urgent (object, required)
+            + `authentication_method_current` (array[`Authentication_Method_for_request`], required) - if the person doesn't have active auth methods, then this block will be nill
+            + documents (array[`media_content`], optional)
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Unverified phone number` (string, required)
+
+
+### Approve authentication method request [PATCH /api/persons/{id}/authentication_method_requests/{request_id}/actions/approve]
+
+Use this method to approve previously created Authentication method Request.
+In case if person's or third person's authent authentication_method is OTP, request example:
+
+{
+  "verification_code": 7590
+}
+
+In case if authentication_method is OFFLINE, request body should be empty. Before approve patient's scanned documents should be uploaded to the (Signed URL's). All links are generated for one one-page document in jpeg format. Document should be no more than 10MB. 
+
+Confluence - https://e-health-ua.atlassian.net/wiki/x/G4DJJ
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
+    + request_id: `1096f147-7f93-3fc6-bddc-9d71b198fb7f` (string, required) - Request identifier
+    
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+
+    + Attributes (object)
+        + `verification_code`: 7489 (number, optional) - required if authentication_method is OTP
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + status: `COMPLETED` (enum, optional) - current status on auth methods request.
+            + channel: `MIS` (enum, required) - channel that invoke add auth methods
+
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: request_malformed (string, required)
+            + message: `This doctor has X declarations and could not sign more` (string, required)
+
+### Resend Authorization OTP on Authentication method Request [POST /api/persons/{id}/authentication_method_requests/{request_id}/actions/resend_otp]
+
+This method is used when you need to re-send SMS to a person or third person
+
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
+    + request_id: `1096f147-7f93-3fc6-bddc-9d71b198fb7f` (string, required) - Request identifier
+    
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (OTP)
 
 ## Legal Entities [/api/legal_entities]
 
@@ -1281,7 +1854,7 @@ nhs_verified = false
 
 Method receives signed message (pkcs7) including signed content, digital signature and signer public key.
 All signature fields will be validated (including signer certificate authority).
-There is a [**dummy method**](https://uaehealthapi.docs.apiary.io/reference/dummy.-create-legal-entity/dummy-for-legal-entity/create/update-legal-entity) that describes the latest legal entity data model and can be used as documentation.
+There is a [**dummy method**](https://uaehealthapi.docs.apiary.io/reference/dummy-methods/dummy-for-legal-entity/create/update-legal-entity) that describes the latest legal entity data model and can be used as documentation.
 Signed content MUST consists of JSON object with Legal Entity data:
 
 ```
@@ -1444,7 +2017,7 @@ Key features and main differences from V1:
 
 * *added EDR integration in order to validate and enrich legal entity data*
 
-There is a [**dummy method Create/Update legal entity V2**](https://uaehealthapi.docs.apiary.io/#reference/dummy.-create-legal-entity/dummy-for-legal-entity/create/update-legal-entity-v2) that describes the latest legal entity data model and can be used as documentation.
+There is a [**dummy method Create/Update legal entity V2**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-legal-entity/create/update-legal-entity-v2) that describes the latest legal entity data model and can be used as documentation.
 
 + Request (application/json)
 
@@ -2137,13 +2710,14 @@ All other attributes are immutable
             + code: 201 (number)
         + data (`Employee_role_response`)
 
-### Get employee roles [GET /api/employee_roles/{?employee_id,healthcare_service_id,page,page_size}]
+### Get employee roles [GET /api/employee_roles/{?employee_id,healthcare_service_id,status,page,page_size}]
 
 At least one query parameter must be provided
 
 + Parameters
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Employee identifier
     + `healthcare_service_id`: `c4de7c6e-8c6e-4d4f-8843-6bc122977227` (string, optional) - Healthcare service identifier
+    + status: active (string, optional) - Search only for active or inactive employee roles.
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -2189,6 +2763,368 @@ Returns my user details based on user in access_token
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (`User_details_response`)
+
+        
+## Equipment [/api/equipment]
+
+### Create equipment [POST]
+
+This method allows to register equipment and bind it with division of legal entity
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+
+    + Attributes (object)
+        + division_id: `8be63914-a278-470b-b868-1af5b9087332` (string, required) - Division identifier
+        + include `Equipment_base`
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (`Equipment_response`)
+
+### Update equipment [PATCH /api/equipment/{id}]
+
+This method used for update equipment data, except link with division and status. You can send only those fields you want to change
+
+Immutable parameters:
+ - division_id
+ - status
+ 
+ All the other parameters are mutable.
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Equipment identifier
+
++ Request (application/json)
+ 
+    + Headers
+
+        Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+        API-key: uXhEczJ56adsfh3Ri9SUkc4en
+
+    + Attributes (Equipment_base)
+        + type: `23143534` (string, optional)- `code from dictionary -  EQUIPMENT_TYPE`  
+        + external_id: `123-ASD-#1` (string, optional) - Identifier from external system
+       
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (`Equipment_response`)
+
+### Get equipment list [GET /api/equipment{?division_id,type,external_id,status,page,page_size}]
+
++ Parameters
+    + division_id: `8be63914-a278-470b-b868-1af5b9087332` (string, optional) - Division identifier
+    + type: `43235435` (string, optional) - `Code from dictionary EQUIPMENT_TYPE`
+    + external_id: `123-ASD-1` (string, optional) - `Identifier from external system`
+    + status: ACTIVE (string, optional) - Entity status
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+            
++ Response 200 (application/json)
+    + Attributes (Response_Collection_V2)
+        + data (array[`Equipment_response`])
+
+### Get equipment details by ID [GET /api/equipment/{id}]
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Equipment identifier
+
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+            
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (`Equipment_response`)
+
+### Deactivate equipment [PATCH /api/equipment/{id}/actions/deactivate]
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Equipment identifier
+
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (`Equipment_response`)
+            - status: INACTIVE
+
+### Activate equipment [PATCH /api/equipment/{id}/actions/activate]
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Equipment identifier
+
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (`Equipment_response`)
+            - status: ACTIVE
+            
+
+## Preperson [/api/prepersons]
+
+### Create preperson [POST]
+This method allows to create unidentified person. There is one necessary field in payload - `external_id` which serves as identifier of unidentified person in external system. Preperson has been created without using digital sign.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+    
+    + Attributes (object)
+        + include `Preperson_base`
+        + note: `Registered in SmartMed clinic at 01.01.2019 16:40. Male, 40 years old approximately, tatoo with sport motorcycle on the right forearm` (string, optional) - Notes
+        
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Preperson_response`
+            
+
+### Update preperson [PATCH /api/prepersons/{id}]
+Method enables to modify all the preperson fields except note and status.
+
++ Parameters
+    + id: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, required) - MPI identifier of the preperson. 
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+    
+    + Attributes (object)
+        + include `Preperson_base`
+        + external_id: `#1234-FDS-ab` (string, optional) - `Identifier from external system`
+        + death_date: `2018-11-11` (string, optional) - Date of death
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (object)
+            + include `Preperson_response`
+            
+
+### Get preperson by ID [GET /api/prepersons/{id}]
+Returns preperson details by it's MPI identifier
+
++ Parameters
+    + id: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, required) - MPI identifier of the preperson. 
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (`Preperson_response`)     
+        
+
+
+## Merge request [/api/merge_requests]
+
+### Create merge request [POST]
+Method creates request on merge preperson to person. Employee can merge any **active preperson** to any **active person** which has been created via patient request or declaration request.
+If there is needs to change person\`s default authentication method for merge request approval than use `authorize_with` field.
+
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+    
+    + Attributes (object)
+        + include `Merge_request_base`
+        + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of master person auth method
+        
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (`Merge_request_response`)
+        + urgent (object, required)
+            + `authentication_method_current` (array[`Authentication_Method`], required) - `Current authentication method of the master person`
+            + documents (array[`media_content`], optional) - `Documents of the master person`
+
+### Approve merge request [PATCH /api/merge_requests/{id}/actions/approve]
+Serves for receiving approval from person on action of merge with preperson. Also return a printout form of preperson merge request. Payload with verification code doesn\`t needed if person\`s athentification method is OFFLINE
+
++ Parameters
+    + id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+        API-key: uXhEczJ56adsfh3Ri9SUkc4en
+    
+    + Attributes (object)
+        + `verification_code`: 6598 (number, optional) - required if authentication_method is OTP
+
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (`Merge_request_response`)
+            + status: APPROVED (string, required) - `status of the approved merge request`
+            + `data_to_be_signed` (`Merge_request_sign_data`, required)
+
+
+### Reject merge request [PATCH /api/merge_requests/{id}/actions/reject]
+This method gives opportunity to reject and close preperson merge request by hand.
+
++ Parameters
+    + id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+        API-key: uXhEczJ56adsfh3Ri9SUkc4en
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (`Merge_request_response`)
+            + status: REJECTED (string, required) - `status of the rejected merge request`
+
+### Sign merge request [PATCH /api/merge_requests/{id}/actions/sign]
+This method is used to sign merge request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property.
+All signature fields will be validated (including signer certificate authority).
+
+This service will store signed copy of merge request in Media Content Storage, merge person and preperson MPI records if signature is all checks is passed.
+
+Signed content MUST consists of data from `data_to_be_signed` field with merge request data, master person data, merge person data and printout template. Field `data_to_be_signed` that need to be signed is returned by `Approve merge request` method, `JSON.Path: $.data.data_to_be_signed` or by `Get merge request by ID` (for approved merge requests).
+Master person must re-read and sign merge request print form and after that `patient_signed` should be changed to TRUE.
+
+Preperson merge request can be signed either by specialist or receptionist (user with scope `merge_request:write`) from legal entity as in merge request.
+There is a [**dummy method**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-merge-request/sign-merge-request) that describes the latest merge request data model for sign and can be used as documentation.
+
++ Parameters
+    + id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
+
++ Request (application/json)
+
+    + Headers
+        Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+        API-key: uXhEczJ56adsfh3Ri9SUkc4en
+
+    + Attributes (object)
+        + `signed_content`: `U2lnbmVkIGNvbnRlbnQgTVVTVCBjb25zaXN0cyBvZiBKU09OIG9iamVjdCB3aXRoIG1lcmdlIHJlcXVlc3QgZGF0YSBhbmQgcHJpbnRvdXQgdGVtcGxhdGUuIE9iamVjdCB0aGF0IG5lZWQgdG8gYmUgc2lnbmVkIGlzIHJldHVybmVkIGJ5IEFwcHJvdmUgbWVyZ2UgcmVxdWVzdCBtZXRob2QsIEpTT04uUGF0aDogJC5kYXRhLiBQZXJzb24gbXVzdCByZS1yZWFkIGFuZCBzaWduIG1lcmdlIHJlcXVlc3QgcHJpbnQgZm9ybSBhbmQgYWZ0ZXIgdGhhdCBwYXRpZW50X3NpZ25lZCBzaG91bGQgYmUgY2hhbmdlZCB0byBUUlVFLg==` (string, required)
+        + `signed_content_encoding`: base64 (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (`Merge_request_response`)
+            + status: SIGNED (string, required) - `status of the signed merge request. Merge completed`
+
+### Resend Authorization OTP on merge request [POST /api/merge_requests/{id}/actions/resend_otp]
+
+Use this method to resend sms with OTP-code on previously created merge request (patient`s authentification method is OTP).
+
++ Parameters
+    + id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+    
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (OTP)
+
+### Get merge requests [GET]
+Method returns a list of merge requests. Service returns only merge requests related to the same legal entity as the user. To obtain more detailed information about merge request use [**Get merge request by ID**](https://uaehealthapi.docs.apiary.io/#reference/public.-medical-service-provider-integration-layer/merge-request/get-merge-request-by-id). Note that person and preperson data of SIGNED merge request avaliable limited period of time (depends on schedule of [Auto cleaning person data process](https://e-health-ua.atlassian.net/wiki/spaces/EH/pages/624328717/Auto+cleaning+of+person+data+from+merge+requests))
+
++ Parameters
+    + status: NEW (enum, optional) - `status of the merge request`
+        - NEW
+        - APPROVED
+        - REJECTED
+        - SIGNED
+        - EXPIRED
+    + master_person_id: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, optional) - MPI identifier of the master preperson.
+    + merge_person_id: `7c3da506-804d-4550-8993-bf17f9ee0403` (string, optional) - MPI identifier of the merge person \(preperson\).
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+        API-key: uXhEczJ56adsfh3Ri9SUkc4en
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection_V2)
+        + data (array[`Merge_request_response`])
+
+
+### Get merge request by ID [GET /api/merge_requests/{id}]
+Method returns merge request details by it's ID. Depending on merge request status different data returned in response: if status is NEW, REJECTED (after NEW) or EXPIRED (after NEW) - `data_to_be_signed` section returns null in response. If status is APPROVED, REJECTED or EXPIRED (after APPROVED), SIGNED - `data_to_be_signed` section returns with detailed information of person, preperson, printout form e.t.c that will be needed for Sign merge request (look [**dummy method**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-merge-request/sign-merge-request)).
+
+**Note!** that `data_to_be_signed` of SIGNED, REJECTED (after APPROVED) or EXPIRED merge request avaliable limited period of time which depends on [**Auto cleaning of person data from merge requests process**](https://e-health-ua.atlassian.net/wiki/spaces/EH/pages/624328717/Auto+cleaning+of+person+data+from+merge+requests).
+
++ Parameters
+    + id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
+    
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (`Merge_request_response`)
+            + `data_to_be_signed` (`Merge_request_sign_data`, optional)
+            + status: APPROVED (string, required) - `status of the approved merge request`
+        + urgent (object, required)
+            + `authentication_method_current` (array[`Authentication_Method`], required) - `Current authentication method of the master person`
+            + documents (array[`media_content`], optional) - `Documents of the master person`
+            
 
 # Group Public. Medical Programs
 
@@ -2329,6 +3265,7 @@ This endpoint returns list of drugs. Each drug contains all allowed package form
             + code: 200 (number)
         + data (array[Drug_Response])
 
+
 ## Medication Request Requests [/api/medication_request_requests]
 
 [Medication request Request]() is a life-cycle entity that is used to perform operations on [Medication requests]().
@@ -2411,13 +3348,6 @@ This method is used to pre-qualify data Medication request Request (possibility 
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
-        + urgent (object, required)
-            + `authentication_method_current` (object, required)
-                + type: `OTP` (enum, required)
-                    - OTP
-                    - OFFLINE
-                    - NA
-                + number: `+38093*****85` (string, optional)
         + meta (Response__Meta)
         +  data (array[`Qualify_Medication_request_Request_Responce`]))
 
@@ -3422,7 +4352,7 @@ This method is used to abtain list of events with filters.
     + Attributes (`Response_Collection_V2`)
          + data (array[`Get_events`])
 
-# Group Dummy. Create legal entity
+# Group Dummy methods
 
 ## Dummy for legal entity [/dummy/legal_entities]
 
@@ -3517,6 +4447,87 @@ This method is used to abtain list of events with filters.
                 + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
             + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
 
+## Dummy for person request [/dummy/person_requests]
+
+### Sign person request [PATCH /dummy/person_requests/{id}/actions/sign]
+
+
++ Parameters
+   + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+   
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            msp_drfo: 2534157686
+
+    + Attributes (object)
+        + status: APPROVED (string, required)
+        + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+        + person (required)
+            + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
+            + include (Person_info_Public, required)
+        + patient_signed: true (boolean, required) - Факт подписания заявки на декларацию.
+        + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+        + content: `<html><body><p>signed person data</p></body></html>` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+        + channel: `MIS` (enum, required) - channel that invoke patient create service
+        
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (`Patient_short`)
+
+## Dummy for merge request [/dummy/merge_requests]
+
+### Sign merge request [PATCH /dummy/merge_requests/{id}/actions/sign]
+
+
++ Parameters
+    + id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+
+    + Attributes (`Merge_request_sign_data`, required)
+         + patient_signed: true (boolean, required) - Master person's evidence of sign the merge request.
+        
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (`Merge_request_response`)
+            + status: SIGNED (string, required) - `status of the signed merge request. Merge completed`
+
+
+## Dummy for declaration request [/dummy/declaration_requests]
+
+### Sign declaration request [PATCH /dummy/declaration_requests/{id}/actions/sign]
+
+
++ Parameters
+   + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+   
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            msp_drfo: 2534157686
+
+    + Attributes (`Decl_req_data_to_be_signed`, required)
+        
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (`Declaration_short`)
+
+
 # Group Public. Contracts
 
 Note: In the new version of API contracts(relese TBD) will be divided into two types - capitation and reimbursement. Each type will be managed by its own route. The type of the contract should be declared in the URL like this:
@@ -3532,7 +4543,7 @@ If contract_type is not defined in the URL it counts as a capitation contract.
 In order to create a new contract or update an existing contract, legal entity owner should create a contract request first. The contract request should be approved by both sides - Medical Service Provider(MSP) and National Health Service(NHS), and than signed by both sides as well. After that a new contract will be created or an existing contract will be updated.
 The detailed flow is described in a schema below:
 
-[Confluence: Status Chart](https://edenlab.atlassian.net/wiki/x/GIDMIg)
+[Confluence: Status Chart](https://e-health-ua.atlassian.net/wiki/spaces/EH/pages/583402826/Status+Chart)
 
 ![Contract request flow](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgQ29udHJhY3QgcmVxdWVzdHMKCnBhcnRpY2lwYW50IE1TUCBhcyBtc3AACg1lSGVhbHRoIGFzIGVoAAYFACkNRG9jdW1lbnQgc3RvcmFnZSBhcwADCABRDU5IUyBhcyBuaHMKCm1zcC0-AEYHOiA8PEluaXRpYWxpemUgYwCBFQ8-PgoAbwcAJwtHZW5lcmF0ZSBVUkxzABYKbXNwOiA8PFJlc3BvbnNlIHdpdGggaWQgYW5kACUFPj4AdAYAgSMHOiBVcGxvYWQgZACBPAdzAIETBgBCBVNpZ24AfBEgdXNpbmcgZGlnaXRhbCBzaWduYXR1cmUgAIFBEUNyZWF0AIE5FW5ocwCBbw1HZXQAgWQRcyBsaQAEKSBkZXRhaWxzPj4KCmFsdCBBcHByb3YAgjgSCiAgICAAbhBVcGQAgREXACUJbmhzAIFgLwBVFQCAfxggYnkgTkhTPj4KZWxzZSBEZWNsaW4AgSIcAElHAFEYPj4KZW5kIACFExIAgwwdAAkkAIMeCwCFcRAAggEcTVNQAINiKHByaW50b3UAhEsGZW4AhGYJAIMQMwCFFxAAhXoWAIMzCQCBTDQAhn4JRG93bgCHBAUAiQkFYWxseQCGVgVlZACFMhIAhxIPABgZXG4AhysIAIgABTJuZACFFAsAiG8QAIFDGQCCdQYKb3B0IFRlcm1pbgCHQBQAhlMFAIlCEAAVGgCDSQplbmQK&s=modern-blue)
 
@@ -3816,6 +4827,169 @@ This method is designed to get full information of contract request by id
         + urgent (object, required)
             + documents (array[`contract_media_content`], optional)
 
+### Private. Assign Contract Request by NHS Employee [PATCH /api/contract_requests/{id}/actions/assign]
+
+***Scope  contract_request:update***
+
+This WS is designed for NHS employees. Before rewieving contract request it must be assign to NHS employee who will be responsible for this request.
+To assign employee contract it must be in status NEW, IN_RPOCESS.
+After assigner was updated, contract request status will be changed to `IN_RPOCESS`.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + employee_id:  `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) -
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Contract_request_Details_Capitation`
+
+### Private. Update Contract Request by NHS Signer [PATCH /api/contract_requests/{id}]
+
+***Scope  contract_request:update***
+
+This WS is designed to enrich conract request with information from NHS side. NHS Signer can change only contract requests in status IN_PROCESS. NHS Signer can add only information from his side.
+In case of reimbursement contract, nhs_contract_price shouldn`t be filled.
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + include `Contract_request_Update`
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Contract_request_Details_Capitation`
+
+### Private. Approve Contract Request by NHS [PATCH /api/contract_requests/{id}/actions/approve]
+
+***Scope  contract_request:update***
+
+This WS is designed to approve contract request by NHS. Contract request only in status IN_RPOCESS could be approved.
+
+To approve contract next fields must be signed by NHS employee and sent by same NHS employee in base64 format (all fields below are required):
+In DS EDRPOU/DRFO must be equal to contractor_legal_entity.edrpou
+
+
+to_approve content for Capitation contract type
+```
+{
+"id":"09106b70-18b0-4726-b0ed-6bda1369fd52",
+"contractor_legal_entity": {
+      "id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
+      "name": "Клініка Ноунейм",
+      "edrpou": "32323454"
+    },
+"next_status": "APPROVED",
+"text": "consent_text"
+}
+```
+
+to_approve content for Reimbursement contract type
+```
+{
+"id":"09106b70-18b0-4726-b0ed-6bda1369fd52",
+"contractor_legal_entity": {
+      "id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
+      "name": "Аптека Ноунейм",
+      "edrpou": "32323454"
+    },
+"next_status": "PENDING_NHS_SIGN",
+"text": "consent_text"
+}
+```
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + `signed_content`: `ew0KImlkIjoiMDkxMDZiNzAtMThiMC00NzI2LWIwZWQtNmJkYTEzNjlmZDUyIiwNCiJjb250cmFjdG9yX2xlZ2FsX2VudGl0eSI6IHsNCiAgICAgICJpZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAgICAgIm5hbWUiOiAi0JrQu9GW0L3RltC60LAg0J3QvtGD0L3QtdC50LwiLA0KICAgICAgImVkcnBvdSI6ICIzMjMyMzQ1NCINCiAgICB9LA0KInRleHQiOiAic3RhdGljX3RleHQiDQp9`(string, required)
+        + `signed_content_encoding`: `base64` (string, required)
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_request_Details_Capitation`
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_request_Details_Reimbursement`
+
+
+### Private. Decline Contract Request by NHS [PATCH /api/contract_requests/{id}/actions/decline]
+
+***Scope  contract_request:update***
+
+This WS is designed to decline contract request by NHS. Contract request only in status IN_RPOCESS could be declined.
+To decline contract next fields must be signed by NHS employee and sent by same NHS employee in base64 format (all fields below are required):
+In DS EDRPOU/DRFO must be equal to contractor_legal_entity.edrpou
+
+```
+{
+"id":"09106b70-18b0-4726-b0ed-6bda1369fd52",
+"contractor_legal_entity": {
+      "id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
+      "name": "Клініка Ноунейм",
+      "edrpou": "32323454"
+    },
+"next_status": "DECLINED",
+"status_reason": "Не відповідає попереднім домовленостям",
+"text": "consent_text"
+}
+```
+
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + `signed_content`: `ew0KImlkIjoiMDkxMDZiNzAtMThiMC00NzI2LWIwZWQtNmJkYTEzNjlmZDUyIiwNCiJjb250cmFjdG9yX2xlZ2FsX2VudGl0eSI6IHsNCiAgICAgICJpZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAgICAgIm5hbWUiOiAi0JrQu9GW0L3RltC60LAg0J3QvtGD0L3QtdC50LwiLA0KICAgICAgImVkcnBvdSI6ICIzMjMyMzQ1NCINCiAgICB9LA0KInN0YXR1c19yZWFzb24iOiAi0J3QtSDQstGW0LTQv9C+0LLRltC00LDRlCDQv9C+0L/QtdGA0LXQtNC90ZbQvCDQtNC+0LzQvtCy0LvQtdC90L7RgdGC0Y/QvCINCiJ0ZXh0IjogInN0YXRpY190ZXh0Ig0KfQ==`(string, required)
+        + `signed_content_encoding`: `base64` (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_request_Details_Capitation`
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_request_Details_Reimbursement`
+
 ### Public. Approve Contract Request by MSP [PATCH /api/contract_requests/{contract_type}/{id}/actions/approve_msp]
 
 ***Scope  contract_request:approve***
@@ -3902,6 +5076,43 @@ Get Contract Request Details and Get Contract Request Printout Content and sign 
             + `printout_content`: `Contract request content` (string, required) - HTML document for contract request
 
 
+
+### Private. Sign Contract Request by NHS [PATCH /api/contract_requests/{id}/actions/sign_nhs]
+
+***Scope  contract_request:sign***
+
+This WS is designed to sign contract request from NHS side. Contract request's status must be ='PENDING_NHS_SIGN'.
+Method receives signed message (pkcs7) including signed content, digital signature, digital stamp and signer public key in signed_content property.
+All signature fields will be validated (including signer certificate authority).This service will store signed copy of Contract Request in Media Content Storage. Signed content MUST consists of JSON object with Contract Request data and printout template.
+Object that need to be signed is returned by [Get Contract request details](https://uaehealthapi.docs.apiary.io/#reference/public.-contracts/contract-request/public.-get-contract-request-details) response, JSON.Path: $.data.
+data.prinout content must be changed to Print out content taken from [Get Contract Request Printout Content](https://uaehealthapi.docs.apiary.io/#reference/public.-contracts/contract-request/public.-get-contract-request-printout-content)
+
+In DS EDRPOU/DRFO must be equal to contractor_legal_entity.edrpou
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + `signed_content`: `ewogICJpZCI6ICIwOTEwNmI3MC0xOGIwLTQ3MjYtYjBlZC02YmRhMTM2OWZkNTIiLAogICJjb250cmFjdG9yX2xlZ2FsX2VudGl0eSI6IHsKICAgICJpZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLAogICAgIm5hbWUiOiAi0JrQu9GW0L3RltC60LAg0J3QvtGD0L3QtdC50LwiLAogICAgImVkcnBvdSI6ICIzMjMyMzQ1NCIsCiAgICAiYWRkcmVzc2VzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiUkVTSURFTkNFIiwKICAgICAgICAiY291bnRyeSI6ICJVQSIsCiAgICAgICAgImFyZWEiOiAi0JbQuNGC0L7QvNC40YDRgdGM0LrQsCIsCiAgICAgICAgInJlZ2lvbiI6ICLQkdC10YDQtNC40YfRltCy0YHRjNC60LjQuSIsCiAgICAgICAgInNldHRsZW1lbnQiOiAi0JrQuNGX0LIiLAogICAgICAgICJzZXR0bGVtZW50X3R5cGUiOiAiQ0lUWSIsCiAgICAgICAgInNldHRsZW1lbnRfaWQiOiAiNDM0MzI0MzIiLAogICAgICAgICJzdHJlZXRfdHlwZSI6ICJTVFJFRVQiLAogICAgICAgICJzdHJlZXQiOiAi0LLRg9C7LiDQndGW0LbQuNC90YHRjNC60LAiLAogICAgICAgICJidWlsZGluZyI6ICIxNSIsCiAgICAgICAgImFwYXJ0bWVudCI6ICIyMyIsCiAgICAgICAgInppcCI6ICIwMjA5MCIKICAgICAgfQogICAgXQogIH0sCiAgImNvbnRyYWN0b3Jfb3duZXIiOiB7CiAgICAiaWQiOiAiYjA3NWYxNDgtN2Y5My00ZmMyLWIyZWMtMmQ4MWIxOWE5YjdiIiwKICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgImxhc3RfbmFtZSI6ICLQhtCy0LDQvdC+0LIiLAogICAgInNlY29uZF9uYW1lIjogItCc0LjQutC+0LvQsNC50L7QstC40YciCiAgfSwKICAiY29udHJhY3Rvcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQt9Cw0LrQvtC90YMg0L/RgNC+INCc0LXQtNC40YfQvdC1INC+0LHRgdC70YPQs9C+0LLRg9Cy0LDQvdC90Y8g0L3QsNGB0LXQu9C10L3QvdGPIiwKICAiY29udHJhY3Rvcl9wYXltZW50X2RldGFpbHMiOiB7CiAgICAiYmFua19uYW1lIjogItCR0LDQvdC6INC90L7QvNC10YAgMSIsCiAgICAiTUZPIjogIjM1MTAwNSIsCiAgICAicGF5ZXJfYWNjb3VudCI6ICIzMjAwOTEwMjcwMTAyNiIKICB9LAogICJjb250cmFjdG9yX3Jtc3BfYW1vdW50IjogNTAwMDAsCiAgImV4dGVybmFsX2NvbnRyYWN0b3JfZmxhZyI6IHRydWUsCiAgImV4dGVybmFsX2NvbnRyYWN0b3JzIjogewogICAgImxlZ2FsX2VudGl0eSI6IHsKICAgICAgImlkIjogImIwNzVmMTQ4LTdmOTMtNGZjMi1iMmVjLTJkODFiMTlhOWI3YiIsCiAgICAgICJuYW1lIjogItCa0LvRltC90ZbQutCwINCd0L7Rg9C90LXQudC8IgogICAgfSwKICAgICJjb250cmFjdCI6IHsKICAgICAgIm51bWJlciI6ICIxMjM0NTY3IiwKICAgICAgImlzc3VlZF9hdCI6ICIyMDE4LTAxLTAxIiwKICAgICAgImV4cGlyZXNfYXQiOiAiMjAxOS0wMS0wMSIKICAgIH0sCiAgICAiZGl2aXNpb25zIjogWwogICAgICB7CiAgICAgICAgImlkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCIsCiAgICAgICAgIm5hbWUiOiAi0JHQvtGA0LjRgdC/0ZbQu9GM0YHRjNC60LUg0LLRltC00LTRltC70LXQvdC90Y8g0JrQu9GW0L3RltC60Lgg0J3QvtGD0L3QtdC50LwiLAogICAgICAgICJtZWRpY2FsX3NlcnZpY2UiOiAi0J/QvtGB0LvRg9Cz0LAg0J/QnNCUIgogICAgICB9CiAgICBdCiAgfSwKICAiY29udHJhY3Rvcl9lbXBsb3llZV9kaXZpc2lvbnMiOiBbCiAgICB7CiAgICAgICJlbXBsb3llZV9pZCI6IHsKICAgICAgICAiaWQiOiAiYjA3NWYxNDgtN2Y5My00ZmMyLWIyZWMtMmQ4MWIxOWE5YjdiIiwKICAgICAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICAgInNlY29uZF9uYW1lIjogItCc0LjQutC+0LvQsNC50L7QstC40YciLAogICAgICAgICJzcGVjaWFsaXRpZXMiOiBbCiAgICAgICAgICB7CiAgICAgICAgICAgICJzcGVjaWFsaXR5IjogIlRIRVJBUElTVCIsCiAgICAgICAgICAgICJzcGVjaWFsaXR5X29mZmljaW8iOiB0cnVlLAogICAgICAgICAgICAibGV2ZWwiOiAiRklSU1QiLAogICAgICAgICAgICAicXVhbGlmaWNhdGlvbl90eXBlIjogIkFXQVJESU5HIiwKICAgICAgICAgICAgImF0dGVzdGF0aW9uX25hbWUiOiAi0JDQutCw0LTQtdC80ZbRjyDQkdC+0LPQvtC80L7Qu9GM0YbRjyIsCiAgICAgICAgICAgICJhdHRlc3RhdGlvbl9kYXRlIjogIjIwMTciLAogICAgICAgICAgICAidmFsaWRfdG9fZGF0ZSI6ICIyMDIwIiwKICAgICAgICAgICAgImNlcnRpZmljYXRlX251bWJlciI6ICJBQi8yMTMzMSIKICAgICAgICAgIH0KICAgICAgICBdCiAgICAgIH0sCiAgICAgICJzdGFmZl91bml0cyI6IDAuNSwKICAgICAgImRlY2xhcmF0aW9uX2xpbWl0IjogMjAwMCwKICAgICAgImRpdmlzaW9uIjogewogICAgICAgICJpZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLAogICAgICAgICJuYW1lIjogItCR0L7RgNC40YHQv9GW0LvRjNGB0YzQutC1INCy0ZbQtNC00ZbQu9C10L3QvdGPINCa0LvRltC90ZbQutC4INCd0L7Rg9C90LXQudC8IiwKICAgICAgICAiYWRkcmVzc2VzIjogWwogICAgICAgICAgewogICAgICAgICAgICAidHlwZSI6ICJSRVNJREVOQ0UiLAogICAgICAgICAgICAiY291bnRyeSI6ICJVQSIsCiAgICAgICAgICAgICJhcmVhIjogItCW0LjRgtC+0LzQuNGA0YHRjNC60LAiLAogICAgICAgICAgICAicmVnaW9uIjogItCR0LXRgNC00LjRh9GW0LLRgdGM0LrQuNC5IiwKICAgICAgICAgICAgInNldHRsZW1lbnQiOiAi0JrQuNGX0LIiLAogICAgICAgICAgICAic2V0dGxlbWVudF90eXBlIjogIkNJVFkiLAogICAgICAgICAgICAic2V0dGxlbWVudF9pZCI6ICI0MzQzMjQzMiIsCiAgICAgICAgICAgICJzdHJlZXRfdHlwZSI6ICJTVFJFRVQiLAogICAgICAgICAgICAic3RyZWV0IjogItCy0YPQuy4g0J3RltC20LjQvdGB0YzQutCwIiwKICAgICAgICAgICAgImJ1aWxkaW5nIjogIjE1IiwKICAgICAgICAgICAgImFwYXJ0bWVudCI6ICIyMyIsCiAgICAgICAgICAgICJ6aXAiOiAiMDIwOTAiCiAgICAgICAgICB9CiAgICAgICAgXSwKICAgICAgICAicGhvbmVzIjogWwogICAgICAgICAgewogICAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgICAgICB9CiAgICAgICAgXSwKICAgICAgICAiZW1haWwiOiAiZW1haWxAZXhhbXBsZS5jb20iLAogICAgICAgICJ3b3JraW5nX2hvdXJzIjogewogICAgICAgICAgIm1vbiI6IFsKICAgICAgICAgICAgWwogICAgICAgICAgICAgICIwOC4wMCIsCiAgICAgICAgICAgICAgIjEyLjAwIgogICAgICAgICAgICBdLAogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjE0LjAwIiwKICAgICAgICAgICAgICAiMTguMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAidHVlIjogWwogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjA4LjAwIiwKICAgICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAid2VkIjogWwogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjA4LjAwIiwKICAgICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAidGh1IjogWwogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjA4LjAwIiwKICAgICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAiZnJpIjogWwogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjA4LjAwIiwKICAgICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAic2F0IjogW10sCiAgICAgICAgICAic3VuIjogW10KICAgICAgICB9LAogICAgICAgICJtb3VudGFpbl9ncm91cCI6IGZhbHNlCiAgICAgIH0KICAgIH0KICBdLAogICJpZF9mb3JtIjogIjUiLAogICJuaHNfc2lnbmVyX2Jhc2UiOiAi0L3QsCDQv9GW0LTRgdGC0LDQstGWINC90LDQutCw0LfRgyIsCiAgIm5oc19jb250cmFjdF9wcmljZSI6IDUwMDAwLAogICJuaHNfcGF5bWVudF9tZXRob2QiOiAicHJlcGF5bWVudCIsCiAgIm5oc19wYXltZW50X2RldGFpbHMiOiB7CiAgICAiYmFua19uYW1lIjogItCR0LDQvdC6INC90L7QvNC10YAgMSIsCiAgICAiTUZPIjogIjM1MTAwNSIsCiAgICAicGF5ZXJfYWNjb3VudCI6ICIzMjAwOTEwMjcwMTAyNiIKICB9LAogICJzdGF0dXMiOiAiTkVXIiwKICAic3RhdHVzX3JlYXNvbiI6ICLQndC1INCy0ZbQtNC/0L7QstGW0LTQsNGUINC/0L7Qv9C10YDQtdC00L3RltC8INC00L7QvNC+0LLQu9C10L3QvtGB0YLRj9C8IiwKICAibmhzX3NpZ25lciI6IHsKICAgICJpZCI6ICJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLAogICAgImZpcnN0X25hbWUiOiAi0J/QtdGC0YDQviIsCiAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAic2Vjb25kX25hbWUiOiAi0JzQuNC60L7Qu9Cw0LnQvtCy0LjRhyIKICB9LAogICJuaHNfbGVnYWxfZW50aXR5X2lkIjogewogICAgImlkIjogImRmOWY3MGVlLTRiMTItNDc0MC1iMGY1LWJiNWFlYTExNjg2MyIsCiAgICAibmFtZSI6ICLQmtC70ZbQvdGW0LrQsCDQndC+0YPQvdC10LnQvCIsCiAgICAiZWRycG91IjogIjMyMzIzNDU0IiwKICAgICJhZGRyZXNzZXMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJSRVNJREVOQ0UiLAogICAgICAgICJjb3VudHJ5IjogIlVBIiwKICAgICAgICAiYXJlYSI6ICLQltC40YLQvtC80LjRgNGB0YzQutCwIiwKICAgICAgICAicmVnaW9uIjogItCR0LXRgNC00LjRh9GW0LLRgdGM0LrQuNC5IiwKICAgICAgICAic2V0dGxlbWVudCI6ICLQmtC40ZfQsiIsCiAgICAgICAgInNldHRsZW1lbnRfdHlwZSI6ICJDSVRZIiwKICAgICAgICAic2V0dGxlbWVudF9pZCI6ICI0MzQzMjQzMiIsCiAgICAgICAgInN0cmVldF90eXBlIjogIlNUUkVFVCIsCiAgICAgICAgInN0cmVldCI6ICLQstGD0LsuINCd0ZbQttC40L3RgdGM0LrQsCIsCiAgICAgICAgImJ1aWxkaW5nIjogIjE1IiwKICAgICAgICAiYXBhcnRtZW50IjogIjIzIiwKICAgICAgICAiemlwIjogIjAyMDkwIgogICAgICB9CiAgICBdCiAgfSwKICAiaXNzdWVfY2l0eSI6ICLQmtC40ZfQsiIsCiAgImNvbnRyYWN0X251bWJlciI6ICIwMDAwLTlFQVgtWFQ3WC0zMTE1IiwKICAiY29udHJhY3RfaWQiOiAiZGY5ZjcwZWUtNGIxMi00NzQwLWIwZjUtYmI1YWVhMTE2ODYzIiwKICAic3RhcnRfZGF0ZSI6ICIyMDE3LTA0LTIwIiwKICAiZW5kX2RhdGUiOiAiMjAxNy0wNC0yMCIsCiAgInByaW50b3V0X2NvbnRlbnQiOiAiQ29udHJhY3QgcmVxdWVzdCBjb250ZW50Igp9`(string, required)
+        + `signed_content_encoding`: `base64` (string, required)
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_request_Details_Capitation`
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_request_Details_Reimbursement`
 
 ### Public. Sign Contract Request by MSP [PATCH /api/contract_requests/{contract_type}/{id}/actions/sign_msp]
 
@@ -4378,6 +5589,30 @@ Assuming that all required business processes and validations is implemented on 
         + meta (Response__Meta)
             + code: 200 (number)
 
+## Private. Media storage [/api/admin/media_storage]
+
+### Private. Generate URL to media storage [POST /api/admin/media_storage/generate_url]
+
++ Request (application/json)
+
+    + Headers
+
+            api-key: c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + action: PUT (string, required)
+            - PUT
+            - GET
+        + resource_id: `f7f817b2-3134-4625-b87d-e2d7fc8e9b90` (string, required)
+        + `resource_name`: `signed_contract` (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (object)
+            + url: `https://example.com/upload_url` (string, required)
+
 # Data Structures
 ## Responses
 ### `Response_Collection`
@@ -4469,6 +5704,47 @@ Assuming that all required business processes and validations is implemented on 
     - email
     - phone
 
+### `Person_v2`
++ id: `13001c60-45a0-4b5a-b425-9505e1de18bd` (string, optional)
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ birth_date: `1991-08-19` (string, required)
++ birth_country: `Україна` (string, required)
++ birth_settlement: `Вінниця` (string, required)
++ gender: MALE, FEMALE (enum[string], required)
++ email: email@example.com (string, optional)
++ tax_id: 3126509816 (string, optional)
++ secret: secret (string, required)
++ documents (array[Document], required)
++ addresses (array[Address], required)
++ phones (array[Phone], optional)
++ `authentication_methods` (array[Authentication_Method_Patient_Request], required)
++ preferred_way_communication: email (enum, optional) - the way how a patient wants to be reached
+    - email
+    - phone
+    
+
+### `Person_for_update`
++ id: `14b8f6fa-dc59-4e86-9bbd-dfb35a4b1713` (string, required)
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ birth_date: `1991-08-19` (string, required)
++ birth_country: `Україна` (string, required)
++ birth_settlement: `Вінниця` (string, required)
++ gender: MALE, FEMALE (enum[string], required)
++ email: email@example.com (string, optional)
++ tax_id: 3126509816 (string, optional)
++ secret: secret (string, required)
++ documents (array[Document], required)
++ addresses (array[Address], required)
++ phones (array[Phone], optional)
++ preferred_way_communication: email (enum, optional) - the way how a patient wants to be reached
+    - email
+    - phone
+    
+
 ### `Confidant_Person`
 + relation_type: PRIMARY (enum, required)
     - PRIMARY
@@ -4483,8 +5759,12 @@ Assuming that all required business processes and validations is implemented on 
 + email: confidant_person@example.com (string, optional)
 + tax_id: 3126509816 (string, optional)
 + secret: `secret` (string, required)
++ unzr: `19900101-00099` (string, optional)
++ preferred_way_communication: email (enum, optional) - the way how a patient wants to be reached
+    - email
+    - phone
 + documents_person (array[Document], required)
-+ documents_relationship (array[Document], required)
++ documents_relationship (array[RelationshipDocument], required)
 + phones (array[Phone], optional)
 
 ### `Confidant_Person_v2`
@@ -4494,14 +5774,18 @@ Assuming that all required business processes and validations is implemented on 
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
-+ birth_date: `1991-08-19` (string, required)
++ birth_date: `1972-10-26` (string, required)
 + birth_country: `Україна` (string, required)
 + birth_settlement: `Вінниця` (string, required)
 + gender: MALE, FEMALE (enum[string], required)
-+ tax_id: 3126509816 (string, optional)
++ tax_id: 2659719350 (string, optional)
 + secret: `secret` (string, required)
++ unzr: `19900101-00099` (string, optional)
++ preferred_way_communication: email (enum, optional) - the way how a patient wants to be reached
+    - email
+    - phone
 + documents_person (array[Document], required)
-+ documents_relationship (array[Document], required)
++ documents_relationship (array[RelationshipDocument], required)
 + phones (array[Phone], optional)
 + email: emaill@example.com (string, optional)
 
@@ -4562,10 +5846,8 @@ Assuming that all required business processes and validations is implemented on 
 
 ### `Person_Medication_Request`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ first_name: Петро (string, required)
-+ last_name: Іванов (string, required)
-+ second_name: Миколайович (string, optional)
-+ age: 35 (number, required) - full years between medication request date and birth date.
++ short_name: Петро І. І. (string, required)
++ age: 35 (number, required) - full years between medication request date and birth date
 
 
 ### `Authentication_Method`
@@ -4573,19 +5855,95 @@ Assuming that all required business processes and validations is implemented on 
     - OTP
     - OFFLINE
     - NA
-+ phone_number: `+380508887700` (string, optional)
++ phone_number: `+38093*****85` (string, optional)
+
+### `Authentication_Method_for_request`
++ type (enum, required)
+    - OTP
+    - OFFLINE
++ phone_number: `+38093*****81` (string, optional)
+
 
 ### `Authentication_Method_Patient_Request`
 + type (enum, required)
+    - THIRD_PERSON
     - OTP
+    - OFFLINE
+    - NA
++ phone_number: `+380508887700` (string, optional) - required for type = OTP
++ value: `c282f8a9-e709-40aa-94b4-dde1402bf4b6` (string, optional) - requered for type = THIRD_PERSON
++ alias: `husband` (string, optional) - required it type = THIRD_PERSON,  and optional for type = OTP or OFFLINE
+
+### `Authentication_Methods_Patient_Response`
+- One of
+    + object()
+        + type (enum, required)
+            - OTP
+            - OFFLINE
+            - NA
+        + phone_number: `+38093*****85` (string, optional)
+    + object()
+        + type: THIRD_PERSON
+        + alias: `husband` (string, required)
+        + authentication_reference (object, optional)
+            + type (enum, required)
+                - OTP
+                - OFFLINE
+            + phone_number: `+38093*****91` (string, optional)
+
+### `Authentication_Method_Patient_Response`
++ type (enum, required)
+    - OTP
+    - THIRD_PERSON
+    - OFFLINE
     - NA
 + phone_number: `+380508887700` (string, optional)
++ alias: `husband` (string, optional)
+
+### `Person_auth_methods`
+
++ id: `b94893f5-b66b-4431-b023-d5b5c037caef` (string, required)
++ type (enum, required)
+    - THIRD_PERSON
+    - OTP
+    - OFFLINE
++ phone_number: `+38093*****85` (string, optional) - it's required for type = OTP
++ value: `34d4aca0-ee15-4d2d-9ab8-336e5ba1f9c7` (string, optional) - mpi identifier of `third_person`. It s required for type = `THIRD_PERSON`
++ alias: `husband` (string, optional)
++ ended_at: `2020-01-10 18:23:34.217335` (string, optional) - ISO Datetime.
+
+
+
+
 
 ### `cabinet_person_response`
 + include `Person`
 + unzr: `19900101-00099` (string, optional)
 + `emergency_contact`(`Emergency_Contact`)
 + `process_disclosure_data_consent`: true (boolean, required)
+
+### `Authentication_methods_request`
+- One of
+    + object()
+        + action: delete (string, required)
+        + authentication_method(object)
+            + id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, required)
+    + object()
+        + action: insert (string, required)
+        + authentication_method(object)
+            + type(enum, required)
+                - THIRD_PERSON
+                - OTP
+                - OFFLINE
+            + phone_number: `+380976549872` (string, optional)
+            + value: `7b100a9c-daaa-490e-b88d-2a911059b0d2` (string, optional) - identifier of active person. It's required when type= THIRd_PERSON 
+            + alias: `husband` (string, optional) - it's required id type = THIRD_PERSON
+    + object()
+        + action: update (string, required)
+        + authentication_method(object)
+            + id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, required)
+            + alias: `wife` (string, optional)
+
 
 ## `Merge_Candidates`
 ### `Merge_Candidate`
@@ -4742,8 +6100,8 @@ Assuming that all required business processes and validations is implemented on 
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 
 ### `Declaration_Request_Online`
-+ `person_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person ID
-+ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
++ `person_id`: `4d0d790c-cbf1-44f5-ab21-ba8db67da161` (string, required) - Person ID
++ `employee_id`: `1a8b10ea-ba09-40f2-8f9e-55608e9208c6` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
 + `division_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
 
 ### `Declaration_Request_Online_Response`
@@ -4765,6 +6123,21 @@ Assuming that all required business processes and validations is implemented on 
 + employee (Employee_Minimal)
 + `legal_entity` (`MSP_Short`)
 + division (`Division_Short_List`)
+
+### `Declaration_Response_Short_v3`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - unique id of declaration
++ start_date: `2017-03-02` (string, required)
++ end_date: `2025-03-02` (string, required)
++ status (enum, required)
+    - NEW
+    - APPROVED
+    - SIGNED
+    - REJECTED
+    - CANCELLED
++ person_id: `4fa9cac7-8950-44db-9294-0daba56eed58` (string, optional) - unique id of person
++ employee_id: `60a797bb-43c5-463d-86ee-68e354cb626b` (string, required) - unique id of employee
++ division_id : `4c9c9c6e-5230-444d-8b65-7678da1c1ab3` (string, required) - unique id of dividion
++ `legal_entity_id` : `56b8bcd7-78b8-4ff7-8a60-a48e54a6ef57` (string, required) unique id of LE
 
 ### `Declaration_short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -4901,27 +6274,84 @@ Assuming that all required business processes and validations is implemented on 
     - family doctor
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 
+### `Decl_req_data_to_be_signed`
++ id: `b099f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+status: `APPROVED` (string, required)
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
++ declaration_id: `8311ab82-e341-4da0-8a95-235ec9885e23` (string, required) - presetted id for future declaration
++ start_date: `2017-03-02` (string, required) - Should be defined on the client side.
++ end_date: `2017-03-02` (string, required) - Will be defined on eHealth side if it's not set.
++ content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
++ channel: `MIS` (enum, required) - channel that invoke declaration create service
++ person (object, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
+    + id: `5fb57a5d-1457-430e-9678-c81cec72779f` (string,required )
+    + include `Person_info_Public`
+    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
+    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
++ employee (Employee_Minimal, required)
++ `legal_entity` (`Medical_Service_Provider`, required)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ division (`Division_Declaration`, required)
++ seed: hash (string, required) - Hash of previous block in declarations chain or other random component that should be signed with declaration.
++ authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
+
+
+
+
+### `Person_info_Public`
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ birth_date: `2009-07-05` (string, required)
++ birth_country: `Україна` (string, required)
++ birth_settlement: `Вінниця` (string, required)
++ gender: MALE, FEMALE (enum[string], required)
++ email: email@example.com (string, optional)
++ `no_tax_id`: false (boolean, required)
++ tax_id: 3999869394 (string, required)
++ secret: secret (string, required)
++ documents (array, required)
+    + include
+        + type: BIRTH_CERTIFICATE (string, required) - `Dictionary DOCUMENT_TYPE`
+        + number: АА120518 (string, required) - document issue number
+        + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+        + issued_at: `2017-02-28` (string, required) - the date when document was issued
+        + expiration_date: `2027-02-28` (string, optional) - the date when document expired, is necessery for those documents which has this date, ex, Temporary certificate, etc.
++ addresses (array[Address], required)
++ phones (array[Phone], optional)
++ `authentication_methods` (array[Authentication_Method_Patient_Request], optional)
++ unzr: `20090705-00011` (string, optional) - the record number in the demographic register
++ emergency_contact (object, required)
+    + include `Emergency_Contact`
++ `confidant_person` (array[`Confidant_Person_v2`], optional) - Should be set if this Person is disabled, underage, etc.
++ preferred_way_communication: email (enum, optional) - the way how a patient wants to be reached
+    - email
+    - phone    
+
+
+
 ### `Patient_short`
-+ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Id створеної персони
-+ signed_at: `2017-03-02T00:00:00.000Z` (string, required)
-+ status (enum, required)
-    - active
-    - pending_verification
-    - terminated
-+ `patient_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
++ person_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Id створеної персони
++ updated_at: `2017-03-02T00:00:00.000Z` (string, required)
++ status: SIGNED (string, optional)
++ id: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required) - request id
 + inserted_at: `2017-07-06T16:54:05.161571Z` (string, required)
-+ is_active: true (boolean, required)
-+ reason: `manual_employee` (string, optional)
-+ reason_description: `Згідно постанови 1 від 10.01.2017` (string, optional)
+
 
 ### `Patient_Request_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - unique id of declaration
-+ status (enum, required)
-    - active
-    - pending_verification
-    - terminated
-+ person (Person_Minimal_Declaration_Request)
++ status: active (enum, required)
+    - NEW
+    - APPROVED
+    - SIGNED
+    - REJECTED
+    - CANCELLED
++ person (object, optional) - Object that described a Patient
+    + first_name: Петро (string, required)
+    + last_name: Іванов (string, required)
+    + second_name: Миколайович (string, optional)
 
+  
 ## Party
 ### `Party_Short`
 + first_name: Петро (string, required)
@@ -5099,10 +6529,10 @@ Assuming that all required business processes and validations is implemented on 
 + doctor (DoctorNew, optional)
 
 ### `Employee_Request`
-+ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - employees division, mandatory for Doctors
-+ `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - employees division, mandatory for Pharmacist
++ `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
 + position: P8 (string, required) - `Dictionary POSITION`
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ start_date: `2017-03-02T10:45:16.000Z` (string, optional) - required on update an employee
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + status: NEW, REJECTED, APPROVED (enum, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
@@ -5120,6 +6550,10 @@ Assuming that all required business processes and validations is implemented on 
 
 ### `Employee_Request_Details`
 + include `Employee_Request`
+
+### `Employee_Request_Approve`
++ include `Employee_Request`
++ employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 ### `Employee_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -5416,7 +6850,7 @@ Assuming that all required business processes and validations is implemented on 
 + email: email@example.com (string, required) - division's email
 + working_hours (`workinghours`) - optional field, business hours by each day weekly, doesn't make any influence on business process and will be shown on portal and map.
 + type: CLINIC (enum, required) - `Dictionary DIVISION_TYPE`
-+ legal_entity_id: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
++ legal_entity_id: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, optional)
 + external_id: `3213213` (string, optional)
 + location (Location, optional) - optional field. geographical location, if it's empty, division won't be shown on a map.
 
@@ -5641,7 +7075,7 @@ Assuming that all required business processes and validations is implemented on 
 + updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### Address
-+ type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`. As for now Regisrtration and Residence types
++ type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`. 
 + country: UA (enum[string], required) - `Dictionary COUNTRY`
 + area: Житомирська (string, required) - one of Ukraianian area
 + region: Бердичівський (string, optional) - district of area
@@ -5665,6 +7099,13 @@ Assuming that all required business processes and validations is implemented on 
 
 ### Document
 + type: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
++ number: АА120518 (string, required) - document issue number
++ `expiration_date`: `2021-02-28` (string, optional) - `document expiration date. Required for NATIONAL_ID document type`
++ issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, optional) - authority which issued the document
++ issued_at: `2017-02-28` (string, optional) - the date when document was issued
+
+### RelationshipDocument
++ type: BIRTH_CERTIFICATE (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
 + number: АА120518 (string, required) - document issue number
 + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, optional) - authority which issued the document
 + issued_at: `2017-02-28` (string, optional) - the date when document was issued
@@ -5757,8 +7198,6 @@ Assuming that all required business processes and validations is implemented on 
 ## Dashboards
 
 ### StatsByRegion
-+ from_date: `2017-09-01` (string, optional)
-+ to_date: `2017-09-02` (string, optional)
 + regions (array, required)
     + (object)
         + include (`StatsByRegionadd`)
@@ -5766,10 +7205,9 @@ Assuming that all required business processes and validations is implemented on 
 ### StatsByRegionadd
 + `region` (object, required)
     + include `Region`
-+ `period` (object, required)
++ `stats` (object, required)
     + include `RegionStats`
-+ `total` (object, required)
-    + include `RegionStats`
+
 
 ### RegionStats
 + declarations_total: 100 (number, required)
@@ -5950,7 +7388,7 @@ Assuming that all required business processes and validations is implemented on 
 + country: UA (string, required) - `Dictionary COUNTRY`
 + city: Київ (string, required)
 + institution_name: Академія Богомольця (string, required)
-+ issued_date: `2017-02-28` (string, required)
++ issued_date: `2017-02-28` (string, optional)
 + diploma_number: DD123543 (string, required)
 + degree: MASTER (string, required) - `Dictionary EDUCATION_DEGREE`
 + speciality: Педіатр (string, required)
@@ -5963,7 +7401,7 @@ Assuming that all required business processes and validations is implemented on 
 + institution_name: Академія Богомольця (string, required)
 + diploma_number: DD123543 (string, required)
 + speciality: Педіатр (string, required)
-+ issued_date: 2017-02-28 (string, required)
++ issued_date: 2017-02-28 (string, optional)
 
 ### Qualification
 + type: SPECIALIZATION (string, required) - `Dictionary QUALIFICATION_TYPE`
@@ -5981,7 +7419,7 @@ Assuming that all required business processes and validations is implemented on 
 + `qualification_type`: AWARDING (string, required) - `Dictionary SPEC_QUALIFICATION_TYPE`
 + attestation_name: Академія Богомольця (string, required) - орган що видав
 + attestation_date: `2017-02-28` (string, required) - дата отримання
-+ valid_to_date: `2020-02-28` (string, required) - дата дії до
++ valid_to_date: `2020-02-28` (string, optional) - дата дії до
 + certificate_number: AB/21331 (string, required)
 
 ### `Speciality_party`
@@ -5989,8 +7427,8 @@ Assuming that all required business processes and validations is implemented on 
 + level: FIRST (string, required) - `Dictionary SPECIALITY_LEVEL`
 + `qualification_type`: AWARDING (string, required) - `Dictionary SPEC_QUALIFICATION_TYPE`
 + attestation_name: Академія Богомольця (string, required) - орган що видав
-+ attestation_date: `2017-02-28` (string, required) - дата отримання
-+ valid_to_date: `2020-02-28` (string, required) - дата дії до
++ attestation_date: 2017-02-28 (string, required) - дата отримання
++ valid_to_date: 2020-02-28 (string, required) - дата дії до
 + certificate_number: AB/21331 (string, required)
 
 ### Affordance
@@ -6311,7 +7749,7 @@ Assuming that all required business processes and validations is implemented on 
 
 ### `Period`
 + start : `2018-08-02T10:45:16.000Z`(string, required) - C? Starting time with inclusive boundary
-+ end : `2018-08-02T11:00:00.000Z`(string, optional) - C? End time with inclusive boundary, if not ongoing
++ end : `2018-08-02T11:00:00.000Z`(string, required) - C? End time with inclusive boundary, if not ongoing
 
 ### `Quantity`
 + value : `13,5` (number, required)
@@ -7114,7 +8552,7 @@ Assuming that all required business processes and validations is implemented on 
     + (object)
         + include `Employee_divisions`
 + `external_contractor_flag`: true (boolean, optional) - the existence of second appendix
-+ `external_contractors` (array, optional)
++ `external_contractors` (array, optional) - existing legal_entities with ACTIVE status
     + (object)
         + include (`External_contractors`, required)
 + `start_date`: `2017-04-20` (string, required) - contract start date
@@ -7207,7 +8645,7 @@ Assuming that all required business processes and validations is implemented on 
     + (object)
         + include `Employee_divisions_response`
 + `external_contractor_flag`: true (boolean, optional) - the existence of second appendix
-+ `external_contractors` (array, optional)
++ `external_contractors` (array, optional) - existing legal_entities with ACTIVE status
     + (object)
         + include (`External_contractors_response`, required)
 + `start_date`: `2017-04-20` (string, required) - contract start date
@@ -7415,7 +8853,7 @@ Assuming that all required business processes and validations is implemented on 
     + (object)
         + include `Contractor_divisions`
 + `external_contractor_flag`: true (boolean, optional) - the existence of second appendix
-+ `external_contractors` (array, optional)
++ `external_contractors` (array, optional) - existing legal_entities with ACTIVE status
     + (object)
         + include (`External_contractors_response`, required)
 + `contractor_employee_divisions` (array, fixed, required)
@@ -7531,7 +8969,7 @@ Assuming that all required business processes and validations is implemented on 
     + include (`Payment_details`, required)
 + `contractor_rmsp_amount`: `50000` (number, optional) - the amount of population which were served by this MSP
 + `external_contractor_flag`: true (boolean, optional) - the existence of second appendix
-+ `external_contractors` (array, optional)
++ `external_contractors` (array, optional) - existing legal_entities with ACTIVE status
     + (object)
         + include (`External_contractors_response`, required)
 + `nhs_signer_id`: `da8cc932-7bca-4048-a3ff-9b07f901a860` (object, required)
@@ -7551,6 +8989,7 @@ Assuming that all required business processes and validations is implemented on 
     - REIMBURSEMENT
 + `medical_program_id`: `d313342c-0b3c-443b-a92e-afb78d1e8086` (string, optional)
 + reason: `не було виконано умов контракту` (string, optional) - additional the reason of terminated status
++ `signed_content_location`: `bucket_name/folder_identifier/file_name` (string, optional) - Location of the signed content in media storage
 
 ### `Contracts_CRUD_response`
 + id: `8be63914-a278-470b-b868-1af5b9087332` (string, required) - Unique record identifier
@@ -7660,3 +9099,113 @@ Assuming that all required business processes and validations is implemented on 
 + settings (object) - User settings
 + inserted_at: `2017-05-05T14:09:59.232112` (string, required)
 + updated_at: `2017-05-05T14:09:59.232112` (string, required)
+
+## `Equipment`
+### `Equipment_base`
++ type: `23143534` (string, required)- `code from dictionary -  EQUIPMENT_TYPE`            
++ external_id: `123-ASD-#1` (string, required) - Identifier from external system
++ udi (array, optional) - A set of unique identifiers assigned to the asset by the manufacturer 
+    + include
+        + value: `IMEI 49015420323751` (string, required) - udi identifier
+        + type: `default` (string, required) - `type of the udi identifier acording to dictionary EQUIPMENT_UDI_TYPE`
+        + assigner_name: `Ukrainian center of the certification` (string, optional) - assigner name of the udi
++ lot_number: `RZ12345678` (string, optional)
++ manufacturer: `GlobalMed, Inc` (string, optional)
++ manufacture_date: `1999-01-01` (string, optional)
++ expiration_date: `2020-01-01` (string, optional)
++ model_number: `NSPX30` (string, optional)
++ part_number: `#e30-SD` (string, optional)
++ version: `v1.0.1` (string, optional)
++ name: `Рентген апарат флюрографічній` (string, optional)
++ serial_number: `S/N234554` (string, optional)
++ note: `Технічний огляд раз на рік` (string, optional)
+
+### `Equipment_response`
++ id: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, required) - Equipment identifier
++ division_id: `8be63914-a278-470b-b868-1af5b9087332` (string, required) - Division identifier
++ `legal_entity_id`: `483af06f-d4c6-4c9e-8d9b-680b5ef7270d` (string, required) - Legal entity identifier
++ include `Equipment_base`
++ status: ACTIVE (string, required)
+    - ACTIVE
+    - INACTIVE
++ is_active: true (boolean, required) - Technical attribute. Indicates the availability of therecord in the system
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+## Merge request
+### `Merge_request_base`
++ master_person_id: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, required) - `Identifier in MPI of the master person`
++ merge_person_id: `7c3da506-804d-4550-8993-bf17f9ee0403` (string, required) - `Person identifier in MPI which will be merged to master person \(preperson\)`
+
+### `Merge_request_response`
++ id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
++ include `Merge_request_base`
++ status: NEW (string, required) - `status of the new merge request`
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Merge_request_sign_data`
++ id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
++ status: APPROVED (string, required) - `status of the merge request`
++ `master_person` (required) - `Person data`
+    + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
+    + first_name: Петро (string, required)
+    + last_name: Іванов (string, required)
+    + second_name: Миколайович (string, optional)
+    + birth_date: `2009-07-05` (string, required)
+    + birth_country: `Україна` (string, required)
+    + birth_settlement: `Вінниця` (string, required)
+    + gender: MALE, FEMALE (enum[string], required)
+    + email: email@example.com (string, optional)
+    + `no_tax_id`: false (boolean, required)
+    + tax_id: 3999869394 (string, required)
+    + secret: secret (string, required)
+    + documents (array, required)
+        + include
+            + type: BIRTH_CERTIFICATE (string, required) - `Dictionary DOCUMENT_TYPE`
+            + number: АА120518 (string, required) - document issue number
+            + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+            + issued_at: `2017-02-28` (string, required) - the date when document was issued
+            + expiration_date: `2027-02-28` (string, optional) - the date when document expired, is necessery for those documents which has this date, ex, Temporary certificate, etc.
+    + addresses (array[Address], required)
+    + phones (array[Phone], optional)
+    + unzr: `20090705-00011` (string, optional) - the record number in the demographic register
+    + emergency_contact (object, required)
+        + include `Emergency_Contact`
+    + `confidant_person` (array[`Confidant_Person_v2`], optional) - Should be set if this Person is disabled, underage, etc.
+    + preferred_way_communication: email (enum, optional) - the way how a patient wants to be reached
+        - email
+        - phone    
++ patient_signed: false (boolean, required) - Master person's evidence of sign the merge request.
++ `merge_person` (`Preperson_base`, required) - `Preperson data`
+    + id: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, required) - MPI identifier of the merge person.
+    + note: `Registered in SmartMed clinic at 01.01.2019 16:40. Male, 40 years old approximately, tatoo with sport motorcycle on the right forearm` (string, optional) - Notes
++ content: `HTML` (string, required) - Generated printout form
+
+## `Preperson`
+### `Preperson_base`
++ external_id: `#1234-FDS-aa` (string, required) - `Identifier from external system`
++ first_name: Петро (string, optional)
++ last_name: Іванов (string, optional)
++ second_name: Миколайович (string, optional)
++ gender: MALE (string, optional) - `Dictionary GENDER`
++ birth_date: `1980-01-01` (string, optional)
++ emergency_contact (object, optional)
+    + include `Emergency_Contact`
+
+### `Preperson_response`
++ id: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, required) - `MPI identifier of the preperson`
++ include `Preperson_base`
++ note: `Registered in SmartMed clinic at 01.01.2019 16:40. Male, 40 years old approximately, tatoo with sport motorcycle on the right forearm` (string, optional) - Notes
++ status: ACTIVE (enum, required) - `status of the preperson`
+    - ACTIVE
+    - INACTIVE
++ death_date: `2018-11-11` (string, optional) - date of death
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
