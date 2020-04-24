@@ -6365,7 +6365,7 @@ status: `APPROVED` (string, required)
 + `no_tax_id`: false (boolean, optional)
 + tax_id: 3126509816 (string, required)
 + email: email@example.com (string, optional)
-+ documents (array[Document], optional)
++ documents (array[PartyDocument], optional)
 + phones (array[Phone], optional)
 + educations (array[Education], optional)  - освіта
 + qualifications (array[Qualification], optional) - підвищення кваліфікації
@@ -6379,7 +6379,7 @@ status: `APPROVED` (string, required)
 + `no_tax_id`: false (boolean, optional) - true if employee doesn't have tax_id and false otherwise
 + tax_id: 3126509816 (string, required) - if no_tax_id=true then passport number, otherwise tax_id
 + email: email@example.com (string, optional)
-+ documents (array[Document], optional)
++ documents (array[PartyDocument], optional)
 + phones (array[Phone], optional)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
@@ -6391,7 +6391,7 @@ status: `APPROVED` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
 + `no_tax_id`: false (boolean, optional)
 + tax_id: 3126509816 (string, required)
-+ documents (array[Document], optional)
++ documents (array[PartyDocument], optional)
 + phones (array[Phone], optional)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
@@ -6404,7 +6404,7 @@ status: `APPROVED` (string, required)
 + tax_id: 3126509816 (string, required)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE(string, required) - `Dictionary GENDER`
-+ documents (array[Document], optional)
++ documents (array[PartyDocument], optional)
 + phones (array[Phone], optional)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
@@ -6422,7 +6422,7 @@ status: `APPROVED` (string, required)
 + gender: MALE(string, required) - `Dictionary GENDER`
 + no_tax_id: false (boolean, optional)
 + tax_id: 3126509816 (string, required)
-+ documents (array[Document], optional)
++ documents (array[PartyDocument], optional)
 + phones (array[Phone], optional)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
@@ -6950,7 +6950,7 @@ status: `APPROVED` (string, required)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
 + email: `email@example.com` (string, required)
-+ documents (array[Document], optional)
++ documents (array[PartyDocument], optional)
 + phones (array[Phone], optional)
 + position (string, required): `P6`- `Dictionary POSITION`
 
@@ -6962,7 +6962,7 @@ status: `APPROVED` (string, required)
 + birth_date: `1991-08-19` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
 + email: `email@example.com` (string, required)
-+ documents (array[Document], optional)
++ documents (array[PartyDocument], optional)
 + phones (array[Phone], optional)
 + position (string, required): `P6`- `Dictionary POSITION`
 
@@ -7101,6 +7101,12 @@ status: `APPROVED` (string, required)
 + type: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
 + number: АА120518 (string, required) - document issue number
 + `expiration_date`: `2021-02-28` (string, optional) - `document expiration date. Required for NATIONAL_ID document type`
++ issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, optional) - authority which issued the document
++ issued_at: `2017-02-28` (string, optional) - the date when document was issued
+
+### PartyDocument
++ type: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
++ number: АА120518 (string, required) - document issue number
 + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, optional) - authority which issued the document
 + issued_at: `2017-02-28` (string, optional) - the date when document was issued
 
