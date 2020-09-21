@@ -713,8 +713,6 @@ Block `person` has optional `id`.
                 - family doctor
             + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
             + declaration_id: `8311ab82-e341-4da0-8a95-235ec9885e23` (string, required) - presetted id for future declaration
-
-
             + employee (Employee_Minimal)
             + `legal_entity` (`Medical_Service_Provider`)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1881,13 +1879,13 @@ This information was in response of Get `Search for a Person` before.
                 + id: `57e30ea3-16f1-4f8e-adcd-1a05e99e2d22` (string, optional) - identifier of the relation of persons who are compared during the deduplication process
                 + inserted_at: `2019-05-08T15:34:00Z` (string, optional)
                 + merge_person_id: `bdadc2a7-7283-4f24-bc99-8d8d9808af80` (string, optional) - identifier of a person who is recognized as a duplicate and subsequently deactivated
-                + person_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - identifier of the person who as a result of the deduplication is recognized as true and subsequently left active
+                + master_person_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - identifier of the person who as a result of the deduplication is recognized as true and subsequently left active
                 + updated_at: `2019-05-08T15:34:00Z` (string, optional)
             + object ()
                 + id: `a4181621-681f-4e46-b0ba-7fa4e59859ef` (string, optional) - identifier of the relation of persons who are compared during the deduplication process
                 + inserted_at: `2019-01-08T15:34:00Z` (string, optional)
                 + merge_person_id: `1a356e56-a991-4ceb-a475-3edfd9930265` (string, optional) - identifier of a person who is recognized as a duplicate and subsequently deactivated
-                + person_id: `bdadc2a7-7283-4f24-bc99-8d8d9808af80` (string, optional) - identifier of the person who as a result of the deduplication is recognized as true and subsequently left active
+                + master_person_id: `bdadc2a7-7283-4f24-bc99-8d8d9808af80` (string, optional) - identifier of the person who as a result of the deduplication is recognized as true and subsequently left active
                 + updated_at: `2019-01-08T15:34:00Z` (string, optional)
 
 
@@ -3313,6 +3311,7 @@ Method enables to modify all the preperson fields except note and status.
     
     + Attributes (object)
         + include `Preperson_base`
+        + gender: MALE (string, optional) - `Dictionary GENDER`
         + external_id: `#1234-FDS-ab` (string, optional) - `Identifier from external system`
         + death_date: `2018-11-11` (string, optional) - Date of death
         + note: `Registered in SmartMed clinic at 01.01.2019 16:40. Male, 40 years old approximately, tatoo with sport motorcycle on the right forearm` (string, optional) - Notes
@@ -4689,6 +4688,8 @@ List of events that are stored to EventDB:
 - person status change
 - contract's is_suspended change
 - service request status change
+- legal entity status change
+- preperson status change
 
 Entity_type variants:
 - Declaration
@@ -4700,6 +4701,8 @@ Entity_type variants:
 - Contract
 - Person
 - ServiceRequest
+- LegalEntity
+- Preperson
 
 In the EventDB events are kept during one month or till 10K. The duration and amount of events are parametrized.
 
@@ -5353,10 +5356,8 @@ Attribute |Is required| Description
 contractor_owner_id|true| підписант, зі сторони мед. закладу
 contractor_base|true| на якій підставі діє підписант: закон/домовленість
 contractor_payment_details|true| об'єкт, що містить дані по рахунку, на який будуть здійснюватися виплати
-contractor_rmsp_amount|true| к-сть осіб, що обслуговувалися мед закладом (додаток 1.1 пункт 7)
 previous_request_id | false | опційне поле, яке вказує, що поточний запит на контракт є новою версією вказаного запиту
 contractor_divisions|true| масив id відділень мед. закладу, що включаються в договір
-contractor_employee_divisions|false| масив лікарів (на конкретних відділеннях), що входять да контракту та капітаційного звіту
 external_contractor_flag|false| наявність додатку 2 (підрядники, залучені до надання медичних послуг за Договором)
 external_contractors|false|масив об'єктів типу external_contractor objects - підрядники, залучені до надання медичних послуг за Договором
 start_date|false| пункт 9.2 - цей договір діє з (рік має бути поточний або настпуний)
@@ -5441,17 +5442,8 @@ Capitation version:
     "payer_account": "UA3412345678901234567890",
     "bank_name": "Банк №1"
   },
-  "contractor_rmsp_amount": 50000,
   "contractor_divisions": [
     "adeac295-0d39-4a8e-8e16-9526787de3f1"
-  ],
-  "contractor_employee_divisions": [
-    {
-      "employee_id": "2922a240-63db-404e-b730-09222bfeb2dd",
-      "staff_units": 0.5,
-      "declaration_limit": 2000,
-      "division_id": "2922a240-63db-404e-b730-09222bfeb2dd"
-    }
   ],
   "external_contractor_flag": true,
    "external_contractors": [
@@ -6118,13 +6110,14 @@ Assuming that all required business processes and validations is implemented on 
         - CAPITATION
         - REIMBURSEMENT
     + contractor_legal_entity_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of legal entity which created contract request.
-    + edrpou: `5432345432` (string, optional) - contractor legal entity EDRPOU
+    + edrpo: `5432345432` (string, optional) - contractor legal entity EDRPOU
     + contractor_owner_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of legal entity owner.
     + `nhs_signer_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of nhs employee
     + status: `VERIFIED` (enum, optional) - current contract status.
         - TERMINATED
         - VERIFIED
-    + is_suspended: true (boolean, optional) - wether contract is active
+    + is_suspended: true (boolean, optional) - wether contract is suspensed
+    + is_active: true (boolean, optional) - wether contract is active
     + date_from_start_date: `2018-01-01` (string, optional)
     + date_to_start_date: `2019-01-01` (string, optional)
     + date_from_end_date: `2018-01-01` (string, optional)
@@ -6174,6 +6167,7 @@ Assuming that all required business processes and validations is implemented on 
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
+        + data (object)
         + meta (Response__Meta)
             + code: 200 (number)
 
@@ -6220,6 +6214,7 @@ Assuming that all required business processes and validations is implemented on 
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - Contract division identifier
     + contract_id: `82286646-ee07-4d89-929d-29287c367e8a` (string, optional) - Contract identifier
     + division_id: `f93ac873-b999-47d2-a945-32e7f582eed0` (string, optional) - Division identifier
+    + is_active: true (boolean, optional) - wether contract divisions is active
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
 
@@ -6263,6 +6258,7 @@ Assuming that all required business processes and validations is implemented on 
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
+        + data (object)
         + meta (Response__Meta)
             + code: 200 (number)
 
@@ -6310,6 +6306,7 @@ Assuming that all required business processes and validations is implemented on 
     + employee_id: `da1c07c3-1104-45a3-9a8c-04ffd898da6a` (string, optional) - Employee identifier
     + division_id: `f93ac873-b999-47d2-a945-32e7f582eed0` (string, optional) - Division identifier
     + contract_id: `82286646-ee07-4d89-929d-29287c367e8a` (string, optional) - Contract identifier
+    + is_active: true (boolean, optional) - wether contract employees is active
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
 
@@ -6353,12 +6350,13 @@ Assuming that all required business processes and validations is implemented on 
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
+        + data (object)
         + meta (Response__Meta)
             + code: 200 (number)
 
-## Private. Media storage [/api/admin/media_storage]
+## Private. Media storage [/api/admin/contracts/media_storage]
 
-### Private. Generate URL to media storage [POST /api/admin/media_storage/generate_url]
+### Private. Generate URL to media storage [POST /api/admin/contracts/media_storage/generate_url]
 
 + Request (application/json)
 
@@ -6370,8 +6368,8 @@ Assuming that all required business processes and validations is implemented on 
         + action: PUT (string, required)
             - PUT
             - GET
-        + resource_id: `f7f817b2-3134-4625-b87d-e2d7fc8e9b90` (string, required)
-        + `resource_name`: `signed_contract` (string, required)
+        + resource_id: `f7f817b2-3134-4625-b87d-e2d7fc8e9b90` (string, required) - Folder identifier
+        + `resource_name`: `signed_contract` (string, required) - File name
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -6379,6 +6377,7 @@ Assuming that all required business processes and validations is implemented on 
             + code: 200 (number)
         + data (object)
             + url: `https://example.com/upload_url` (string, required)
+
 
 # Data Structures
 ## Responses
@@ -6608,7 +6607,7 @@ Assuming that all required business processes and validations is implemented on 
     - FEMALE
     - MALE
 + tax_id: 3126509816 (string, optional)
-+ phones (array[Phone], required)
++ phones (array[Phone], optional)
 + birth_settlement: Вінниця (string, required)
 + birth_country: Україна (string, required) - країна народження
 
@@ -7353,7 +7352,7 @@ status: `APPROVED` (string, required)
 + doctor (DoctorNew, optional)
 
 ### `Employee_Request`
-+ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - employees division, mandatory for Pharmacist
++ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - mandatory for Pharmacy employees
 + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
 + position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, optional) - required on update an employee
@@ -7722,6 +7721,7 @@ status: `APPROVED` (string, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required) - division's email
++ location (Location, optional) - geographical location, if it's empty, division won't be shown on a map.
 
 
 ### `Division_Short_List`
@@ -8053,8 +8053,8 @@ status: `APPROVED` (string, required)
 + name: `Київ` (string, required)
 
 ### HistogramStats
-+ period_type: DAY (string, required)
-+ period_name: `2017-09-01` (string, required)
++ period_type: MONTH (string, required)
++ period_name: `2017-09` (string, required)
 + declarations_created: 0 (number, required)
 + declarations_closed: 0 (number, required)
 + declarations_active_start: 1 (number, required)
@@ -9886,8 +9886,8 @@ status: `APPROVED` (string, required)
 + employee_id: `ce050c01-f4a5-4d5f-85d6-7e41d41146bf` (string, required) - Employee identifier
 + division_id: `62d0a654-2e7f-40fb-b1bb-8a38cdc3f701` (string, required) - Division identifier
 + contract_id: `6bb64748-7707-4be8-86e0-56cfb08e9b88` (string, required) - Contract identifier
-+ start_date: `2018-04-20` (string, required) - Start date of employee involvment period
-+ end_date: `2019-04-20` (string, required) - End date of employee involvment period. If empty - then infinite
++ start_date: `2018-04-20T19:14:13Z` (string, required) - Start date and time of employee involvment period
++ end_date: `2019-04-20T19:14:13Z` (string, required) - End date and time of employee involvment period. If empty - then infinite
 
 ### `Contract_employees_CRUD_response`
 + id: `8be63914-a278-470b-b868-1af5b9087332` (string, required) - Unique record identifier
@@ -10059,7 +10059,7 @@ status: `APPROVED` (string, required)
 + first_name: Петро (string, optional)
 + last_name: Іванов (string, optional)
 + second_name: Миколайович (string, optional)
-+ gender: MALE (string, optional) - `Dictionary GENDER`
++ gender: MALE (string, required) - `Dictionary GENDER`
 + birth_date: `1980-01-01` (string, optional)
 + emergency_contact (object, optional)
     + include `Emergency_Contact`
