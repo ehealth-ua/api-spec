@@ -401,120 +401,121 @@ Person request can be signed either by doctor or admin (user with scope `person_
 
 More detailed information - https://e-health-ua.atlassian.net/wiki/x/QQAiIw
 
-**Signed object example:**
-```
-{
-  "status": "APPROVED",
-  "id": "eeebb86d-5cba-43c9-885b-6482ecaf826b",
-  "person": {
-    "id": "13001c60-45a0-4b5a-b425-9505e1de18bd",
-    "first_name": "Петро",
-    "last_name": "Іванов",
-    "second_name": "Миколайович",
-    "birth_date": "2009-07-05",
-    "birth_country": "Україна",
-    "birth_settlement": "Вінниця",
-    "gender": "MALE",
-    "email": "email@example.com",
-    "no_tax_id": false,
-    "tax_id": "3999869394",
-    "secret": "secret",
-    "documents": [
-      {
-        "type": "BIRTH_CERTIFICATE",
-        "number": "АА120518",
-        "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
-        "issued_at": "2017-02-28",
-        "expiration_date": "2027-02-28"
-      }
-    ],
-    "addresses": [
-      {
-        "type": "RESIDENCE",
-        "country": "UA",
-        "area": "Житомирська",
-        "region": "Бердичівський",
-        "settlement": "Київ",
-        "settlement_type": "CITY",
-        "settlement_id": "b075f148",
-        "street_type": "STREET",
-        "street": "вул. Ніжинська",
-        "building": "15",
-        "apartment": "23",
-        "zip": "02090"
-      }
-    ],
-    "phones": [
-      {
-        "type": "MOBILE",
-        "number": "+380503410870"
-      }
-    ],
-    "authentication_methods": [
-      {
-        "type": "THIRD_PERSON",
-        "value": "+380508887700",
-        "alias": "husband"
-      }
-    ],
-    "unzr": "20090705-00011",
-    "emergency_contact": {
-      "first_name": "Петро",
-      "last_name": "Іванов",
-      "second_name": "Миколайович",
-      "phones": [
-        {
-          "type": "MOBILE",
-          "number": "+380503410870"
-        }
-      ]
-    },
-    "confidant_person": [
-      {
-        "relation_type": "PRIMARY",
-        "first_name": "Петро",
-        "last_name": "Іванов",
-        "second_name": "Миколайович",
-        "birth_date": "1972-10-26",
-        "birth_country": "Україна",
-        "birth_settlement": "Вінниця",
-        "gender": "MALE",
-        "tax_id": "2659719350",
-        "secret": "secret",
-        "documents_person": [
-          {
-            "type": "PASSPORT",
-            "number": "АА120518",
-            "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
-            "issued_at": "2017-02-28"
-          }
-        ],
-        "documents_relationship": [
-          {
-            "type": "PASSPORT",
-            "number": "АА120518",
-            "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
-            "issued_at": "2017-02-28"
-          }
-        ],
-        "phones": [
-          {
-            "type": "MOBILE",
-            "number": "+380503410870"
-          }
-        ],
-        "email": "emaill@example.com"
-      }
-    ],
-    "preferred_way_communication": "email"
-  },
-  "patient_signed": true,
-  "process_disclosure_data_consent": true,
-  "content": "<html><body><p>signed person data</p></body></html>",
-  "channel": "MIS"
-  "authorize_with": "cc949559-5dfe-420f-ac05-065e443b2cc6"
-}
-```
+Look at [**Dummy Sign Person Request**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-person-request/sign-person-request) for more details.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 + Parameters
     + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
@@ -953,207 +954,8 @@ Declaration request can be signed either by doctor or admin (user with scope `de
 **Important**
 Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in declarations chain or other random component that should be signed with declaration
 
-**Signed object example:**
-```
-{
-    "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-    "start_date": "2017-03-02",
-    "end_date": "2017-03-02",
-    "person": {
-      "id": "3b1d9e46-1c47-4ce8-89f9-15658f77d784"
-      "first_name": "Петро",
-      "last_name": "Іванов",
-      "second_name": "Миколайович",
-      "birth_date": "1991-08-19",
-      "birth_country": "Україна",
-      "birth_settlement": "Вінниця",
-      "gender": "MALE",
-      "email": "email@example.com",
-      "tax_id": "3126509816",
-      "secret": "secret",
-      "documents": [
-        {
-          "type": "PASSPORT",
-          "number": "120518"
-        }
-      ],
-      "addresses": [
-        {
-          "type": "RESIDENCE",
-          "country": "UA",
-          "area": "Житомирська",
-          "region": "Бердичівський",
-          "settlement": "Київ",
-          "settlement_type": "CITY",
-          "settlement_id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-          "street_type": "STREET",
-          "street": "вул. Ніжинська",
-          "building": "15",
-          "apartment": "23",
-          "zip": "02090"
-        }
-      ],
-      "phones": [
-        {
-          "type": "MOBILE",
-          "number": "+380503410870"
-        }
-      ],
-      "authentication_methods": [
-        {
-          "type": "OTP",
-          "phone_number": "+380508887700"
-        }
-      ],
-      "emergency_contact": {
-        "first_name": "Петро",
-        "last_name": "Іванов",
-        "second_name": "Миколайович",
-        "phones": [
-          {
-            "type": "MOBILE",
-            "number": "+380503410870"
-          }
-        ]
-      },
-      "confidant_person": [
-        {
-          "relation_type": "PRIMARY",
-          "first_name": "Петро",
-          "last_name": "Іванов",
-          "second_name": "Миколайович",
-          "birth_date": "1991-08-19",
-          "birth_country": "Україна",
-          "birth_settlement": "Вінниця",
-          "gender": "MALE",
-          "tax_id": "3126509816",
-          "email": "confidant_person@email.com",
-          "secret": "secret",
-          "documents_person": [
-            {
-              "type": "PASSPORT",
-              "number": "120518"
-            }
-          ],
-          "documents_relationship": [
-            {
-              "type": "PASSPORT",
-              "number": "120518"
-            }
-          ],
-          "phones": [
-            {
-              "type": "MOBILE",
-              "number": "+380503410870"
-            }
-          ]
-        }
-      ],
-      "patient_signed": false,
-      "process_disclosure_data_consent": true
-    },
-    "scope": "family doctor",
-    "employee": {
-      "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
-      "position": "P6",
-      "party": {
-        "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-        "first_name": "Петро",
-        "last_name": "Іванов",
-        "second_name": "Миколайович",
-        "email": "email@example.com",
-        "phones": [
-          {
-            "type": "MOBILE",
-            "number": "+380503410870"
-          }
-        ]
-      }
-    },
-    "legal_entity": {
-      "name": "Клініка НоуНейм",
-      "short_name": "Ноунейм",
-      "legal_form": "140",
-      "public_name": "ЦПМСД №1",
-      "edrpou": "5432345432",
-      "licenses": [
-        {
-          "license_number": "fd123443",
-          "issued_by": "Кваліфікацйна комісія",
-          "issued_date": "2017-02-28",
-          "expiry_date": "2017-02-28",
-          "active_from_date": "2017-02-28",
-          "what_licensed": "реалізація наркотичних засобів",
-          "order_no": "K-123"
-        }
-      ],
-      "accreditation": {
-        "category": "SECOND",
-        "issued_date": "2017-02-28",
-        "expiry_date": "2017-02-28",
-        "order_no": "fd123443",
-        "order_date": "2017-02-28"
-      },
-      "addresses": [
-        {
-          "type": "RESIDENCE",
-          "country": "UA",
-          "area": "Житомирська",
-          "region": "Бердичівський",
-          "settlement": "Київ",
-          "settlement_type": "CITY",
-          "settlement_id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-          "street_type": "STREET",
-          "street": "вул. Ніжинська",
-          "building": "15",
-          "apartment": "23",
-          "zip": "02090"
-        }
-      ],
-      "phones": [
-        {
-          "type": "MOBILE",
-          "number": "+380503410870"
-        }
-      ],
-      "email": "email@example.com",
-      "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"
-    },
-    "division": {
-      "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
-      "legal_entity_id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
-      "name": "Бориспільське відділення Клініки Ноунейм",
-      "addresses": [
-        {
-          "type": "RESIDENCE",
-          "country": "UA",
-          "area": "Житомирська",
-          "region": "Бердичівський",
-          "settlement": "Київ",
-          "settlement_type": "CITY",
-          "settlement_id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-          "street_type": "STREET",
-          "street": "вул. Ніжинська",
-          "building": "15",
-          "apartment": "23",
-          "zip": "02090"
-        }
-      ],
-      "phones": [
-        {
-          "type": "MOBILE",
-          "number": "+380503410870"
-        }
-      ],
-      "email": "email@example.com",
-      "type": "clinic",
-      "external_id": "3213213"
-    },
-    "content": "Declaration content",
-    "seed": "ghTjh409dnhHUkdi4jdh6hded"
-  }
-}
-```
+
+Look at [**Dummy Sign Declaration Request**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-declaration-request/sign-declaration-request) for more details.
 
 + Parameters
     + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
@@ -1283,6 +1085,10 @@ Use this method to reject previously created Declaration Request.
 + Parameters
     + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
 
+
+
+
+
 + Request (application/json)
 
     + Headers
@@ -1323,7 +1129,6 @@ Declaration request can be signed either by doctor or admin (user with scope `de
 Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in declarations chain or other random component that should be signed with declaration.
 
 There is a [**dummy method**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-declaration-request/sign-declaration-request) that describes the signed date example.
-
 
 + Parameters
     + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
@@ -1776,7 +1581,6 @@ This service should be used with `access_token` authetification method.
 
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9 (string, optional)
 
-
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (Employee_Request_Details)
@@ -1800,7 +1604,6 @@ This service should be used with mis `access_token` authetification method and u
     + Headers
 
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9 (string, optional)   
-
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -1897,6 +1700,955 @@ This information was in response of Get `Search for a Person` before.
             + type: `forbidden`
             + message: `Such person not found` (string)
  
+
+### Create Person [POST /api/persons/create]
+**[Not implemented]** This WS is designed to create person in offline method by legal_entity employee. Employee need scope person:write to create person.
+Method receives signed message (pkcs7) including signed content, digital signature and signer public key. All signature fields will be validated (including signer certificate authority).
+
+Entity data:
+{
+    "first_name": "Петро",
+    "last_name": "Іванов",
+    "second_name": "Миколайович",
+    "birth_date": "1991-08-19",
+    "birth_country": "Україна",
+    "birth_settlement": "Вінниця",
+    "gender": "MALE",
+    "email": "email@example.com",
+    "tax_id": "3126509816",
+    "secret": "secret",
+    "documents": [
+      {
+        "type": "PASSPORT",
+        "number": "120518",
+        "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
+        "issued_at": "2017-02-28"
+      }
+    ],
+    "addresses": [
+      {
+        "type": "RESIDENCE",
+        "country": "UA",
+        "area": "Житомирська",
+        "region": "Бердичівський",
+        "settlement": "Київ",
+        "settlement_type": "CITY",
+        "settlement_id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+        "street_type": "STREET",
+        "street": "вул. Ніжинська",
+        "building": "15",
+        "apartment": "23",
+        "zip": "02090"
+      }
+    ],
+    "phones": [
+      {
+        "type": "MOBILE",
+        "number": "+380503410870"
+      }
+    ],
+    "authentication_methods": [
+      {
+        "type": "OTP",
+        "phone_number": "+380508887700"
+      }
+    ],
+    "preferred_way_communication": "email",
+    "emergency_contact": {
+      "first_name": "Петро",
+      "last_name": "Іванов",
+      "second_name": "Миколайович",
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380503410870"
+        }
+      ]
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    "process_disclosure_data_consent": true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  }
+}
+
+
+
+
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + `signed_request`: `MIIUKAYJKoZIhvcNAQcCoIIUGTCCFBUCAQExDjAMBgoqhiQCAQEBAQIBMIIGRgYJKoZIhvcNAQcBoIIGNwSCBjN7CiAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICJsYXN0X25hbWUiOiAi0IbQstCw0L3QvtCyIiwKICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICJiaXJ0aF9kYXRlIjogIjE5OTEtMDgtMTkiLAogICAgImJpcnRoX2NvdW50cnkiOiAi0KPQutGA0LDRl9C90LAiLAogICAgImJpcnRoX3NldHRsZW1lbnQiOiAi0JLRltC90L3QuNGG0Y8iLAogICAgImdlbmRlciI6ICJNQUxFIiwKICAgICJlbWFpbCI6ICJlbWFpbEBleGFtcGxlLmNvbSIsCiAgICAidGF4X2lkIjogIjMxMjY1MDk4MTYiLAogICAgInNlY3JldCI6ICJzZWNyZXQiLAogICAgImRvY3VtZW50cyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlBBU1NQT1JUIiwKICAgICAgICAibnVtYmVyIjogIjEyMDUxOCIsCiAgICAgICAgImlzc3VlZF9ieSI6ICLQoNC+0LrQuNGC0L3Rj9C90YHRjNC60LjQvCDQoNCSINCT0KMg0JzQktChINCa0LjRl9Cy0YHRjNC60L7RlyDQvtCx0LvQsNGB0YLRliIsCiAgICAgICAgImlzc3VlZF9hdCI6ICIyMDE3LTAyLTI4IgogICAgICB9CiAgICBdLAogICAgImFkZHJlc3NlcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlJFU0lERU5DRSIsCiAgICAgICAgImNvdW50cnkiOiAiVUEiLAogICAgICAgICJhcmVhIjogItCW0LjRgtC+0LzQuNGA0YHRjNC60LAiLAogICAgICAgICJyZWdpb24iOiAi0JHQtdGA0LTQuNGH0ZbQstGB0YzQutC40LkiLAogICAgICAgICJzZXR0bGVtZW50IjogItCa0LjRl9CyIiwKICAgICAgICAic2V0dGxlbWVudF90eXBlIjogIkNJVFkiLAogICAgICAgICJzZXR0bGVtZW50X2lkIjogIjQzNDMyNDMyIiwKICAgICAgICAic3RyZWV0X3R5cGUiOiAiU1RSRUVUIiwKICAgICAgICAic3RyZWV0IjogItCy0YPQuy4g0J3RltC20LjQvdGB0YzQutCwIiwKICAgICAgICAiYnVpbGRpbmciOiAiMTUiLAogICAgICAgICJhcGFydG1lbnQiOiAiMjMiLAogICAgICAgICJ6aXAiOiAiMDIwOTAiCiAgICAgIH0KICAgIF0sCiAgICAicGhvbmVzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiTU9CSUxFIiwKICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgIH0KICAgIF0sCiAgICAiYXV0aGVudGljYXRpb25fbWV0aG9kcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIk9UUCIsCiAgICAgICAgInBob25lX251bWJlciI6ICIrMzgwNTA4ODg3NzAwIgogICAgICB9CiAgICBdLAogICAgInByZWZlcnJlZF93YXlfY29tbXVuaWNhdGlvbiI6ICJlbWFpbCIsCiAgICAiZW1lcmdlbmN5X2NvbnRhY3QiOiB7CiAgICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICAgInBob25lcyI6IFsKICAgICAgICB7CiAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICAgIH0KICAgICAgXQogICAgfSwKICAgICJwcm9jZXNzX2Rpc2Nsb3N1cmVfZGF0YV9jb25zZW50IjogdHJ1ZQogIH0KfQqgggW5MIIFtTCCBV2gAwIBAgIUDYTtobuTgegEAAAAXrQiAL+zdAAwDQYLKoYkAgEBAQEDAQEwggFCMXwwegYDVQQKDHPQn9Cj0JHQm9CG0KfQndCVINCQ0JrQptCG0J7QndCV0KDQndCVINCi0J7QktCQ0KDQmNCh0KLQktCeINCa0J7QnNCV0KDQptCG0JnQndCY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
+` (string, required)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (`Person_Full`)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ### Get Person Declaration [GET /api/persons/{id}/declaration]
 
@@ -3518,24 +4270,35 @@ Method returns merge request details by it's ID. Depending on merge request stat
 
 ## Medical Program [/api/medical_program]
 
-### Get Medical Programs list [GET /api/medical_programs]
+### Get medical programs list [GET /api/medical_programs{?id,name,is_active,page,page_size}]
+Method returns list of medical programs filtering by parameters. By default method returns only active medical programs `is_active=true`
 
-This endpoint returns list of medical programs, such as reimbursement program or fee-for-service program.
+
+
 
 **Scopes required:** `medical_program:read`
+
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Medical program identifier
+    + `name`: `Доступні ліки` (string, optional) - Name of the Medical program
+    + `is_active`: `true` (boolean, optional) - Is medical program active or not. Default: true
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
 
 + Request (application/json)
 
     + Headers
 
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
-            + code: 200 (number)
-        + data (array[`Medical_Program_Response`])
+
+        + data (array[`medical_programs_response`])
 
 
 ### Get Medical Program by id [GET /api/medical_programs/id]
@@ -3656,7 +4419,41 @@ This endpoint returns list of drugs. Each drug contains all allowed package form
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[Drug_Response])
+        
 
+### Get drugs list v2 [GET /api/v2/drugs{?innm_id,innm_name,innm_sctid,innm_dosage_form,innm_dosage_id,innm_dosage_name,medication_code_atc,medical_program_id,page,page_size}]
+
+This endpoint returns list of drugs. Each drug contains all allowed package forms and related innm.
+The method contains is_primary parameter, which indicates whether the ingredient is the primary in the drug.
+[Get drugs list](https://uaehealthapi.docs.apiary.io/#reference/public.-reimbursement/drugs/get-drugs-list) method will be deprecated in the future.
+
+
+**Scopes required:** `drug:read`
+
++ Parameters
+    + `innm_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Innm identifier.
+    + `innm_name`: `Інсулін деглюдек` (string, optional) - Innm local name.
+    + `innm_sctid`: `52574003` (string, optional) - Innm CNOMED code.
+    + `innm_dosage_form`: `ML` (string, optional) - Innm_dosage form.
+    + `innm_dosage_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Innm_dosage identifier.
+    + `innm_dosage_name`: `Інсулін деглюдек 200мл шприц-ручка` (string, optional) - Innm_dosage name.
+    + `medication_code_atc`: `С01BD01` (string, optional) - Medication code ATC.
+    + `medical_program_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - medical program id.
+    + `page`: 2 (number, optional) - Page number.
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array[Drug_v2_Response])
 
 ## Medication Request Requests [/api/medication_request_requests]
 
@@ -3669,7 +4466,7 @@ After Medication request Request is signed it will be automatically moved to [Me
 
 > **Important:** Dispense of Medications under this Medication Request is possible in period between dispense_valid_from and dispense_valid_to
 
-### Get Medication Request Requests List [GET /api/medication_request_requests{?employee_id,person_id,status,intent,encounter_id,page,page_size}]
+### Get Medication Request Requests [GET /api/medication_request_requests{?employee_id,person_id,status,intent,care_plan_id,page,page_size}]
 
 Use this method to obtain list of Medication request Requests an `employee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -3679,14 +4476,14 @@ Method returns shortened details, to obtain full information - Get Medication re
 
 + Parameters
     + `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - user_id of a doctor.
-    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a pacient.
+    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a patient.
     + `status`: `NEW` (enum, optional). Default `NEW`
         - NEW
         - SIGNED
         - EXPIRED
         - REJECTED
     + intent: order (string, optional) - Medication request request intent
-    + encounter_id: `8838982b-6a77-4cb5-87cd-cdb82eb55364` (string, optional) - Encounter identifier
+    + `care_plan_id`: `8838982b-6a77-4cb5-87cd-cdb82eb55364` (string, optional) - care plan identifier
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -3702,6 +4499,36 @@ Method returns shortened details, to obtain full information - Get Medication re
         + data (object)
             + include `Medication_request_Request_Public_Response`
 
+### Get Medication Request Requests in care plan context [GET /api/care_plans/{care_plan_id}/medication_request_requests{?employee_id,person_id,status,intent,care_plan_id,page,page_size}]
+
+The method returns a list of medication request requests in the context of a care plan. 
+User must have an approval on the care plan from url.
+
+Method returns shortened details, to obtain full information - Get Medication request Request it by it's ID.
+
++ Parameters
+    + `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - user_id of a doctor.
+    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a patient.
+    + `status`: `NEW` (enum, optional). Default `NEW`
+        - NEW
+        - SIGNED
+        - EXPIRED
+        - REJECTED
+    + intent: order (string, optional) - Medication request request intent
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+        + data (object)
+            + include `Medication_request_Request_Public_Response`
 
 ### Get Medication Request Request by ID [GET /api/medication_request_requests/{id}]
 
@@ -3799,166 +4626,173 @@ Signed content MUST consists of JSON object with Medication request Request data
 **Important**
 Invoke Get Medication request Request by ID to obtain seed - Hash of previous block in Medication request Request chain or other random component that should be signed with Medication request Request.
 
-**Signed object example:**
-```
-{
-    "status": "NEW",
-    "started_at": "2018-11-13",
-    "request_number": "0000-K8K5-5MTE-352H",
-    "person": {
-        "second_name": "Іванович",
-        "last_name": "Іванов",
-        "id": "4e709925-4bd9-432c-973a-c98976cb901d",
-        "first_name": "Іван",
-        "age": 18
-    },
-    "medication_info": {
-        "medication_qty": 10,
-        "medication_name": "Амідарон",
-        "medication_id": "538713df-55cd-479d-b25c-4b1359bbe7ca",
-        "form": "COATED_TABLET",
-        "dosage": {
-            "numerator_value": 300,
-            "numerator_unit": "MG",
-            "denumerator_value": 1,
-            "denumerator_unit": "PILL"
-        }
-    },
-    "medical_program": {
-        "updated_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4",
-        "updated_at": "2018-03-30T15:14:55.564897",
-        "name": "Тестова програма",
-        "is_active": true,
-        "inserted_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4",
-        "inserted_at": "2018-03-30T15:14:55.564888",
-        "id": "6f6b3971-a5db-4e2a-99a8-7fdffd8d0d9a"
-    },
-    "legal_entity": {
-        "type": "MSP",
-        "status": "ACTIVE",
-        "short_name": "Ноунейм Медікал",
-        "public_name": "Ноунейм Медікал",
-        "name": "Клініка Ноунейм Медікал",
-        "id": "a0f2f598-aa0b-486d-b8ee-7bc4fd284564",
-        "edrpou": "11111111"
-    },
-    "id": "fda6839c-7c17-4b45-bc18-14b1039fe702",
-    "ended_at": "2018-12-13",
-    "employee": {
-        "position": "P1",
-        "party": {
-            "second_name": "Петрович",
-            "phones": [
-                {
-                    "type": "MOBILE",
-                    "number": "+380501234567"
-                }
-            ],
-            "no_tax_id": false,
-            "last_name": "Петров",
-            "id": "642f9f9a-24dc-4447-a4df-4bb0648bcf0a",
-            "first_name": "Петро"
-        },
-        "id": "c677954a-2d46-4a30-9314-1c20b31e6909"
-    },
-    "division": {
-        "working_hours": {
-            "wed": [
-                [
-                    "08.00",
-                    "12.00"
-                ],
-                [
-                    "14.00",
-                    "17.00"
-                ]
-            ],
-            "tue": [
-                [
-                    "08.00",
-                    "12.00"
-                ],
-                [
-                    "14.00",
-                    "17.00"
-                ]
-            ],
-            "thu": [
-                [
-                    "08.00",
-                    "12.00"
-                ],
-                [
-                    "14.00",
-                    "17.00"
-                ]
-            ],
-            "mon": [
-                [
-                    "08.00",
-                    "12.00"
-                ],
-                [
-                    "14.00",
-                    "17.00"
-                ]
-            ],
-            "fri": [
-                [
-                    "08.00",
-                    "12.00"
-                ],
-                [
-                    "14.00",
-                    "16.00"
-                ]
-            ]
-        },
-        "type": "CLINIC",
-        "status": "ACTIVE",
-        "phones": [
-            {
-                "type": "MOBILE",
-                "number": "+380501234567"
-            }
-        ],
-        "name": "Відділення Клініки Ноунейм",
-        "mountain_group": false,
-        "location": null,
-        "legal_entity_id": "a0f2f598-aa0b-486d-b8ee-7bc4fd284564",
-        "id": "f180f85a-a55e-4ba9-b49d-e4d00338fc57",
-        "external_id": "3213213",
-        "email": "example@email.com",
-        "addresses": [
-            {
-                "zip": "02090",
-                "type": "RESIDENCE",
-                "street_type": "STREET",
-                "street": "вул. Ніжинська",
-                "settlement_type": "CITY",
-                "settlement_id": "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
-                "settlement": "СОРОКИ-ЛЬВІВСЬКІ",
-                "region": "ПУСТОМИТІВСЬКИЙ",
-                "country": "UA",
-                "building": "15",
-                "area": "ЛЬВІВСЬКА",
-                "apartment": "23"
-            }
-        ]
-    },
-    "dispense_valid_to": "2018-12-13",
-    "dispense_valid_from": "2018-11-13",
-    "created_at": "2018-11-13"
-}
-```
+Look at [**Dummy Sign Medication Request Requests**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-medication-request-requests/sign-medication-request-requests) for more details.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 + Parameters
     + id: 6a8a83a4-ac39-4547-bfa2-813bc87362a4 (string, required)
+    
+
+
 
 + Request (application/json)
 
     + Headers
 
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            msp_drfo: 2534157686
 
     + Attributes (object)
         + `signed_medication_request_request`: `MIIWmAYJKoZIhvcNAQcCoIIWiTCCFoUCAQExCzAJBgUrDgMCGgUAMIISuwYJKoZIhvcNAQcBoIISrASCEqh7XHJ0ZjFcYW5zaVxhbnNpY3BnMTI1Mlxjb2NvYXJ0ZjE1MDRcY29jb2FzdWJydGY4MTANCntcZm9udHRibFxmMFxmc3dpc3NcZmNoYXJzZXQwIEhlbHZldGljYTt9DQp7XGNvbG9ydGJsO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1NTtccmVkNzBcZ3JlZW41M1xibHVlOTY7XHJlZDI0OVxncmVlbjI0OVxibHVlMjUxO30NCntcKlxleHBhbmRlZGNvbG9ydGJsOztcY3NzcmdiXGMzNDUxMFxjMjc4NDNcYzQ1MDk4O1xjc3NyZ2JcYzk4MDM5XGM5ODAzOVxjOTg4MjQ7fQ0KXG1hcmdsMTQ0MFxtYXJncjE0NDBcdmlld3cxMDgwMFx2aWV3aDg0MDBcdmlld2tpbmQwDQpcZGVmdGFiNzIwDQpccGFyZFxwYXJkZWZ0YWI3MjBccGFydGlnaHRlbmZhY3RvcjANCg0KXGYwXGZzMjggXGNmMiBcY2IzIFxleHBuZDBcZXhwbmR0dzBca2VybmluZzANClx7XA0KICAgImlkIjoiYjA3NWYxNDgiLFwNCiAgICJzdGFydF9kYXRlIjoiMjAxNy0wMy0wMlQxMDo0NToxNi4wMDBaIixcDQogICAiZW5kX2RhdGUiOiIyMDE3LTAzLTAyVDEwOjQ1OjE2LjAwMFoiLFwNCiAgICJwZXJzb24iOlx7XA0KICAgICAgImZpcnN0X25hbWUiOiJcdWMwXHUxMDU1IFx1MTA3NyBcdTEwOTAgXHUxMDg4IFx1MTA4NiAiLFwNCiAgICAgICJsYXN0X25hbWUiOiJcdWMwXHUxMDMwIFx1MTA3NCBcdTEwNzIgXHUxMDg1IFx1MTA4NiBcdTEwNzQgIixcDQogICAgICAic2blic Vjb25kX25hbWUiOiJcdWMwXHUxMDUyIFx1MTA4MCBcdTEwODIgXHUxMDg2IFx1MTA4MyBcdTEwNzIgXHUxMDgxIFx1MTA4NiBcdTEwNzQgXHUxMDgwIFx1MTA5NSAiLFwNCiAgICAgICJiaXJ0aF9kYXRlIjoiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIixcDQogICAgICAiYmlydGhfcGxhY2UiOiJcdWMwXHUxMDQyIFx1MTExMCBcdTEwODUgXHUxMDg1IFx1MTA4MCBcdTEwOTQgXHUxMTAzICwgXHUxMDU5IFx1MTA4MiBcdTEwODggXHUxMDcyIFx1MTExMSBcdTEwODUgXHUxMDcyICIsXA0KICAgICAgImdlbmRlciI6Ik1BTEUiLFwNCiAgICAgICJlbWFpbCI6ImVtYWlsQGV4YW1wbGUuY29tIixcDQogICAgICAidGF4X2lkIjoiMzEyNjUwOTgxNiIsXA0KICAgICAgIm5hdGlvbmFsX2lkIjoiQ0M3MTUwOTg1MjQzIixcDQogICAgICAic2VjcmV0Ijoic2VjcmV0IixcDQogICAgICAiZG9jdW1lbnRzIjpbXA0KICAgICAgICAgXHtcDQogICAgICAgICAgICAidHlwZSI6IlBBU1NQT1JUIixcDQogICAgICAgICAgICAibnVtYmVyIjoiMTIwNTE4IixcDQogICAgICAgICAgICAiaXNzdWVfZGF0ZSI6IjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIsXA0KICAgICAgICAgICAgImV4cGlyeV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAiaXNzdWVkX2J5IjoiRE1TVSJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImFkZHJlc3NlcyI6W1wNCiAgICAgICAgIFx7XA0KICAgICAgICAgICAgInR5cGUiOiJSRVNJREVOQ0UiLFwNCiAgICAgICAgICAgICJjb3VudHJ5IjoiVUEiLFwNCiAgICAgICAgICAgICJhcmVhIjoiXHVjMFx1MTA0NiBcdTEwODAgXHUxMDkwIFx1MTA4NiBcdTEwODQgXHUxMDgwIFx1MTA4OCBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAicmVnaW9uIjoiXHVjMFx1MTA0MSBcdTEwNzcgXHUxMDg4IFx1MTA3NiBcdTEwODAgXHUxMDk1IFx1MTExMCBcdTEwNzQgXHUxMDg5IFx1MTEwMCBcdTEwODIgXHUxMDgwIFx1MTA4MSAiLFwNCiAgICAgICAgICAgICJjaXR5IjoiXHVjMFx1MTA1MCBcdTEwODAgXHUxMTExIFx1MTA3NCAiLFwNCiAgICAgICAgICAgICJjaXR5X3R5cGUiOiJDSVRZIixcDQogICAgICAgICAgICAic3RyZWV0IjoiXHVjMFx1MTA3NCBcdTEwOTEgXHUxMDgzIC4gXHUxMDUzIFx1MTExMCBcdTEwNzggXHUxMDgwIFx1MTA4NSBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAiYnVpbGRpbmciOiIxNSIsXA0KICAgICAgICAgICAgImFwYXJ0bWVudCI6IjIzIixcDQogICAgICAgICAgICAiemlwIjoiMDIwOTAiXA0KICAgICAgICAgXH1cDQogICAgICBdLFwNCiAgICAgICJwaG9uZXMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiTU9CSUxFIixcDQogICAgICAgICAgICAibnVtYmVyIjoiKzM4MDUwMzQxMDg3MCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiU01TIixcDQogICAgICAgICAgICAicGhvbmVfbnVtYmVyIjoiKzM4MDUwODg4NzcwMCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImVtZXJnZW5jeV9jb250YWN0Ijpce1wNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIixcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgImNvbmZpZGFudF9wZXJzb24iOlx7XA0KICAgICAgICAgInJlbGF0aW9uX3R5cGUiOiJ0cnVzdGVlIixcDQogICAgICAgICAiZmlyc3RfbmFtZSI6Ilx1YzBcdTEwNTUgXHUxMDc3IFx1MTA5MCBcdTEwODggXHUxMDg2ICIsXA0KICAgICAgICAgImxhc3RfbmFtZSI6Ilx1YzBcdTEwMzAgXHUxMDc0IFx1MTA3MiBcdTEwODUgXHUxMDg2IFx1MTA3NCAiLFwNCiAgICAgICAgICJzZWNvbmRfbmFtZSI6Ilx1YzBcdTEwNTIgXHUxMDgwIFx1MTA4MiBcdTEwODYgXHUxMDgzIFx1MTA3MiBcdTEwODEgXHUxMDg2IFx1MTA3NCBcdTEwODAgXHUxMDk1ICIsXA0KICAgICAgICAgImJpcnRoX2RhdGUiOiIxOTkxLTA4LTE5VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICJiaXJ0aF9wbGFjZSI6Ilx1YzBcdTEwNDIgXHUxMTEwIFx1MTA4NSBcdTEwODUgXHUxMDgwIFx1MTA5NCBcdTExMDMgLCBcdTEwNTkgXHUxMDgyIFx1MTA4OCBcdTEwNzIgXHUxMTExIFx1MTA4NSBcdTEwNzIgIixcDQogICAgICAgICAiZ2VuZGVyIjoiTUFMRSIsXA0KICAgICAgICAgInRheF9pZCI6IjMxMjY1MDk4MTYiLFwNCiAgICAgICAgICJkb2N1bWVudHMiOltcDQogICAgICAgICAgICBce1wNCiAgICAgICAgICAgICAgICJ0eXBlIjoiUEFTU1BPUlQiLFwNCiAgICAgICAgICAgICAgICJudW1iZXIiOiIxMjA1MTgiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAgICAiZXhwaXJ5X2RhdGUiOiIyMDE1LTA0LTA3VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZWRfYnkiOiJETVNVIlwNCiAgICAgICAgICAgIFx9XA0KICAgICAgICAgXSxcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgInJlbmV3YWxfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicGF0aWVudF9zaWduZWQiOnRydWUsXA0KICAgICAgImRpc2Nsb3N1cmVfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicHJvY2Vzc19kYXRhX2NvbnNlbnQiOnRydWVcDQogICBcfSxcDQogICAiZW1wbG95ZWUiOlx7XA0KICAgICAgImlkIjoiZDI5MGYxZWUtNmM1NC00YjAxLTkwZTYtZDcwMTc0OGYwODUxIixcDQogICAgICAidGl0bGUiOiJcdWMwXHUxMDgzIFx1MTExMCBcdTEwODIgXHUxMDcyIFx1MTA4OCAiLFwNCiAgICAgICJwYXJ0eSI6XHtcDQogICAgICAgICAiaWQiOiJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLFwNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIlwNCiAgICAgIFx9XA0KICAgXH0sXA0KICAgIm1zcCI6XHtcDQogICAgICAiaWQiOiJkMjkwZjFlZSIsXA0KICAgICAgIm5hbWUiOiJcdWMwXHUxMDUwIFx1MTA4MyBcdTExMTAgXHUxMDg1IFx1MTExMCBcdTEwODIgXHUxMDcyICBcdTEwNDEgXHUxMDg2IFx1MTA4OCBcdTEwODAgXHUxMDg5ICIsXA0KICAgICAgInNob3J0X05hbWUiOiJcdWMwXHUxMDQxIFx1MTA4NiBcdTEwODggXHUxMDgwIFx1MTA4OSAiLFwNCiAgICAgICJ0eXBlIjoiXHVjMFx1MTA2MCBcdTEwNTQgXHUxMDU1ICIsXA0KICAgICAgImVkcnBvdSI6IjU0MzIzNDU0MzIiXA0KICAgXH0sXA0KICAgInNjb3BlIjoiZmFtaWx5IGRvY3RvciIsXA0KICAgInBsYWludGV4dF9jb250ZW50IjoiRGVjbGFyYXRpb24gY29udGVudCJcDQpcfX2gggIuMIICKjCCAZOgAwIBAgIJANj0sC/v0hWYMA0GCSqGSIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBLQ1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0NTczM1oXDTE3MDQyNjE0NTczM1owGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMuqrxE/0txT+ZVRKU1O85a8eaaUAOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0GA1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+CaflnzBJBgNVHSMEQjBAgBTET2SwL5UfUMKDyhuBGCA+Cafln6EdpBswGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY9LAv79IVmDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IVS28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjnw87JzkAy5KLDTiotQl8eknkd1bR3nIWINemck3GeGYkR8giG3gkNxz6ky1+63ZcoJkEiS46aneDhmS6BdH0V2G/3delos8+ZMYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQDFA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTcwMzI4MTE1NDEwWjAjBgkqhkiG9w0BCQQxFgQU5NSvVRVYHz5tG1GW8gXrjHSnLj8wUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEgYCdqnN8gGXw9OUmtxOvQQgHK5Ni/4/2WQWj7rxERh5AI6rhXs/hh3DNS5Z5mN6wO8z47SQuedbsMQ5hf6+9BbKhXD7WKeU+DtGyfa1ner5/ubz6BeVvuT98D4PrzHlqNSpe/7AirrA70QVO9kPoFSmGtBG6JjaqaCZBYbvF9InPRw==` (string, required)
@@ -4036,7 +4870,7 @@ Use this method to obtain full information of Medication request an `id`.
         + data (object)
             + include `Medication_request_Public_Response`
 
-### Get Medication requests List [GET /api/medication_requests{?legal_entity_id,employee_id,person_id,status,request_number,created_from,created_to,medication_id,intent,encounter_id,page,page_size}]
+### Get Medication requests [GET /api/medication_requests{?legal_entity_id,employee_id,person_id,status,request_number,created_from,created_to,medication_id,intent,care_plan_id,page,page_size}]
 
 Use this method to obtain list of Medication request an `employee_id` or/and `person_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -4047,7 +4881,7 @@ Method returns shortened details, to obtain full information - get Medication re
 + Parameters
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - legal entity identifier.
     + `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - user_id of a doctor.
-    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a pacient.
+    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a patient.
     + `status`: `ACTIVE` (enum, optional). Default `ACTIVE`
         - ACTIVE
         - COMPLETED
@@ -4058,7 +4892,41 @@ Method returns shortened details, to obtain full information - get Medication re
     + `created_to`: `2017-08-30` (string, optional) - Medication request creation date period end, which is determined by the external system. Format *DATE '2017-08-30'*
     + `medication_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b5b` (string, optional) - innm dosage id
     + intent: order (string, optional) - Medication request intent
-    + encounter_id: `8838982b-6a77-4cb5-87cd-cdb82eb55364` (string, optional) - Encounter identifier
+    + `care_plan_id`: `8838982b-6a77-4cb5-87cd-cdb82eb55364` (string, optional) - care plan identifier
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
++ Response 200 (application/json)
+   + Attributes (`Response_Collection_V2`)
+        + data (array[`Medication_request_Public_Response`])
+
+### Get Medication requests in care plan context [GET /api/care_plans/{care_plan_id}/medication_requests{?legal_entity_id,employee_id,person_id,status,request_number,created_from,created_to,medication_id,intent,care_plan_id,page,page_size}]
+
+The method returns a list of medication requests in the context of a care plan. 
+User must have an approval on the care plan from url.
+
+Method returns shortened details, to obtain full information - get Medication request it by it's ID.
+
++ Parameters
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - legal entity identifier.
+    + `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - user_id of a doctor.
+    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a patient.
+    + `status`: `ACTIVE` (enum, optional). Default `ACTIVE`
+        - ACTIVE
+        - COMPLETED
+        - EXPIRED
+        - REJECTED
+    + `request_number` : `0000-243P-1X53-EH38` (string, optional) - Public medication request human readable number
+    + `created_from`: `2017-08-17` (string, optional) - Medication request creation date period start, which is determined by the external system. Format *DATE '2017-08-17'*
+    + `created_to`: `2017-08-30` (string, optional) - Medication request creation date period end, which is determined by the external system. Format *DATE '2017-08-30'*
+    + `medication_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b5b` (string, optional) - innm dosage id
+    + intent: order (string, optional) - Medication request intent
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -4085,155 +4953,157 @@ Invoke Get Medication request by ID to obtain previously created medication requ
 * *Medical program* is required for *order*
 * *Medical program* is absent in *plan*
 
-**Signed object example:**
-```
-{
-        "status": "ACTIVE",
-        "started_at": "2018-10-19",
-        "request_number": "0000-MX87-0X36-01M2",
-        "person": {
-            "second_name": "Іванович",
-            "last_name": "Іванов",
-            "id": "34e77202-94d0-45f7-b714-cb581307db26",
-            "first_name": "Іван",
-            "age": 18
-        },
-        "medication_info": {
-            "medication_qty": 10,
-            "medication_name": "Амідарон",
-            "medication_id": "2c020fb0-e418-4e5a-b108-3d8a2ab4dfec",
-            "form": "COATED_TABLET",
-            "dosage": {
-                "numerator_value": 300,
-                "numerator_unit": "MG",
-                "denumerator_value": 1,
-                "denumerator_unit": "PILL"
-            }
-        },
-        "medical_program": {
-            "name": "Тестова програма",
-            "id": "9bedfff4-a642-4bbe-a535-737a9f088f8d"
-        },
-        "legal_entity": {
-            "type": "MSP",
-            "status": "ACTIVE",
-            "short_name": "Клініка Ноунейм",
-            "public_name": "Клініка Ноунейм",
-            "name": "Клініка Ноунейм Медікал",
-            "id": "c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9",
-            "edrpou": "11111111"
-        },
-        "id": "5e8f6b74-76d1-42e2-8a51-a6e8a837c7a0",
-        "ended_at": "2018-11-19",
-        "employee": {
-            "position": "P2",
-            "party": {
-                "second_name": "Петрович",
-                "phones": [
-                    {
-                        "type": "MOBILE",
-                        "number": "+380501234567"
-                    }
-                ],
-                "last_name": "Петров",
-                "id": "1816a1ff-40f3-44ea-9665-82ea375e8be0",
-                "first_name": "Петро"
-            },
-            "id": "b810a901-1173-4a56-9f12-75fbe182f162"
-        },
-        "division": {
-            "working_hours": {
-                "wed": [
-                    [
-                        "08.00",
-                        "12.00"
-                    ],
-                    [
-                        "14.00",
-                        "17.00"
-                    ]
-                ],
-                "tue": [
-                    [
-                        "08.00",
-                        "12.00"
-                    ],
-                    [
-                        "14.00",
-                        "17.00"
-                    ]
-                ],
-                "thu": [
-                    [
-                        "08.00",
-                        "12.00"
-                    ],
-                    [
-                        "14.00",
-                        "17.00"
-                    ]
-                ],
-                "mon": [
-                    [
-                        "08.00",
-                        "12.00"
-                    ],
-                    [
-                        "14.00",
-                        "17.00"
-                    ]
-                ],
-                "fri": [
-                    [
-                        "08.00",
-                        "12.00"
-                    ],
-                    [
-                        "14.00",
-                        "16.00"
-                    ]
-                ]
-            },
-            "type": "CLINIC",
-            "phones": [
-                {
-                    "type": "MOBILE",
-                    "number": "+380501234567"
-                }
-            ],
-            "name": "Відділення клініки Ноунейм",
-            "location": {
-                "longitude": 31.900939,
-                "latitude": 49.180239
-            },
-            "legal_entity_id": "c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9",
-            "id": "034b6bbc-53be-477c-919e-d182120a21d8",
-            "external_id": "3213213",
-            "email": "email@email.com",
-            "addresses": [
-                {
-                    "type": "RESIDENCE",
-                    "country": "UA",
-                    "area": "Житомирська",
-                    "region": "Бердичівський",
-                    "settlement": "Київ",
-                    "settlement_type": "CITY",
-                    "settlement_id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-                    "street_type": "STREET",
-                    "street": "вул. Ніжинська",
-                    "building": "15",
-                    "apartment": "23",
-                    "zip": "02090"
-              }
-            ]
-        },
-        "dispense_valid_to": "2018-11-19",
-        "dispense_valid_from": "2018-10-19",
-        "created_at": "2018-10-19",
-        "reject_reason": "Помилка призначення. Несумісні препарати.",
-        "reject_reason_code": "INCORRECT_DOSAGE"
-    }
-```
+Look at [**Dummy Reject Medication Request**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-medication-request/reject-medication-request) for more details.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 + Parameters
     + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
@@ -4576,7 +5446,7 @@ Invoke Get Medication dispanse details to obtain previously created medication d
         + data (object)
             + include `Medication_Dispense_Response`
 
-### Get Medication Dispenses List [GET /api/medication_dispenses{?id,medication_request_id,legal_entity_id,division_id,status,dispensed_from,dispensed_to,page,page_size}]
+### Get Medication Dispenses List [GET /api/medication_dispenses{?id,medication_request_id,legal_entity_id,division_id,status,dispensed_from,dispensed_to,care_plan_id,page,page_size}]
 
 + Parameters
     + id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Medication dispense ID
@@ -4586,6 +5456,7 @@ Invoke Get Medication dispanse details to obtain previously created medication d
     + status: PROCESSED (string, optional) - Status
     + dispensed_from: '2017-09-01' (string, optional) - date of dispense
     + dispensed_to: '2017-10-01' (string, optional) - date of dispense
+    + `care_plan_id`: `8838982b-6a77-4cb5-87cd-cdb82eb55364` (string, optional) - care plan identifier
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -4922,6 +5793,56 @@ This method is used to abtain list of events with filters.
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (`Declaration_short`)
+
+## Dummy for medication request requests [/dummy/medication_request_requests]
+
+### Sign medication request requests [PATCH /dummy/medication_request_requests/{id}/actions/sign]
+
+
++ Parameters
+   + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+   
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            msp_drfo: 2534157686
+
+    + Attributes (`Medication_request_Request_Sign`, required)
+    
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (`Medication_request_Request_Sign`)
+            + printout_form: `HTML` (string, required) - Generated printout form
+            + is_blocked: false (boolean, required) - Whether medication request is blocked or not
+        + meta (Response__Meta)
+        
+## Dummy for medication request [/dummy/medication_requests]
+
+### Reject medication request [PATCH /dummy/medication_requests/id/actions/reject]
+
+
++ Parameters
+   + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+   
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            msp_drfo: 2534157686
+            
+    + Attributes (`Medication_request_Reject`, required)
+    
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+        + data (object)
+            + include `Medication_request_Reject_Response`
+
 
 
 # Group Public. Patient Cabinet
@@ -5361,7 +6282,8 @@ contractor_divisions|true| масив id відділень мед. заклад
 external_contractor_flag|false| наявність додатку 2 (підрядники, залучені до надання медичних послуг за Договором)
 external_contractors|false|масив об'єктів типу external_contractor objects - підрядники, залучені до надання медичних послуг за Договором
 start_date|false| пункт 9.2 - цей договір діє з (рік має бути поточний або настпуний)
-end_date|false| пункт 9.2 - цей договір діє по (рік має співпадати з роком у start_date)
+
+end_date|false| пункт 9.2 - цей договір діє по (рік має співпадати з роком у start_date або бути наступним за роком start_date за умови, що договір укладається строком на рік)
 id_form|true| словник `CONTRACT_TYPE`, поки що лише один вид Договір на ПМД
 contract_number|false| human-redable номер контракту
 statute_md5|true| хеш завантаженого документу (статуту)
@@ -5378,12 +6300,14 @@ contractor_payment_details|true| об'єкт, що містить дані по 
 previous_request_id | false | опційне поле, яке вказує, що поточний запит на контракт є новою версією вказаного запиту
 contractor_divisions|true| масив id відділень мед. закладу, що включаються в договір
 start_date|false| пункт 9.2 - цей договір діє з (рік має бути поточний або настпуний)
-end_date|false| пункт 9.2 - цей договір діє по (рік має співпадати з роком у start_date)
-id_form|true| словник `CONTRACT_TYPE`, поки що лише один вид Договір на ПМД
+
+
+end_date|false| пункт 9.2 - цей договір діє по (рік має співпадати з роком у start_date або бути наступним за роком start_date за умови, що договір укладається строком на рік)
+id_form|true| словник `REIMBURSEMENT_CONTRACT_TYPE`
 contract_number|false| human-redable номер контракту
-statute_md5|false| хеш завантаженого документу (статуту)
+statute_md5|false| хеш завантаженого документу (статуту)o
 additional_document_md5|false| хеш завантаженого документу (додатковий документ)
-medical_program_id|true| ідентифікатор державної програми компенсації, що є субєктом договору
+medical_programs|true| масив ідентифікаторів державних програми компенсації, що є субєктом договору
 consent_text|true|
 
 ####Contractor_payment_details
@@ -5490,7 +6414,9 @@ Reimbursement version:
   "contract_number": "0000-9EAX-XT7X",
   "statute_md5": "db218b04eff70f86f40c1572ce8ca16a",
   "additional_document_md5": "ac642b04eff40f86f40c1572ce8ca16a",
-  "medical_program_id": "3922a240-63db-404e-b730-09222bfeb2d1"
+  "medical_programs": [
+    "3922a240-63db-404e-b730-09222bfeb2d1"
+  ]
   "consent_text": "Цією заявою Заявник висловлює бажання укласти договір про реімбурсацію з Національною службою здоров'я України та підтверджує, що на момент подання цієї заяви Заявник провадить господарську діяльність на підставі ліцензії на провадження господарської діяльності з роздрібної торгівлі лікарськими засобами та відповідає ліцензійним умовам. Заявник усвідомлює, що у разі зміни інформації, зазначеної Заявником у цій заяві та (або) доданих до неї документах Заявник зобов'язаний повідомити про такі зміни НСЗУ протягом трьох робочих днів з дня настання таких змін шляхом надсилання інформації про такі зміни на електронну пошту dohovir@nszu.gov.ua, з одночасним внесенням таких змін в Систему. Заявник усвідомлює, що законодавством України передбачена відповідальність за подання недостовірної інформації органам державної влади."
 }
 ```
@@ -5585,6 +6511,36 @@ This method is designed to get full information of contract request by id
             + include `Contract_request_Details_Reimbursement`
         + urgent (object, required)
             + documents (array[`contract_media_content`], optional)
+
+### Private. Create Contract Request by NHS [POST /api/contract_requests/{contract_type}/{id}]
+
+***Scope  contract_request:create***
+
+This WS is designed to update contract by NHS by creating new contract request. 
+Contract request is created with contract number, and parent contract is added to request. 
+NHS Admin can change only fields that are on nhs side.
+
+Request has a similar structure as in `Public. Create Contract Request`.
+For Create contract request by NHS, the `contract_number` in the request is required, it is used to change the existing contract by the NHS.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + include `Contract_request_Request_signed`
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Contract_request_Details_Capitation`
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Contract_request_Details_Reimbursement`
 
 ### Private. Assign Contract Request by NHS Employee [PATCH /api/contract_requests/{id}/actions/assign]
 
@@ -6060,6 +7016,7 @@ After contract request was signed by both sides signed contract request with pri
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract identifier
             + `printout_content`: `Contract content` (string, required) - HTML document for contract
 
+
 # Group Private. Contracts
 
 This group of endpoints is implemented for trusted third party to manipulate with contract records in ehealth system.
@@ -6076,6 +7033,8 @@ Assuming that all required business processes and validations is implemented on 
             api-key: c2778f3064753ea70de870a53795f5c9
 
     + Attributes (Contracts_CRUD_request)
+        + `medical_programs` (array, optional) - list of medical programs
+            - `d313342c-0b3c-443b-a92e-afb78d1e8086`
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -6378,7 +7337,6 @@ Assuming that all required business processes and validations is implemented on 
         + data (object)
             + url: `https://example.com/upload_url` (string, required)
 
-
 # Data Structures
 ## Responses
 ### `Response_Collection`
@@ -6616,6 +7574,12 @@ Assuming that all required business processes and validations is implemented on 
 + short_name: Петро І. І. (string, required)
 + age: 35 (number, required) - full years between medication request date and birth date
 
+### `Person_Medication_Request_Sign`
++ age: 35 (number, required) - full years between medication request date and birth date
++ first_name: Петро (string, required)
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
 
 ### `Authentication_Method`
 + type (enum, required)
@@ -7694,7 +8658,7 @@ status: `APPROVED` (string, required)
 
 ### `Division_Details`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ `legal_entity_id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
++ legal_entity_id: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
 + include Division
 + dls_id: `2872985` (string, optional)
 + dls_verified: true (boolean, optional)
@@ -8129,6 +9093,10 @@ status: `APPROVED` (string, required)
     + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
     + name: Клініка Ноунейм (string, required)
 
+    + status: ACTIVE (enum, required)
+        - ACTIVE
+        - SUSPENDED
+        - CLOSED
 
 ### EntriesEmployeeMap
 + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required) - employee id
@@ -8140,9 +9108,13 @@ status: `APPROVED` (string, required)
     + name: `Aдоніс` (string, required)
     + type: CLINIC, AMBULANT_CLINIC, FAP (enum, required)
     + addresses (Address, required)
-    + `legal_entity` (object, required)
-        + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
-        + name: Клініка Ноунейм (string, required)
++ `legal_entity` (object, required)
+    + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
+    + name: Клініка Ноунейм (string, required)
+    + status: ACTIVE (enum, required)
+        - ACTIVE
+        - SUSPENDED
+        - CLOSED
 
 ### EntriesParties (PartyDoctorMap)
 + employees (array[EntriesPartyEmployees], required, fixed-type)
@@ -8578,6 +9550,23 @@ status: `APPROVED` (string, required)
 + `dosage` (`Dosage_drug`, required)
 + `packages` (array [`Medication_package`], required)
 
+### `Drug_v2_Response`
++ `id`: `ae9bf68e-3c98-4027-9211-535f7dad7a87` (string, required)
++ `name`: `Аміодарон 200мг таблетки` (string, required)
++ `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `daily_dosage`: 50 (number, required) - Daily dosage
++ `max_daily_dosage`: 200 (number, required) - Max daily dosage
++ `ingredients`: (array[`Ingredient_v2`], required)
++ `packages` (array [`Medication_package`], required)
+
+### `Ingredient_v2`
++ `id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
++ `name` : `Інсулін деглюдек` (string, required)
++ `name_original` : `Insulin degludec` (string, required)
++ `sctid`: `52574003` (string, optional) - innm CNOMED code
++ `dosage` (`Dosage_drug`, required)
++ `is_primary` : true (boolean, required)
+
 ### `Medication_package`
 + `container_dosage` (`Dosage_container`, required)
 + `package_qty`: 30 (number, required)
@@ -8732,7 +9721,7 @@ status: `APPROVED` (string, required)
 + `medication_name`: `Аміодарон 200мг таблетки` (string, required) - `Name of medication with type **INNM_DOSAGE**`
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `dosage` (`Dosage_drug`, required) - Dosage of innm_dosage object
-+ `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
++ `medication_qty`: 10 (number, required) - Medication quantity issued by the doctor
 
 ### `Manufacturer`
 + `name` : `ПАТ "Київський вітамінний завод"` (string, required)
@@ -8965,6 +9954,19 @@ status: `APPROVED` (string, required)
     - order - The request represents a request/demand and authorization for action.
 + category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
     - community - Includes requests for medications to be administered or consumed by the patient in their home
++ based_on (array,optional, fixed-type)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `care_plan` (string)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `activity` (string)
 + `context`(Reference, optional, fixed-type)
     + identifier (Identifier)
         + type (Codeable_Concept)
@@ -8988,6 +9990,19 @@ status: `APPROVED` (string, required)
     - order - The request represents a request/demand and authorization for action.
 + category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
     - community - Includes requests for medications to be administered or consumed by the patient in their home
++ based_on (array,optional, fixed-type)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `care_plan` (string)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `activity` (string)
 + `context`(Reference, optional, fixed-type)
     + identifier (Identifier)
         + type (Codeable_Concept)
@@ -9019,6 +10034,19 @@ status: `APPROVED` (string, required)
     - order - The request represents a request/demand and authorization for action.
 + category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
     - community - Includes requests for medications to be administered or consumed by the patient in their home
++ based_on (array,optional, fixed-type)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `care_plan` (string)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `activity` (string)
 + `context`(Reference, optional, fixed-type)
     + identifier (Identifier)
         + type (Codeable_Concept)
@@ -9027,6 +10055,37 @@ status: `APPROVED` (string, required)
                     + code: `encounter` (string)
 + `dosage_instruction` (array, optional, fixed-type)
     + (Dosage_Instruction)
+
+### `Medication_request_Request_Sign`
++ `category`: `community` (enum, required)
++ `created_at`: `2018-11-13` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_from`: `2018-11-13` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2018-12-13` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
++ `division` (`Division`, required)
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + `legal_entity_id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
+    + `mountain_group`: `false` (boolean, optional)
+    + status: ACTIVE (enum, required)
+        - ACTIVE
+        - CLOSED
+    + dls_id: `2872985` (string, optional)
+    + dls_verified: true (boolean, optional)
++ `dosage_instruction` (array, required, fixed-type)
+    + (Dosage_Instruction)
++ `employee` (Employee_Minimal, required)
++ `ended_at`: `2018-12-13` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `id`: `fda6839c-7c17-4b45-bc18-14b1039fe702` (string, required) - Medication Request request identifier
++ intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT
+    - plan - The request represents an intention to ensure something occurs without providing an authorization for others to act.
+    - order - The request represents a request/demand and authorization for action.
++ `legal_entity` (`Legal_Entity_Short`, required)
+    + `id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
++ `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
++ `person` (`Person_Medication_Request_Sign`, required)
++ `request_number` : `0000-K8K5-5MTE-352H` (string, required) - Public medication request human readable number
++ `started_at`: `2018-11-13` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
++ `status`: `NEW` (string, required) - Medication Request status. Find available **statuses** on State Charts wiki page
++ `medical_program` (`medical_programs_list`, optional)
 
 ### `Qualify_Medication_request_Request_List_program_post_data`
 + `id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string,required) - `Medical program Identifier`
@@ -9146,7 +10205,20 @@ status: `APPROVED` (string, required)
     - order - The request represents a request/demand and authorization for action.
 + category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
     - community - Includes requests for medications to be administered or consumed by the patient in their home
-+ `context`(Reference, required, fixed-type)
++ based_on (array,optional, fixed-type)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `care_plan` (string)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `activity` (string)
++ `context`(Reference, optional, fixed-type)
     + identifier (Identifier)
         + type (Codeable_Concept)
             + coding (array, fixed-type)
@@ -9165,6 +10237,82 @@ status: `APPROVED` (string, required)
 + `rejected_at`: `2017-04-20T19:14:13Z` (string, required) - Reject date - ISO 8601 date and time in UTC timezone.
 + `rejected_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - Rejected user identifier
 
+### `Medication_request_Reject`
++ category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
+    - community - Includes requests for medications to be administered or consumed by the patient in their home
++ `created_at`: `2018-11-13` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_from`: `2018-11-13` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2018-12-13` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
++ `division` (`Division`, required)
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + `legal_entity_id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
++ `dosage_instruction` (array, required, fixed-type)
+    + (Dosage_Instruction)
++ `employee` (Employee_Minimal, required)
++ `ended_at`: `2018-12-13` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `id`: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required) - Medication Request request identifier
++ intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT
+    - plan - The request represents an intention to ensure something occurs without providing an authorization for others to act. "medical_program" is absent
+    - order - The request represents a request/demand and authorization for action. "medical_program" is required
++ is_blocked: false (boolean, required) - Whether medication request is blocked or not
++ `legal_entity` (`Legal_Entity_Short`, required)
+    + `id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
+    + licenses (array[MSP_License], required)
+    + accreditation (MSP_Accreditation, optional)
++ `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
++ `person` (`Person_Medication_Request`, required)
++ `request_number` : `0000-K8K5-5MTE-352H` (string, required) - Public medication request human readable number
++ `started_at`: `2018-11-13` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
++ `status`: `ACTIVE` (string, required) - Medication Request status. Find available **statuses** on State Charts wiki page
++ `medical_program` (`Medical_Program_Response`, optional)
++ `reject_reason_code`: (enum, required) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
+    - NO_REQUEST_NEEDED
+    - NO_SMS
+    - PATIENT_REJECT
+    - WRONG_DOSAGE
+    - WRONG_PERIOD
+    - WRONG_QTY
+    - WRONG_SIGNATURE
++ `reject_reason`: `Помилка призначення. Несумісні препарати.` (string, optional) - Medication request reject reason
+
+### `Medication_request_Reject_Response`
++ category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
+    - community - Includes requests for medications to be administered or consumed by the patient in their home
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
++ `division` (`Division`, required)
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ `dosage_instruction` (array, optional, fixed-type)
+    + (Dosage_Instruction)
++ `employee` (Employee_Minimal, required)
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
++ intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT
+    - plan - The request represents an intention to ensure something occurs without providing an authorization for others to act. "medical_program" is absent
+    - order - The request represents a request/demand and authorization for action. "medical_program" is required
++ is_blocked: false (boolean, required) - Whether medication request is blocked or not
++ `legal_entity` (`Legal_Entity_Short`, required)
+    + `id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
+    + licenses (array[MSP_License], required)
+    + accreditation (MSP_Accreditation, optional)
++ `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
++ `person` (`Person_Medication_Request`, required)
++ `reject_reason_code`: (enum, required) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
+    - NO_REQUEST_NEEDED
+    - NO_SMS
+    - PATIENT_REJECT
+    - WRONG_DOSAGE
+    - WRONG_PERIOD
+    - WRONG_QTY
+    - WRONG_SIGNATURE
++ `rejected_at`: (string, optional, nullable) - Reject date - ISO 8601 date and time in UTC timezone.
++ `rejected_by`: (string, optional, nullable) - Rejected user identifier
++ `request_number` : `0000-243P-1X53-EH38` (string) - Public medication request human readable number
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
++ `status`: `REJECTED` (enum[string], required) - Medication Request status. Find available **statuses** on State Charts wiki page
++ `medical_program` (`Medical_Program_Response`, optional)
++ `reject_reason`: (string, optional, nullable) - Medication request reject reason
 
 ## `Medication Dispense`
 ### `Medication_Dispense_Request`
@@ -9438,9 +10586,10 @@ status: `APPROVED` (string, required)
     + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
 + `start_date`: `2017-04-20` (string, required) - contract start date
 + `end_date`: `2017-04-20` (string, required) - contract end date
-+ `id_form`: `PMD_1` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
++ `id_form`: `PMD_1` (string, required) - type of contract {DICTIONARY REIMBURSEMENT_CONTRACT_TYPE}
 + `contract_number`: `0000-9EAX-XT7X-3115` (string, optional) - number of existing VERIFIED contract
-+ `medical_program_id`: `3914a240-63db-404e-b730-09222bfeb2d0` (string, required) - id of a medical program that is a subject of reimbursment contract
++ `medical_programs` (array, required)
+    + `3914a240-63db-404e-b730-09222bfeb2d0` (string, required) - - ids of a medical programs that is a subject of reimbursment contract
 
 ### `Contract_request_list_capitation`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID
@@ -9483,7 +10632,10 @@ status: `APPROVED` (string, required)
 + `parent_contract_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - parent contract id
 + `start_date`: `2017-04-20` (string, required) - contract start date
 + `end_date`: `2017-04-20` (string, required) - contract end date
-+ `medical_program_id`: `12e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - id of a medical program that is a subject for reimbursement contract
+
++ `medical_programs` (array, required)
+    + `3914a240-63db-404e-b730-09222bfeb2d0` (string, required) - - ids of a medical programs that is a subject of reimbursment contract
+
 
 ### `Contract_request_Update`
 + `contract_type`: `CAPITATION`
@@ -9557,7 +10709,7 @@ status: `APPROVED` (string, required)
 
 + `start_date`: `2017-04-20` (string, required) - contract start date
 + `end_date`: `2017-04-20` (string, required) - contract end date
-+ `id_form`: `RMB-1` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
++ `id_form`: `RMB-1` (string, required) - type of contract {DICTIONARY REIMBURSEMENT_CONTRACT_TYPE}
 + `nhs_signer` (object, optional)
     + include (`Person_Minimal_Contract`)
 + `nhs_legal_entity` (object)
@@ -9576,7 +10728,10 @@ status: `APPROVED` (string, required)
 + `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown only for requests in `APPROVED`, `PENDING_NHS_SIGN`, `NHS_SIGNED`, `SIGNED` statuses.
 + `previous_request_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - changed contract request id
 + `assignee_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - NHS employee which review contract request
-+ `medical_program_id`: `12e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - id of a medical program that is a subject for reimbursement contract
+
++ `medical_programs` (array, required)
+    + `3914a240-63db-404e-b730-09222bfeb2d0` (string, required) - - ids of a medical programs that is a subject of reimbursment contract
+
 
 ### `Contract_request_Details_Full`
 + include `Contract_request_Details_Capitation`
@@ -9700,7 +10855,10 @@ status: `APPROVED` (string, required)
 + id_form: `RMB` (string, required)
 + parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
 + `assignee_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - NHS employee which review contract request
-+ `medical_program_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - id of a medical program that is a subject of a reimbursement contract
+
++ `medical_programs` (array, required)
+    + `3914a240-63db-404e-b730-09222bfeb2d0` (string, required) - - ids of a medical programs that is a subject of reimbursment contract
+
 
 
 ### `Contract_Details_Capitation`
@@ -9780,7 +10938,10 @@ status: `APPROVED` (string, required)
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + id_form: `RMB` (string, required)
 + parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
-+ `medical_program_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - id of a medical program that is a subject of a reimbursement contract
+
++ `medical_programs` (array, required)
+    + `3914a240-63db-404e-b730-09222bfeb2d0` (string, required) - - ids of a medical programs that is a subject of reimbursment contract
+
 
 ### `Capitation_report`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - Unique report id
@@ -9851,16 +11012,19 @@ status: `APPROVED` (string, required)
 + parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
 + id_form: `PMD` (string, required)
 + `nhs_signed_date`: `2017-04-20` (string, required) - Date when contract was signed by NHS
-+ type: `CAPITATION` (string, required) - Contract type. Dictionary CONTRACT_TYPES
+
++ type: `CAPITATION` (string, required)
     - CAPITATION
     - REIMBURSEMENT
-+ `medical_program_id`: `d313342c-0b3c-443b-a92e-afb78d1e8086` (string, optional)
+
 + reason: `не було виконано умов контракту` (string, optional) - additional the reason of terminated status
 + `signed_content_location`: `bucket_name/folder_identifier/file_name` (string, optional) - Location of the signed content in media storage
 
 ### `Contracts_CRUD_response`
 + id: `8be63914-a278-470b-b868-1af5b9087332` (string, required) - Unique record identifier
 + include `Contracts_CRUD_request`
++ `medical_programs` (array, optional) - list of medical programs
+    - `d313342c-0b3c-443b-a92e-afb78d1e8086`
 + is_active: true (boolean, required) - Technical attribute. Indicates the availability of therecord in the system
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
