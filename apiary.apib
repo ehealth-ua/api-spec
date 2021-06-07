@@ -9854,7 +9854,8 @@ status: `APPROVED` (string, required)
 + type: `CAPITATION` (string, required) - Contract type. Dictionary CONTRACT_TYPES
     - CAPITATION
     - REIMBURSEMENT
-+ `medical_program_id`: `d313342c-0b3c-443b-a92e-afb78d1e8086` (string, optional)
++ `medical_programs` (array, required)
+    + `3914a240-63db-404e-b730-09222bfeb2d0` (string, required) - - ids of a medical programs that is a subject of contract
 + reason: `не було виконано умов контракту` (string, optional) - additional the reason of terminated status
 + `signed_content_location`: `bucket_name/folder_identifier/file_name` (string, optional) - Location of the signed content in media storage
 
