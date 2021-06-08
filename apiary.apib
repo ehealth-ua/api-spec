@@ -5515,7 +5515,7 @@ Reimbursement version:
         + data (object)
             + include `Contract_request_Details_Reimbursement`
 
-### Public. Get Contract Requests list [GET /api/contract_requests/{contract_type}/{?id,contractor_legal_entity_id,edrpou,contractor_owner_id,nhs_signer_id,issue_city,status,contract_number,page,page_size}]
+### Public. Get Contract Requests list [GET /api/contract_requests/{contract_type}/{?id,contractor_legal_entity_id,edrpou,contractor_owner_id,nhs_signer_id,issue_city,status,contract_number,medical_program_id,page,page_size}]
 
 ***Scope  contract_request:read***
 
@@ -5538,7 +5538,7 @@ This method is designed to obtain list of contract request with filters. This me
         - NHS_SIGNED
         - SIGNED
     + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
-    + program_id: `2075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of a program that is a subject of reimbursement contract
+    + medical_program_id: `2075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of a program that is a subject of contract
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
 
@@ -5914,7 +5914,7 @@ In DS EDRPOU/DRFO must be equal to contractor_legal_entity.edrpou
             + include `Contract_Details_Reimbursement`
 
 ## Contracts [/api/contract]
-### Public. Get Contracts list [GET /api/contracts/{contract_type}/{?id,contractor_legal_entity_id,edrpou,contractor_owner_id,nhs_signer_id,is_suspended,status,contract_number,date_from_start_date,date_to_start_date,date_from_end_date,date_to_end_date,page,page_size}]
+### Public. Get Contracts list [GET /api/contracts/{contract_type}/{?id,contractor_legal_entity_id,edrpou,contractor_owner_id,nhs_signer_id,is_suspended,status,contract_number,date_from_start_date,date_to_start_date,date_from_end_date,date_to_end_date,medical_program_id,page,page_size}]
 
 ***Scope  contract:read***
 
@@ -5935,7 +5935,7 @@ This method is designed to obtain list of contracts with filters. This mothod re
     + date_from_end_date: `2018-01-01` (string, optional)
     + date_to_end_date: `2019-01-01` (string, optional)
     + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
-    + program_id: `2075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of a program that is a subject of reimbursement contract
+    + medical_program_id: `2075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of a program that is a subject of contract
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
 
