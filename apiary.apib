@@ -28,7 +28,7 @@ To submit issues you should use [Issue Tracking Repo](https://github.com/ehealth
 the below table reflects actual API endpoints for all the ehealth environments
 Env     | Host
 --------|-----
-DEMO    | https://api.demo.edenlab.com.ua
+DEMO    | https://api-demo.ehealth.gov.ua
 PREPROD | https://api-preprod.ehealth.gov.ua
 PROD    | https://api.ehealth.gov.ua
 
@@ -71,7 +71,7 @@ Use following HOSTs for oAuth 2.0 Authentication
 
 Env     | Host
 --------|-----
-DEMO    | https://auth.demo.edenlab.com.ua
+DEMO    | https://api-demo.ehealth.gov.ua
 PREPROD | https://auth-preprod.ehealth.gov.ua
 PROD    | https://auth.ehealth.gov.ua
 
@@ -528,337 +528,6 @@ More detailed information - https://e-health-ua.atlassian.net/wiki/x/N4DrJ
 
 After declaration request is signed and/or verified (depends on verification logic) it will be automatically moved to [Declarations]().
 
-### Get Declaration Requests List [GET /api/declaration_requests{?employee_id,legal_entity_id,status,page,page_size}]
-
-Use this method to obrain list of Declaration Requests for an `empolee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor or Admin is interested in current UI section.
-
-
-Also we suggest use `employee_id` and `legal_entity_id` to make sure that end-user understands context of actions that he or she will perform.
-
-Method returns shortened details, to obtain full information - get Declaration Request it by it's ID.
-
-**Important**
-This endpoint returns all declaration requests that were created through V2 and V3. If the declaration request was created according to version 3, then the block `person` will be empty.
-
-+ Parameters
-    + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
-    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
-    + status: active (enum, optional)
-        - NEW
-        - APPROVED
-        - SIGNED
-        - REJECTED
-        - CANCELLED
-    + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
-
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-+ Response 200 (application/json)
-    + Attributes (`Response_Collection_V2`)
-        + data (array[`Declaration_Request_Short`])
-
-### Get Declaration Request by ID [GET /api/declaration_requests/{id}]
-
-This endpoint shows the declaration requests which are created by V2 and V3. Due to the fact that structure of declaration request V2 is different from the structure of decl request V3 , so not all fields of decl request v3 can be displayed.
-Block `person` has optional `id`.
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - request identifier
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (object)
-            + status: SIGNED (enum, optional)
-                - NEW
-                - APPROVED
-                - SIGNED
-                - CANCELLED
-                - REJECTED
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + start_date: `2017-03-02` (string, required) - Should be defined on the client side.
-            + end_date: `2017-03-02` (string, required) - Will be defined on eHealth side if it's not set.
-            + person(`Person_Request`, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
-                + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-                + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
-                + id: `53af47ba-d9eb-4a87-a2f7-4114adcf1fc4` (string, optional)
-            + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
-            + scope (enum, required)
-                - family doctor
-            + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
-            + declaration_id: `8311ab82-e341-4da0-8a95-235ec9885e23` (string, required) - presetted id for future declaration
-            + employee (Employee_Minimal)
-            + `legal_entity` (`Medical_Service_Provider`)
-                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + division (`Division_Details`)
-            + content: `Declaration content` (string, optional) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
-            + seed: hash (string, required) - Hash of previous block in declarations chain or other random component that should be signed with declaration.
-            + channel: `MIS` (enum, required) - channel that invoke declaration create service
-                - MIS
-                - CABINET
-        + urgent (object, required)
-            + `authentication_method_current` (object, required)
-                + type: `OTP` (enum, required)
-                    - OTP
-                    - OFFLINE
-                    - NA
-                + number: `+38093*****85` (string, required)
-            + documents (array[`media_content`], optional)
-
-### Create Declaration Request - Will be Deprecated[POST /api/v2/declaration_requests]
-
-This method is used to create Declaration Request (as part of Declaration creation process). Fields descriptions are listed in request Example view.
-
-Each doctor has its own limit of declarations. In case there is a necessity to create more declarations `overlimit` should be TRUE. By default `overlimit`= FALSE
-
-Methods-independence (Online/Offline) the attacment with scan of declaration must be added. The scan should be single page JPEG document.
-
-After sign new declaration all previously created pending (status one of the following: NEW, APPROVED) declaration request will be cancelled automatically.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-    + Attributes (object)
-        + `declaration_request` (Declaration_Request_Public)
-
-+ Response 201 (application/json)
-    + Attributes (Response__Process_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + seed: hash (string, required)
-            + include `Declaration_Request_Public_Response`
-            + status: `NEW` (string, required)
-            + employee (Employee_Minimal, required)
-            + `legal_entity` (`Medical_Service_Provider`, required)
-                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + division (`Division_Declaration`, required)
-            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
-            + channel: `MIS` (enum, required) - channel that invoke declaration create service
-            + `preferred_way_communication`: email (enum, optional)
-                - email
-                - phone
-        + urgent (object, required)
-            + `authentication_method_current` (object, required)
-                + type: `OTP` (enum, required)
-                    - OTP
-                    - OFFLINE
-                    - NA
-                + number: `+38093*****85` (string, required)
-            + documents (array[`media_content`], optional)
-
-+ Response 422 (application/json)
-    + Attributes (Response_Error)
-        + meta (Response__Meta)
-            + code: 422
-        + error
-            + type: unverified (string, required)
-            + message: `Unverified phone number` (string, required)
-
-### Create Declaration Request V2 [POST /api/v2/declaration_requests]
-
-This method is used to create Declaration Request (as part of Declaration creation process) via new api. New version changes person search and adds new fields to request.
-
-This method makes it possible to update person data.
-When you filled `person.id`, you can update person data (for example, last name). If you give `person.id` and get an error, so you are trying to update another person and you need to create a new person (do not send `person.id`)
-
-If declaration_request without field `person.id`, a new person is created. But if such a person is already there, then there is an error that it is necessary to update the person.
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-    + Attributes (object)
-        + `declaration_request` (Declaration_Request_Public_v2)
-
-+ Response 201 (application/json)
-    + Attributes (Response__Process_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + seed: hash (string, required)
-            + include `Declaration_Request_Public_Response_v2`
-            + status: `NEW` (string, required)
-            + employee (Employee_Minimal, required)
-            + `legal_entity` (`Medical_Service_Provider`, required)
-                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + division (`Division_Declaration`, required)
-            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
-            + channel: `MIS` (enum, required) - channel that invoke declaration create service
-            + `preferred_way_communication`: email (enum, optional)
-                - email
-                - phone
-        + urgent (object, required)
-            + `authentication_method_current` (object, required)
-                + type: `OTP` (enum, required)
-                    - OTP
-                    - OFFLINE
-                    - NA
-                + number: `+38093*****85` (string, required)
-            + documents (array[`media_content`], optional)
-
-+ Response 422 (application/json)
-    + Attributes (Response_Error)
-        + meta (Response__Meta)
-            + code: 422
-        + error
-            + type: unverified (string, required)
-            + message: `Unverified phone number` (string, required)
-            
-
-
-
-### Approve Declaration Request [PATCH /api/declaration_requests/{id}/actions/approve]
-
-Use this method to approve previously created Declaration Request.
-
-In case if authentication_method is OTP, request example:
-```
-{
-  "verification_code": 3748
-}
-```
-In case if authentication_method is OFFLINE or N/A, request body should be empty.
-Before approve patient's scanned documents should be uploaded to the ([Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program)).
-All links are generated for one one-page document in jpeg format. Document should be no more than 10MB.
-If make declaration request via cabinet then nothing must be uploaded to URL.
-Clients can use signed URL's to directly access [s3 storage](https://storage.ehealth.gov.ua/) and upload files via API.
-
-+ Parameters
-    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-    + Attributes (object)
-        + `verification_code`: 2836 (number, optional) - required if authentication_method is OTP
-
-+ Response 201 (application/json)
-    + Attributes (Response__Process_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + seed: hash (string, required)
-            + include `Declaration_Request_Public_Response`
-            + status: `APPROVED` (string, required)
-            + employee (Employee_Minimal, required)
-            + `legal_entity` (`Medical_Service_Provider`, required)
-                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + division (`Division_Details`, required)
-            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
-            + channel: `MIS` (enum, required) - channel that invoke declaration create service
-
-+ Response 422 (application/json)
-    + Attributes (Response_Error)
-        + meta (Response__Meta)
-            + code: 422
-        + error
-            + type: request_malformed (string, required)
-            + message: `This doctor has X declarations and could not sign more` (string, required)
-
-### Reject Declaration Request [PATCH /api/declaration_requests/{id}/actions/reject]
-
-Use this method to reject previously created Declaration Request.
-
-+ Parameters
-    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-+ Response 201 (application/json)
-    + Attributes (Response__Process_OK)
-        + meta (Response__Meta)
-            + code: 200 (number)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + seed: hash (string, required)
-            + include `Declaration_Request_Public_Response`
-            + status: `REJECTED` (string, required)
-            + employee (Employee_Minimal, required)
-            + `legal_entity` (`Medical_Service_Provider`, required)
-                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + division (`Division_Details`, required)
-            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
-            + channel: `MIS` (enum, required) - channel that invoke declaration create service
-
-### Resend Authorization OTP on Declaration Request [POST /api/declaration_requests/{id}/actions/resend_otp]
-
-Use this method to resend sms on previously created Declaration Request.
-
-+ Parameters
-    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + data (OTP)
-
-### Sign Declaration Request [PATCH /api/declaration_requests/{id}/actions/sign]
-
-This method is used to sign Declaration Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property.
-All signature fields will be validated (including signer certificate authority).
-
-This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
-
-Signed content MUST consists of JSON object with Declaration Request data and printout template. Object that need to be signed is returned by `Get Declaration request by ID` response, `JSON.Path: $.data`.
-Patient must re-read and sign declaration print form and after that `patient_signed` should be changed to TRUE.
-
-Declaration request can be signed either by doctor or admin (user with scope `declaration_request:sign`) from legal entity as in declaration request.
-
-**Important**
-Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in declarations chain or other random component that should be signed with declaration
-
-Look at [**Dummy Sign Declaration Request**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-declaration-request/sign-declaration-request) for more details.
-
-+ Parameters
-    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-    + Attributes (object)
-        + `signed_declaration_request`: `MIIWmAYJKoZIhvcNAQcCoIIWiTCCFoUCAQExCzAJBgUrDgMCGgUAMIISuwYJKoZIhvcNAQcBoIISrASCEqh7XHJ0ZjFcYW5zaVxhbnNpY3BnMTI1Mlxjb2NvYXJ0ZjE1MDRcY29jb2FzdWJydGY4MTANCntcZm9udHRibFxmMFxmc3dpc3NcZmNoYXJzZXQwIEhlbHZldGljYTt9DQp7XGNvbG9ydGJsO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1NTtccmVkNzBcZ3JlZW41M1xibHVlOTY7XHJlZDI0OVxncmVlbjI0OVxibHVlMjUxO30NCntcKlxleHBhbmRlZGNvbG9ydGJsOztcY3NzcmdiXGMzNDUxMFxjMjc4NDNcYzQ1MDk4O1xjc3NyZ2JcYzk4MDM5XGM5ODAzOVxjOTg4MjQ7fQ0KXG1hcmdsMTQ0MFxtYXJncjE0NDBcdmlld3cxMDgwMFx2aWV3aDg0MDBcdmlld2tpbmQwDQpcZGVmdGFiNzIwDQpccGFyZFxwYXJkZWZ0YWI3MjBccGFydGlnaHRlbmZhY3RvcjANCg0KXGYwXGZzMjggXGNmMiBcY2IzIFxleHBuZDBcZXhwbmR0dzBca2VybmluZzANClx7XA0KICAgImlkIjoiYjA3NWYxNDgiLFwNCiAgICJzdGFydF9kYXRlIjoiMjAxNy0wMy0wMlQxMDo0NToxNi4wMDBaIixcDQogICAiZW5kX2RhdGUiOiIyMDE3LTAzLTAyVDEwOjQ1OjE2LjAwMFoiLFwNCiAgICJwZXJzb24iOlx7XA0KICAgICAgImZpcnN0X25hbWUiOiJcdWMwXHUxMDU1IFx1MTA3NyBcdTEwOTAgXHUxMDg4IFx1MTA4NiAiLFwNCiAgICAgICJsYXN0X25hbWUiOiJcdWMwXHUxMDMwIFx1MTA3NCBcdTEwNzIgXHUxMDg1IFx1MTA4NiBcdTEwNzQgIixcDQogICAgICAic2blic Vjb25kX25hbWUiOiJcdWMwXHUxMDUyIFx1MTA4MCBcdTEwODIgXHUxMDg2IFx1MTA4MyBcdTEwNzIgXHUxMDgxIFx1MTA4NiBcdTEwNzQgXHUxMDgwIFx1MTA5NSAiLFwNCiAgICAgICJiaXJ0aF9kYXRlIjoiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIixcDQogICAgICAiYmlydGhfcGxhY2UiOiJcdWMwXHUxMDQyIFx1MTExMCBcdTEwODUgXHUxMDg1IFx1MTA4MCBcdTEwOTQgXHUxMTAzICwgXHUxMDU5IFx1MTA4MiBcdTEwODggXHUxMDcyIFx1MTExMSBcdTEwODUgXHUxMDcyICIsXA0KICAgICAgImdlbmRlciI6Ik1BTEUiLFwNCiAgICAgICJlbWFpbCI6ImVtYWlsQGV4YW1wbGUuY29tIixcDQogICAgICAidGF4X2lkIjoiMzEyNjUwOTgxNiIsXA0KICAgICAgIm5hdGlvbmFsX2lkIjoiQ0M3MTUwOTg1MjQzIixcDQogICAgICAic2VjcmV0Ijoic2VjcmV0IixcDQogICAgICAiZG9jdW1lbnRzIjpbXA0KICAgICAgICAgXHtcDQogICAgICAgICAgICAidHlwZSI6IlBBU1NQT1JUIixcDQogICAgICAgICAgICAibnVtYmVyIjoiMTIwNTE4IixcDQogICAgICAgICAgICAiaXNzdWVfZGF0ZSI6IjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIsXA0KICAgICAgICAgICAgImV4cGlyeV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAiaXNzdWVkX2J5IjoiRE1TVSJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImFkZHJlc3NlcyI6W1wNCiAgICAgICAgIFx7XA0KICAgICAgICAgICAgInR5cGUiOiJSRVNJREVOQ0UiLFwNCiAgICAgICAgICAgICJjb3VudHJ5IjoiVUEiLFwNCiAgICAgICAgICAgICJhcmVhIjoiXHVjMFx1MTA0NiBcdTEwODAgXHUxMDkwIFx1MTA4NiBcdTEwODQgXHUxMDgwIFx1MTA4OCBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAicmVnaW9uIjoiXHVjMFx1MTA0MSBcdTEwNzcgXHUxMDg4IFx1MTA3NiBcdTEwODAgXHUxMDk1IFx1MTExMCBcdTEwNzQgXHUxMDg5IFx1MTEwMCBcdTEwODIgXHUxMDgwIFx1MTA4MSAiLFwNCiAgICAgICAgICAgICJjaXR5IjoiXHVjMFx1MTA1MCBcdTEwODAgXHUxMTExIFx1MTA3NCAiLFwNCiAgICAgICAgICAgICJjaXR5X3R5cGUiOiJDSVRZIixcDQogICAgICAgICAgICAic3RyZWV0IjoiXHVjMFx1MTA3NCBcdTEwOTEgXHUxMDgzIC4gXHUxMDUzIFx1MTExMCBcdTEwNzggXHUxMDgwIFx1MTA4NSBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAiYnVpbGRpbmciOiIxNSIsXA0KICAgICAgICAgICAgImFwYXJ0bWVudCI6IjIzIixcDQogICAgICAgICAgICAiemlwIjoiMDIwOTAiXA0KICAgICAgICAgXH1cDQogICAgICBdLFwNCiAgICAgICJwaG9uZXMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiTU9CSUxFIixcDQogICAgICAgICAgICAibnVtYmVyIjoiKzM4MDUwMzQxMDg3MCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiU01TIixcDQogICAgICAgICAgICAicGhvbmVfbnVtYmVyIjoiKzM4MDUwODg4NzcwMCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImVtZXJnZW5jeV9jb250YWN0Ijpce1wNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIixcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgImNvbmZpZGFudF9wZXJzb24iOlx7XA0KICAgICAgICAgInJlbGF0aW9uX3R5cGUiOiJ0cnVzdGVlIixcDQogICAgICAgICAiZmlyc3RfbmFtZSI6Ilx1YzBcdTEwNTUgXHUxMDc3IFx1MTA5MCBcdTEwODggXHUxMDg2ICIsXA0KICAgICAgICAgImxhc3RfbmFtZSI6Ilx1YzBcdTEwMzAgXHUxMDc0IFx1MTA3MiBcdTEwODUgXHUxMDg2IFx1MTA3NCAiLFwNCiAgICAgICAgICJzZWNvbmRfbmFtZSI6Ilx1YzBcdTEwNTIgXHUxMDgwIFx1MTA4MiBcdTEwODYgXHUxMDgzIFx1MTA3MiBcdTEwODEgXHUxMDg2IFx1MTA3NCBcdTEwODAgXHUxMDk1ICIsXA0KICAgICAgICAgImJpcnRoX2RhdGUiOiIxOTkxLTA4LTE5VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICJiaXJ0aF9wbGFjZSI6Ilx1YzBcdTEwNDIgXHUxMTEwIFx1MTA4NSBcdTEwODUgXHUxMDgwIFx1MTA5NCBcdTExMDMgLCBcdTEwNTkgXHUxMDgyIFx1MTA4OCBcdTEwNzIgXHUxMTExIFx1MTA4NSBcdTEwNzIgIixcDQogICAgICAgICAiZ2VuZGVyIjoiTUFMRSIsXA0KICAgICAgICAgInRheF9pZCI6IjMxMjY1MDk4MTYiLFwNCiAgICAgICAgICJkb2N1bWVudHMiOltcDQogICAgICAgICAgICBce1wNCiAgICAgICAgICAgICAgICJ0eXBlIjoiUEFTU1BPUlQiLFwNCiAgICAgICAgICAgICAgICJudW1iZXIiOiIxMjA1MTgiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAgICAiZXhwaXJ5X2RhdGUiOiIyMDE1LTA0LTA3VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZWRfYnkiOiJETVNVIlwNCiAgICAgICAgICAgIFx9XA0KICAgICAgICAgXSxcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgInJlbmV3YWxfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicGF0aWVudF9zaWduZWQiOnRydWUsXA0KICAgICAgImRpc2Nsb3N1cmVfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicHJvY2Vzc19kYXRhX2NvbnNlbnQiOnRydWVcDQogICBcfSxcDQogICAiZW1wbG95ZWUiOlx7XA0KICAgICAgImlkIjoiZDI5MGYxZWUtNmM1NC00YjAxLTkwZTYtZDcwMTc0OGYwODUxIixcDQogICAgICAidGl0bGUiOiJcdWMwXHUxMDgzIFx1MTExMCBcdTEwODIgXHUxMDcyIFx1MTA4OCAiLFwNCiAgICAgICJwYXJ0eSI6XHtcDQogICAgICAgICAiaWQiOiJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLFwNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIlwNCiAgICAgIFx9XA0KICAgXH0sXA0KICAgIm1zcCI6XHtcDQogICAgICAiaWQiOiJkMjkwZjFlZSIsXA0KICAgICAgIm5hbWUiOiJcdWMwXHUxMDUwIFx1MTA4MyBcdTExMTAgXHUxMDg1IFx1MTExMCBcdTEwODIgXHUxMDcyICBcdTEwNDEgXHUxMDg2IFx1MTA4OCBcdTEwODAgXHUxMDg5ICIsXA0KICAgICAgInNob3J0X05hbWUiOiJcdWMwXHUxMDQxIFx1MTA4NiBcdTEwODggXHUxMDgwIFx1MTA4OSAiLFwNCiAgICAgICJ0eXBlIjoiXHVjMFx1MTA2MCBcdTEwNTQgXHUxMDU1ICIsXA0KICAgICAgImVkcnBvdSI6IjU0MzIzNDU0MzIiXA0KICAgXH0sXA0KICAgInNjb3BlIjoiZmFtaWx5IGRvY3RvciIsXA0KICAgInBsYWludGV4dF9jb250ZW50IjoiRGVjbGFyYXRpb24gY29udGVudCJcDQpcfX2gggIuMIICKjCCAZOgAwIBAgIJANj0sC/v0hWYMA0GCSqGSIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBLQ1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0NTczM1oXDTE3MDQyNjE0NTczM1owGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMuqrxE/0txT+ZVRKU1O85a8eaaUAOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0GA1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+CaflnzBJBgNVHSMEQjBAgBTET2SwL5UfUMKDyhuBGCA+Cafln6EdpBswGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY9LAv79IVmDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IVS28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjnw87JzkAy5KLDTiotQl8eknkd1bR3nIWINemck3GeGYkR8giG3gkNxz6ky1+63ZcoJkEiS46aneDhmS6BdH0V2G/3delos8+ZMYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQDFA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTcwMzI4MTE1NDEwWjAjBgkqhkiG9w0BCQQxFgQU5NSvVRVYHz5tG1GW8gXrjHSnLj8wUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEgYCdqnN8gGXw9OUmtxOvQQgHK5Ni/4/2WQWj7rxERh5AI6rhXs/hh3DNS5Z5mN6wO8z47SQuedbsMQ5hf6+9BbKhXD7WKeU+DtGyfa1ner5/ubz6BeVvuT98D4PrzHlqNSpe/7AirrA70QVO9kPoFSmGtBG6JjaqaCZBYbvF9InPRw==` (string, required)
-        + `signed_content_encoding`: base64 (string, required)
-
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + data (`Declaration_short`)
-
 ### Create Declaration Request V3 [POST /api/v3/declaration_requests]
 
 This method is used to create Declaration Request (as part of Declaration creation process) via new api. 
@@ -1278,14 +947,12 @@ Response structure differs depending on employee type:
 * Employee info
 * User Info
 
-**For DOCTOR or PHARMACIST:**
+**For DOCTOR, SPECIALIST, ASSISTANT or PHARMACIST:**
 
 * Person info
 * Employee info
 * User Info
 * Doctor info
-
-`Declaration_limit` and `declaration_count` are mooved to approve declaration request error, temporary are left in response with `0` value.
 
 + Parameters
     + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1293,7 +960,7 @@ Response structure differs depending on employee type:
 + Request (application/json)
 
     + Headers
-
+    
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
 
 + Response 200 (application/json)
@@ -1301,6 +968,9 @@ Response structure differs depending on employee type:
         + data (Employee_Response)
             + division (Division_Short)
             + `legal_entity` (`Legal_Entity_Short`)
+                + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
+                + `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
+                + `mis_verified`: VERIFIED, NOT_VERIFIED (enum, required)
 
 
 ### Deactivate Employee [PATCH /api/employees/{id}/actions/deactivate]
@@ -1333,48 +1003,6 @@ Employee deactivation:
                 + `legal_entity` (`Legal_Entity_Short`)
 
 ## Employee Requests [/api/employee_requests]
-
-### Create Employee Request [POST]
-
-Employee_Request consist of the three mandatory parts:
-* Person info
-* Employee info
-* User Info
-
-**For DOCTOR or PHARMACIST:**
-* Doctor ot Pharmacist info
-
-Additionally to register/update Physician the `Doctor info` for Doctors and `Pharmacist info` for Pharmacist should be passed.
-
-When the `Employee_Request` will be posted the Invitation e-mail with a request
-secret token will be sent to the User specified in the request.
-
-In case the employee doesn't have tax_id no_tax_id must be true and in fields tax_id input passport number (serial number in cyrillic without spaces)
-
-It can be also used to update employee data. In this case `employee_id` should be passed in the payload.
-
-User may accept or decline Invitation.
-
-For changes to take effect employee must confirm the changes.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-    + Attributes (object)
-        + `employee_request` (Employee_Request)
-
-
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (Employee_Request_Details)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + inserted_at: `2017-05-05T14:09:59.232112` (string, required)
-            + updated_at: `2017-05-05T14:09:59.232112` (string, required)
 
 ### Create Employee Request v2 [POST /api/v2/employee_requests]
 
@@ -1580,6 +1208,91 @@ This information was in response of Get `Search for a Person` before.
         + error (Response__Error, fixed-type)
             + type: `forbidden`
             + message: `Such person not found` (string)
+ 
+
+### Create Person [POST /api/persons/create]
+**[Not implemented]** This WS is designed to create person in offline method by legal_entity employee. Employee need scope person:write to create person.
+Method receives signed message (pkcs7) including signed content, digital signature and signer public key. All signature fields will be validated (including signer certificate authority).
+
+Entity data:
+{
+    "first_name": "Петро",
+    "last_name": "Іванов",
+    "second_name": "Миколайович",
+    "birth_date": "1991-08-19",
+    "birth_country": "Україна",
+    "birth_settlement": "Вінниця",
+    "gender": "MALE",
+    "email": "email@example.com",
+    "tax_id": "3126509816",
+    "secret": "secret",
+    "documents": [
+      {
+        "type": "PASSPORT",
+        "number": "120518",
+        "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
+        "issued_at": "2017-02-28"
+      }
+    ],
+    "addresses": [
+      {
+        "type": "RESIDENCE",
+        "country": "UA",
+        "area": "Житомирська",
+        "region": "Бердичівський",
+        "settlement": "Київ",
+        "settlement_type": "CITY",
+        "settlement_id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+        "street_type": "STREET",
+        "street": "вул. Ніжинська",
+        "building": "15",
+        "apartment": "23",
+        "zip": "02090"
+      }
+    ],
+    "phones": [
+      {
+        "type": "MOBILE",
+        "number": "+380503410870"
+      }
+    ],
+    "authentication_methods": [
+      {
+        "type": "OTP",
+        "phone_number": "+380508887700"
+      }
+    ],
+    "preferred_way_communication": "email",
+    "emergency_contact": {
+      "first_name": "Петро",
+      "last_name": "Іванов",
+      "second_name": "Миколайович",
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380503410870"
+        }
+      ]
+    },
+    "process_disclosure_data_consent": true
+  }
+}
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + `signed_request`: `MIIUKAYJKoZIhvcNAQcCoIIUGTCCFBUCAQExDjAMBgoqhiQCAQEBAQIBMIIGRgYJKoZIhvcNAQcBoIIGNwSCBjN7CiAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICJsYXN0X25hbWUiOiAi0IbQstCw0L3QvtCyIiwKICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICJiaXJ0aF9kYXRlIjogIjE5OTEtMDgtMTkiLAogICAgImJpcnRoX2NvdW50cnkiOiAi0KPQutGA0LDRl9C90LAiLAogICAgImJpcnRoX3NldHRsZW1lbnQiOiAi0JLRltC90L3QuNGG0Y8iLAogICAgImdlbmRlciI6ICJNQUxFIiwKICAgICJlbWFpbCI6ICJlbWFpbEBleGFtcGxlLmNvbSIsCiAgICAidGF4X2lkIjogIjMxMjY1MDk4MTYiLAogICAgInNlY3JldCI6ICJzZWNyZXQiLAogICAgImRvY3VtZW50cyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlBBU1NQT1JUIiwKICAgICAgICAibnVtYmVyIjogIjEyMDUxOCIsCiAgICAgICAgImlzc3VlZF9ieSI6ICLQoNC+0LrQuNGC0L3Rj9C90YHRjNC60LjQvCDQoNCSINCT0KMg0JzQktChINCa0LjRl9Cy0YHRjNC60L7RlyDQvtCx0LvQsNGB0YLRliIsCiAgICAgICAgImlzc3VlZF9hdCI6ICIyMDE3LTAyLTI4IgogICAgICB9CiAgICBdLAogICAgImFkZHJlc3NlcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlJFU0lERU5DRSIsCiAgICAgICAgImNvdW50cnkiOiAiVUEiLAogICAgICAgICJhcmVhIjogItCW0LjRgtC+0LzQuNGA0YHRjNC60LAiLAogICAgICAgICJyZWdpb24iOiAi0JHQtdGA0LTQuNGH0ZbQstGB0YzQutC40LkiLAogICAgICAgICJzZXR0bGVtZW50IjogItCa0LjRl9CyIiwKICAgICAgICAic2V0dGxlbWVudF90eXBlIjogIkNJVFkiLAogICAgICAgICJzZXR0bGVtZW50X2lkIjogIjQzNDMyNDMyIiwKICAgICAgICAic3RyZWV0X3R5cGUiOiAiU1RSRUVUIiwKICAgICAgICAic3RyZWV0IjogItCy0YPQuy4g0J3RltC20LjQvdGB0YzQutCwIiwKICAgICAgICAiYnVpbGRpbmciOiAiMTUiLAogICAgICAgICJhcGFydG1lbnQiOiAiMjMiLAogICAgICAgICJ6aXAiOiAiMDIwOTAiCiAgICAgIH0KICAgIF0sCiAgICAicGhvbmVzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiTU9CSUxFIiwKICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgIH0KICAgIF0sCiAgICAiYXV0aGVudGljYXRpb25fbWV0aG9kcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIk9UUCIsCiAgICAgICAgInBob25lX251bWJlciI6ICIrMzgwNTA4ODg3NzAwIgogICAgICB9CiAgICBdLAogICAgInByZWZlcnJlZF93YXlfY29tbXVuaWNhdGlvbiI6ICJlbWFpbCIsCiAgICAiZW1lcmdlbmN5X2NvbnRhY3QiOiB7CiAgICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICAgInBob25lcyI6IFsKICAgICAgICB7CiAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICAgIH0KICAgICAgXQogICAgfSwKICAgICJwcm9jZXNzX2Rpc2Nsb3N1cmVfZGF0YV9jb25zZW50IjogdHJ1ZQogIH0KfQqgggW5MIIFtTCCBV2gAwIBAgIUDYTtobuTgegEAAAAXrQiAL+zdAAwDQYLKoYkAgEBAQEDAQEwggFCMXwwegYDVQQKDHPQn9Cj0JHQm9CG0KfQndCVINCQ0JrQptCG0J7QndCV0KDQndCVINCi0J7QktCQ0KDQmNCh0KLQktCeINCa0J7QnNCV0KDQptCG0JnQndCY0Jkg0JHQkNCd0JogwqvQn9Cg0JjQktCQ0KLQkdCQ0J3QmsK7MREwDwYDVQQLDAjQkNCm0KHQmjE2MDQGA1UEAwwt0JDQptCh0Jog0J/QkNCiINCa0JEgwqvQn9Cg0JjQktCQ0KLQkdCQ0J3QmsK7MRYwFAYDVQQFDA1VQS0xNDM2MDU3MC0xMQswCQYDVQQGEwJVQTEnMCUGA1UEBwwe0JTQvdGW0L/RgNC+0L/QtdGC0YDQvtCy0YHRjNC6MSkwJwYDVQQIDCDQlNC90ZbQv9GA0L7Qv9C10YLRgNC+0LLRgdGM0LrQsDAeFw0xODAxMjMxNDUzMzRaFw0xOTAxMjMyMTU5NTlaMIIBEzEiMCAGA1UECgwZ0KTQhtCX0JjQp9Cd0JAg0J7QodCe0JHQkDE5MDcGA1UEAwww0J/QmNCg0J7Qk9Ce0JIg0ITQktCT0JXQnSDQktCQ0JvQldCg0IbQmdCe0JLQmNCnMRcwFQYDVQQEDA7Qn9CY0KDQntCT0J7QkjEqMCgGA1UEKgwh0ITQktCT0JXQnSDQktCQ0JvQldCg0IbQmdCe0JLQmNCnMRAwDgYDVQQFDAcyMjc0Mzk4MQswCQYDVQQGEwJVQTEnMCUGA1UEBwwe0JwuINCa0KDQntCf0JjQktCd0JjQptCs0JrQmNCZMSUwIwYDVQQIDBzQmtCG0KDQntCS0J7Qk9Cg0JDQlNCh0KzQmtCQMEYwHgYLKoYkAgEBAQEDAQEwDwYNKoYkAgEBAQEDAQECBgMkAAQhjRmoLlqV3cgZNe9gmcZLlspx7ehgFCJhmSPWRSaeqDABo4ICajCCAmYwKQYDVR0OBCIEIM7Y1MGL3FCwFqfxcjkFATaRcfR7MlofZYImNtZy82BJMCsGA1UdIwQkMCKAII2E7aG7k4HowxGQqKyShT/E2MeExkoBuDcRV9hdGFVXMC8GA1UdEAQoMCagERgPMjAxODAxMjMxNDUzMzRaoREYDzIwMTkwMTIzMjE1OTU5WjAOBgNVHQ8BAf8EBAMCBsAwGQYDVR0gAQH/BA8wDTALBgkqhiQCAQEBAgIwDAYDVR0TAQH/BAIwADAeBggrBgEFBQcBAwEB/wQPMA0wCwYJKoYkAgEBAQIBMDgGA1UdHwQxMC8wLaAroCmGJ2h0dHA6Ly9hY3NrLnByaXZhdGJhbmsudWEvY3JsL1BCLVM5LmNybDBDBgNVHS4EPDA6MDigNqA0hjJodHRwOi8vYWNzay5wcml2YXRiYW5rLnVhL2NybGRlbHRhL1BCLURlbHRhLVM5LmNybDCBlAYIKwYBBQUHAQEEgYcwgYQwNAYIKwYBBQUHMAGGKGh0dHA6Ly9hY3NrLnByaXZhdGJhbmsudWEvc2VydmljZXMvb2NzcC8wTAYIKwYBBQUHMAKGQGh0dHA6Ly9hY3NrLnByaXZhdGJhbmsudWEvZG93bmxvYWQvY2VydGlmaWNhdGVzL2NlcnRpZmljYXRlcy5wN2IwQwYIKwYBBQUHAQsENzA1MDMGCCsGAQUFBzADhidodHRwOi8vYWNzay5wcml2YXRiYW5rLnVhL3NlcnZpY2VzL3RzcC8wJwYDVR0JBCAwHjAcBgwqhiQCAQEBCwEEAQExDBMKMzIyODUxMjU5NzANBgsqhiQCAQEBAQMBAQNDAARA1d1/0YSD9Ey1HLl3NXCCr9NWdZjj5zYaHQTNbFSssSY4vx45IGKbePPhHsNOX1sLhbPS8ra7sUSdehO5i+xtTzGCB/cwggfzAgEBMIIBXDCCAUIxfDB6BgNVBAoMc9Cf0KPQkdCb0IbQp9Cd0JUg0JDQmtCm0IbQntCd0JXQoNCd0JUg0KLQntCS0JDQoNCY0KHQotCS0J4g0JrQntCc0JXQoNCm0IbQmdCd0JjQmSDQkdCQ0J3QmiDCq9Cf0KDQmNCS0JDQotCR0JDQndCawrsxETAPBgNVBAsMCNCQ0KbQodCaMTYwNAYDVQQDDC3QkNCm0KHQmiDQn9CQ0KIg0JrQkSDCq9Cf0KDQmNCS0JDQotCR0JDQndCawrsxFjAUBgNVBAUMDVVBLTE0MzYwNTcwLTExCzAJBgNVBAYTAlVBMScwJQYDVQQHDB7QlNC90ZbQv9GA0L7Qv9C10YLRgNC+0LLRgdGM0LoxKTAnBgNVBAgMINCU0L3RltC/0YDQvtC/0LXRgtGA0L7QstGB0YzQutCwAhQNhO2hu5OB6AQAAABetCIAv7N0ADAMBgoqhiQCAQEBAQIBoIIGLTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0xODAzMDYxNTA0NDVaMC8GCSqGSIb3DQEJBDEiBCDbHFDhBEQW1QRz8HjgTlCCbFY0v+HqsFVhNFUu5u2T4TCCAbUGCyqGSIb3DQEJEAIvMYIBpDCCAaAwggGcMIIBmDAMBgoqhiQCAQEBAQIBBCAO8oJo2fLbnwbziqmVvvs+Fu0ybvTJsmBixu4EP0TAjjCCAWQwggFKpIIBRjCCAUIxfDB6BgNVBAoMc9Cf0KPQkdCb0IbQp9Cd0JUg0JDQmtCm0IbQntCd0JXQoNCd0JUg0KLQntCS0JDQoNCY0KHQotCS0J4g0JrQntCc0JXQoNCm0IbQmdCd0JjQmSDQkdCQ0J3QmiDCq9Cf0KDQmNCS0JDQotCR0JDQndCawrsxETAPBgNVBAsMCNCQ0KbQodCaMTYwNAYDVQQDDC3QkNCm0KHQmiDQn9CQ0KIg0JrQkSDCq9Cf0KDQmNCS0JDQotCR0JDQndCawrsxFjAUBgNVBAUMDVVBLTE0MzYwNTcwLTExCzAJBgNVBAYTAlVBMScwJQYDVQQHDB7QlNC90ZbQv9GA0L7Qv9C10YLRgNC+0LLRgdGM0LoxKTAnBgNVBAgMINCU0L3RltC/0YDQvtC/0LXRgtGA0L7QstGB0YzQutCwAhQNhO2hu5OB6AQAAABetCIAv7N0ADCCBAcGCyqGSIb3DQEJEAIUMYID9jCCA/IGCSqGSIb3DQEHAqCCA+MwggPfAgEDMQ4wDAYKKoYkAgEBAQECATBrBgsqhkiG9w0BCRABBKBcBFowWAIBAQYKKoYkAgEBAQIDATAwMAwGCiqGJAIBAQEBAgEEINscUOEERBbVBHPweOBOUIJsVjS/4eqwVWE0VS7m7ZPhAgQMlPn1GA8yMDE4MDMwNjE1MDU1NloxggNbMIIDVwIBATCCARMwgfoxPzA9BgNVBAoMNtCc0ZbQvdGW0YHRgtC10YDRgdGC0LLQviDRjtGB0YLQuNGG0ZbRlyDQo9C60YDQsNGX0L3QuDExMC8GA1UECwwo0JDQtNC80ZbQvdGW0YHRgtGA0LDRgtC+0YAg0IbQotChINCm0JfQnjFJMEcGA1UEAwxA0KbQtdC90YLRgNCw0LvRjNC90LjQuSDQt9Cw0YHQstGW0LTRh9GD0LLQsNC70YzQvdC40Lkg0L7RgNCz0LDQvTEZMBcGA1UEBQwQVUEtMDAwMTU2MjItMjAxMjELMAkGA1UEBhMCVUExETAPBgNVBAcMCNCa0LjRl9CyAhQwBHUd7yx4rgIAAAABAAAASgAAADAMBgoqhiQCAQEBAQIBoIIB2jAaBgkqhkiG9w0BCQMxDQYLKoZIhvcNAQkQAQQwHAYJKoZIhvcNAQkFMQ8XDTE4MDMwNjE1MDU1NlowLwYJKoZIhvcNAQkEMSIEIADeo7Z5IE5isRNQ+3NN/zTYUZbjIWCxJdPw63H4cEM3MIIBawYLKoZIhvcNAQkQAi8xggFaMIIBVjCCAVIwggFOMAwGCiqGJAIBAQEBAgEEINkNprZIU8Mtv5e49uVczWrFeVID4phEuuPJ1lYbZ7zqMIIBGjCCAQCkgf0wgfoxPzA9BgNVBAoMNtCc0ZbQvdGW0YHRgtC10YDRgdGC0LLQviDRjtGB0YLQuNGG0ZbRlyDQo9C60YDQsNGX0L3QuDExMC8GA1UECwwo0JDQtNC80ZbQvdGW0YHRgtGA0LDRgtC+0YAg0IbQotChINCm0JfQnjFJMEcGA1UEAwxA0KbQtdC90YLRgNCw0LvRjNC90LjQuSDQt9Cw0YHQstGW0LTRh9GD0LLQsNC70YzQvdC40Lkg0L7RgNCz0LDQvTEZMBcGA1UEBQwQVUEtMDAwMTU2MjItMjAxMjELMAkGA1UEBhMCVUExETAPBgNVBAcMCNCa0LjRl9CyAhQwBHUd7yx4rgIAAAABAAAASgAAADANBgsqhiQCAQEBAQMBAQRAHzpSvoXA50haDgvvHvYN/umJ1WUaZgVtKsTJ2AfICAaQlVPrO+v1nIeX6/KpgtOAu2SN4AWe6dzCfB/09aedYDANBgsqhiQCAQEBAQMBAQRAA4cSEkGh+nTfIz27J2BxCNTO+Jm44SVy+plack1vXjlgGCqYNFu6NVMglvkClreOes6+yEojxb/xaOkX6AgfQQ==
+` (string, required)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (`Person_Full`)
 
 ### Get Person Declaration [GET /api/persons/{id}/declaration]
 
@@ -1683,6 +1396,7 @@ Confluence - https://e-health-ua.atlassian.net/wiki/x/FwC_J
 
     + Attributes (object)
         + include (`Authentication_methods_request`)
+    
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1775,73 +1489,6 @@ This method is used when you need to re-send SMS to a person or third person
 
 ## Legal Entities [/api/legal_entities]
 
-### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,settlement_id,type,owner_property,status,nhs_verified,page,page_size}]
-
-Use this method to get list of legal entities filtering by parameters.
-List consists of legal entities with parameter `is_active = true`.
-
-+ Parameters
-    + `edrpou`: `341086` (string, optional)
-    + `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
-    + settlement_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
-    + type: MSP (enum, optional)
-        - MSP
-        + Default: MSP
-    + owner_property: state (enum, optional)
-        - state
-        - private
-    + status: ACTIVE (enum, optional)
-        - ACTIVE
-        - CLOSED
-    + `nhs_verified`: false (boolean, optional)
-    + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-+ Response 200 (application/json)
-    + Attributes (`Response_Collection_V2`)
-        + data (array)
-            + (object)
-                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-                + include `Legal_Entity_Request_Public_Short`
-                + status: ACTIVE (enum, required)
-                    - ACTIVE
-                    - CLOSED
-                + `nhs_verified`: false (boolean, required)
-
-### Get Legal Entity by ID [GET /api/legal_entities/{id}]
-
-+ Parameters
-    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Legal_Entity_Request_Public_Short`
-            + status: ACTIVE (enum, required)
-                - ACTIVE
-                - CLOSED
-            + `nhs_verified`: false (boolean, required)
-            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
-            + nhs_comment: `comment` (string, optional) - nhs's comment
-        + urgent (object, optional)
-            + security (object)
-                + `secret_key`: `secret_key` (string, required)
-                + `client_id`: `client_id` (string, required)
-                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
-
 ### Get Legal Entities V2 [GET /api/v2/legal_entities{?edrpou,legal_entity_id,settlement_id,type,status,nhs_verified,page,page_size}]
 
 Use this method to get list of legal entities filtering by parameters.
@@ -1877,6 +1524,7 @@ List consists of legal entities with parameter `is_active = true`.
                     - ACTIVE
                     - CLOSED
                     - SUSPENDED
+        
 
 ### Get Legal Entity by ID V2 [GET /api/v2/legal_entities/{id}]
 
@@ -1906,169 +1554,6 @@ List consists of legal entities with parameter `is_active = true`.
                 + `secret_key`: `secret_key` (string, required)
                 + `client_id`: `client_id` (string, required)
                 + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
-
-### Create/Update Legal Entity [PUT]
-
-Use this method to register a new Legal Entity or update existing one.
-
-New Legal Entity is created with
-status = ACTIVE
-nhs_verified = false
-
-Method receives signed message (pkcs7) including signed content, digital signature and signer public key.
-All signature fields will be validated (including signer certificate authority).
-There is a [**dummy method**](https://uaehealthapi.docs.apiary.io/reference/dummy-methods/dummy-for-legal-entity/create/update-legal-entity) that describes the latest legal entity data model and can be used as documentation.
-Signed content MUST consists of JSON object with Legal Entity data:
-
-```
-{
-  "name": "Клініка Ноунейм",
-  "short_name": "Ноунейм",
-  "public_name": "Ноунейм",
-  "type": "MSP",
-  "owner_property_type": "STATE",
-  "legal_form": "140",
-  "edrpou": "32323454",
-  "kveds": [
-    "86.10"
-  ],
-  "addresses": [
-    {
-      "type": "RESIDENCE",
-      "country": "UA",
-      "area": "Житомирська",
-      "region": "Бердичівський",
-      "settlement": "Київ",
-      "settlement_type": "CITY",
-      "settlement_id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-      "street_type": "STREET",
-      "street": "вул. Ніжинська",
-      "building": "15",
-      "apartment": "23",
-      "zip": "02090"
-    }
-  ],
-  "phones": [
-    {
-      "type": "MOBILE",
-      "number": "+380503410870"
-    }
-  ],
-  "email": "email@example.com",
-  "website": "www.msp.com.ua",
-  "receiver_funds_code": "12345",
-  "beneficiary": "Борисов Борис Борисович",
-  "owner": {
-    "first_name": "Петро",
-    "last_name": "Іванов",
-    "second_name": "Миколайович",
-    "tax_id": "3015492563",
-    "birth_date": "1991-08-19",
-    "gender": "MALE",
-    "email": "email@example.com",
-    "documents": [
-      {
-        "type": "PASSPORT",
-        "number": "120518",
-        "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
-        "issued_at": "2017-02-28"
-      }
-    ],
-    "phones": [
-      {
-        "type": "MOBILE",
-        "number": "+380503410870"
-      }
-    ],
-    "position": "P6"
-  },
-  "medical_service_provider": {
-    "licenses": [
-      {
-        "license_number": "fd123443",
-        "issued_by": "Кваліфікацйна комісія",
-        "issued_date": "2017-02-28",
-        "expiry_date": "2017-02-28",
-        "active_from_date": "2017-02-28",
-        "what_licensed": "реалізація наркотичних засобів",
-        "order_no": "ВА43234"
-      }
-    ],
-    "accreditation": {
-      "category": "SECOND",
-      "issued_date": "2017-02-28",
-      "expiry_date": "2017-02-28",
-      "order_no": "fd123443",
-      "order_date": "2017-02-28"
-    }
-  },
-  "archive": [
-    {
-      "date": "2017-02-28",
-      "place": "вул. Грушевського 15"
-    }
-  ],
-  "security": {
-    "redirect_uri": "https://example.com"
-  },
-  "public_offer": {
-    "consent_text": "Consent text",
-    "consent": true
-  }
-}
-```
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-    + Attributes (object)
-        + `signed_legal_entity_request`: `...` (string, required)
-        + `signed_content_encoding`: base64 (string, required)
-
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include Legal_Entity_Response_Public
-            + status: ACTIVE (enum, required)
-                - ACTIVE
-                - CLOSED
-            + `nhs_verified`: false (boolean, required)
-            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
-            + nhs_comment: `comment` (string, optional) - nhs's comment
-        + urgent (object, optional)
-            + security (object)
-                + `secret_key`: `secret_key` (string, required)
-                + `client_id`: `client_id` (string, required)
-                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
-            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
-
-+ Response 201 (application/json)
-    + Attributes (Response__Process_OK)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Legal_Entity_Response_Public`
-            + status: ACTIVE (enum, required)
-                - ACTIVE
-                - CLOSED
-            + `nhs_verified`: false (boolean, required)
-            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
-            + nhs_comment: `comment` (string, optional) - nhs's comment
-            + is_active: true (boolean, required)
-            + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
-            + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
-            + created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
-            + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
-            + updated_by: `userid` (string, required)
-        + urgent (object, optional)
-            + security (object)
-                + `secret_key`: `secret_key` (string, required)
-                + `client_id`: `client_id` (string, required)
-                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
-            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
 
 ### Create/Update Legal Entity V2 [PUT /api/v2/legal_entities]
 
@@ -2427,24 +1912,6 @@ Roles are set separately for each Client.
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (`Role_Response`)
-
-## Deprecated - Client secret [/admin/clients]
-
-### Refresh client secret [PATCH /admin/clients/{id}/refresh_secret]
-
-This method is used to refresh client secret for existing client (legal entity)
-Only legal entity owner can request new client secret for his own legal entity
-
-**Scopes required:** `secret:refresh`
-
-+ Parameters
-    + id: `role-1380df72-275a-11e7-93ae-92361f002671` (string, required)
-
-+ Request (application/json)
-
-+ Response 200 (application/json)
-    + Attributes (`Response_OK`)
-        + data (`Client_Deprecated`)
 
 ## Manage client configuration [/api/clients]
 
@@ -3195,7 +2662,7 @@ Method returns merge request details by it's ID. Depending on merge request stat
         + urgent (object, required)
             + `authentication_method_current` (array[`Authentication_Method`], required) - `Current authentication method of the master person`
             + documents (array[`media_content`], optional) - `Documents of the master person`
-            
+
 
 # Group Public. Medical Programs
 
@@ -3387,7 +2854,7 @@ After Medication request Request is signed it will be automatically moved to [Me
 
 > **Important:** Dispense of Medications under this Medication Request is possible in period between dispense_valid_from and dispense_valid_to
 
-### Get Medication Request Requests [GET /api/medication_request_requests{?employee_id,person_id,status,intent,care_plan_id,page,page_size}]
+### Get Medication Request Requests [GET /api/medication_request_requests{?employee_id,person_id,status,intent,care_plan_id,encounter_id,page,page_size}]
 
 Use this method to obtain list of Medication request Requests an `employee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -3405,6 +2872,7 @@ Method returns shortened details, to obtain full information - Get Medication re
         - REJECTED
     + intent: order (string, optional) - Medication request request intent
     + `care_plan_id`: `8838982b-6a77-4cb5-87cd-cdb82eb55364` (string, optional) - care plan identifier
+    + `encounter_id`: `7075e0e2-6b57-47fd-aff7-324806efa7e5` (string, optional) - encounter identifier
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -3420,7 +2888,7 @@ Method returns shortened details, to obtain full information - Get Medication re
         + data (object)
             + include `Medication_request_Request_Public_Response`
 
-### Get Medication Request Requests in care plan context [GET /api/care_plans/{care_plan_id}/medication_request_requests{?employee_id,person_id,status,intent,care_plan_id,page,page_size}]
+### Get Medication Request Requests in care plan context [GET /api/care_plans/{care_plan_id}/medication_request_requests{?employee_id,person_id,status,intent,encounter_id,page,page_size}]
 
 The method returns a list of medication request requests in the context of a care plan. 
 User must have an approval on the care plan from url.
@@ -3436,6 +2904,7 @@ Method returns shortened details, to obtain full information - Get Medication re
         - EXPIRED
         - REJECTED
     + intent: order (string, optional) - Medication request request intent
+    + `encounter_id`: `7075e0e2-6b57-47fd-aff7-324806efa7e5` (string, optional) - encounter identifier
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -3603,6 +3072,7 @@ This method is used to qualify (possibility to use Innm for the program) Medicat
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
 
     + Attributes (object)
+        + `division_id`: `2848a935-5fd7-48ba-b235-a9b5d475c647` (string, optional) - `Division identifier`
         + `programs` (array[`Qualify_Medication_request_Request_List_program_post_data`], required) - Medical programs list for qualify
 
 + Response 200 (application/json)
@@ -3637,7 +3107,7 @@ Use this method to obtain full information of Medication request an `id`.
         + data (object)
             + include `Medication_request_Public_Response`
 
-### Get Medication requests [GET /api/medication_requests{?legal_entity_id,employee_id,person_id,status,request_number,created_from,created_to,medication_id,intent,care_plan_id,page,page_size}]
+### Get Medication requests [GET /api/medication_requests{?legal_entity_id,employee_id,person_id,status,request_number,created_from,created_to,medication_id,intent,care_plan_id,encounter_id,page,page_size}]
 
 Use this method to obtain list of Medication request an `employee_id` or/and `person_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -3660,6 +3130,7 @@ Method returns shortened details, to obtain full information - get Medication re
     + `medication_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b5b` (string, optional) - innm dosage id
     + intent: order (string, optional) - Medication request intent
     + `care_plan_id`: `8838982b-6a77-4cb5-87cd-cdb82eb55364` (string, optional) - care plan identifier
+    + `encounter_id`: `7075e0e2-6b57-47fd-aff7-324806efa7e5` (string, optional) - encounter identifier
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -3673,7 +3144,7 @@ Method returns shortened details, to obtain full information - get Medication re
    + Attributes (`Response_Collection_V2`)
         + data (array[`Medication_request_Public_Response`])
 
-### Get Medication requests in care plan context [GET /api/care_plans/{care_plan_id}/medication_requests{?legal_entity_id,employee_id,person_id,status,request_number,created_from,created_to,medication_id,intent,care_plan_id,page,page_size}]
+### Get Medication requests in care plan context [GET /api/care_plans/{care_plan_id}/medication_requests{?legal_entity_id,employee_id,person_id,status,request_number,created_from,created_to,medication_id,intent,encounter_id,page,page_size}]
 
 The method returns a list of medication requests in the context of a care plan. 
 User must have an approval on the care plan from url.
@@ -3694,6 +3165,7 @@ Method returns shortened details, to obtain full information - get Medication re
     + `created_to`: `2017-08-30` (string, optional) - Medication request creation date period end, which is determined by the external system. Format *DATE '2017-08-30'*
     + `medication_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b5b` (string, optional) - innm dosage id
     + intent: order (string, optional) - Medication request intent
+    + `encounter_id`: `7075e0e2-6b57-47fd-aff7-324806efa7e5` (string, optional) - encounter identifier
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -3839,204 +3311,8 @@ This method is used to process created dispense
 **Important**
 Invoke Get Medication dispanse details to obtain previously created medication dispense. In order to process dispense `payment_id (optional)` and `payment_amount` should be added.
 
-**Signed object example:**
-```
-{
-    "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-    "medication_request": {
-      "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-      "status": "ACTIVE",
-      "request_number": "0000-243P-1X53-EH38",
-      "created_at": "2017-08-17",
-      "started_at": "2017-08-17",
-      "ended_at": "2017-09-16",
-      "dispense_valid_from": "2017-08-17",
-      "dispense_valid_to": "2017-09-16",
-      "legal_entity": {
-        "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-        "name": "Клініка Ноунейм",
-        "short_name": "Ноунейм",
-        "public_name": "Клініка Ноунейм",
-        "type": "MSP",
-        "edrpou": "5432345432",
-        "status": "ACTIVE"
-      },
-      "division": {
-        "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
-        "legal_entity_id": "c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9",
-        "name": "Бориспільське відділення Клініки Ноунейм",
-        "addresses": [
-          {
-            "type": "RESIDENCE",
-            "country": "UA",
-            "area": "Житомирська",
-            "region": "Бердичівський",
-            "settlement": "Київ",
-            "settlement_type": "CITY",
-            "settlement_id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-            "street_type": "STREET",
-            "street": "вул. Ніжинська",
-            "building": "15",
-            "apartment": "23",
-            "zip": "02090"
-          }
-        ],
-        "phones": [
-          {
-            "type": "MOBILE",
-            "number": "+380503410870"
-          }
-        ],
-        "email": "email@example.com",
-        "working_hours": {
-          "mon": [
-            [
-              "08.00",
-              "12.00"
-            ],
-            [
-              "14.00",
-              "18.00"
-            ]
-          ],
-          "tue": [
-            [
-              "08.00",
-              "12.00"
-            ]
-          ],
-          "wed": [
-            [
-              "08.00",
-              "12.00"
-            ]
-          ],
-          "thu": [
-            [
-              "08.00",
-              "12.00"
-            ]
-          ],
-          "fri": [
-            [
-              "08.00",
-              "12.00"
-            ]
-          ],
-          "sat": [],
-          "sun": []
-        },
-        "type": "clinic",
-        "external_id": "3213213",
-        "location": {
-          "latitude": 30.1233,
-          "longitude": 50.32423
-        }
-      },
-      "employee": {
-        "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
-        "position": "P6",
-        "party": {
-          "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-          "no_tax_id": true,
-          "first_name": "Петро",
-          "last_name": "Іванов",
-          "second_name": "Миколайович",
-          "email": "email@example.com",
-          "phones": [
-            {
-              "type": "MOBILE",
-              "number": "+380503410870"
-            }
-          ]
-        }
-      },
-      "person": {
-        "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-        "first_name": "Петро",
-        "last_name": "Іванов",
-        "second_name": "Миколайович",
-        "age": 35
-      },
-      "medication_info": {
-        "medication_id": "4a63b858-c138-4921-9341-ae9e384bcbd6",
-        "medication_name": "Аміодарон 200мг таблетки",
-        "form": "PILL",
-        "dosage": {
-          "numerator_unit": "MG",
-          "numerator_value": 200,
-          "denumerator_unit": "PILL",
-          "denumerator_value": 1
-        },
-        "medication_qty": 10
-      },
-      "medical_program": {
-        "id": "59781de0-2e64-4359-b716-bcc05a32c10f",
-        "name": "program 'DOSTUPNI LIKI'"
-      }
-    },
-    "dispensed_at": "2017-08-17",
-    "dispensed_by": "Іванов Іван Іванович",
-    "party": {
-      "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-      "first_name": "Петро",
-      "last_name": "Іванов",
-      "second_name": "Миколайович"
-    },
-    "legal_entity": {
-      "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-      "name": "Клініка Ноунейм",
-      "short_name": "Ноунейм",
-      "public_name": "Клініка Ноунейм",
-      "type": "MSP",
-      "edrpou": "5432345432",
-      "status": "ACTIVE"
-    },
-    "division": {
-      "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
-      "name": "Бориспільське відділення Клініки Ноунейм",
-      "legal_entity_id": "d290f1ee",
-      "type": "CLINIC",
-      "status": "ACTIVE",
-      "mountain_group": false
-    },
-    "medical_program": {
-      "id": "59781de0-2e64-4359-b716-bcc05a32c10f",
-      "name": "program 'DOSTUPNI LIKI'"
-    },
-    "details": [
-      {
-        "medication": {
-          "name": "Амідарон",
-          "type": "MEDICATION",
-          "manufacturer": {
-            "name": "ПАТ \"Київський вітамінний завод\"",
-            "country": "UA"
-          },
-          "form": "PILL",
-          "container": {
-            "numerator_unit": "PILL",
-            "numerator_value": 1,
-            "denumerator_unit": "PILL",
-            "denumerator_value": 1
-          }
-        },
-        "medication_qty": 10,
-        "sell_price": 18.65,
-        "sell_amount": 186.5,
-        "discount_amount": 150,
-        "reimbursement_amount": 450
-      }
-    ],
-    "status": "NEW",
-    "inserted_at": "2017-04-20T19:14:13Z",
-    "inserted_by": "e1453f4c-1077-4e85-8c98-c13ffca0063e",
-    "updated_at": "2017-04-20T19:14:13Z",
-    "updated_by": "2922a240-63db-404e-b730-09222bfeb2dd",
-    "payment_id": "1239804",
-    "payment_amount": 50
-}
-```
+Look at [**Dummy Process Medication Dispense**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-medication-dispense/process-medication-dispense) for more details.
+
 
 + Parameters
     + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
@@ -4236,231 +3512,6 @@ This method is used to abtain list of events with filters.
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
          + data (array[`Get_events`])
-
-# Group Dummy methods
-
-## Dummy for legal entity [/dummy/legal_entities]
-
-### Create/Update Legal Entity [PUT]
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-    + Attributes (object)
-        + include Legal_Entity_Request_Public
-
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include Legal_Entity_Request_Public
-            + status: ACTIVE (enum, required)
-                - ACTIVE
-                - CLOSED
-        + urgent (object, optional)
-            + security (object)
-                + `secret_key`: `secret_key` (string, required)
-                + `client_id`: `client_id` (string, required)
-                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
-            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
-
-+ Response 201 (application/json)
-    + Attributes (Response__Process_OK)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include Legal_Entity_Request_Public
-            + status: ACTIVE (enum, required)
-                - ACTIVE
-                - CLOSED
-                - SUSPENDED
-            + `nhs_verified`: false (boolean, required)
-            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
-            + nhs_comment: `comment` (string, optional) - nhs's comment
-        + urgent (object, optional)
-            + security (object)
-                + `secret_key`: `secret_key` (string, required)
-                + `client_id`: `client_id` (string, required)
-                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
-            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
-
-### Create/Update Legal Entity V2 [PUT /dummy/legal_entities/v2]
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-    + Attributes (object)
-        + include Legal_Entity_Request_Public_V2
-
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include Legal_Entity_Response_Public_V2
-            + status: ACTIVE (enum, required)
-                - ACTIVE
-                - CLOSED
-                - SUSPENDED
-            + `nhs_verified`: false (boolean, required)
-            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
-            + nhs_comment: `comment` (string, optional) - nhs's comment
-        + urgent (object, optional)
-            + security (object)
-                + `secret_key`: `secret_key` (string, required)
-                + `client_id`: `client_id` (string, required)
-                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
-            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
-
-+ Response 201 (application/json)
-    + Attributes (Response__Process_OK)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include Legal_Entity_Response_Public_V2
-            + status: ACTIVE (enum, required)
-                - ACTIVE
-                - CLOSED
-                - SUSPENDED
-        + urgent (object, optional)
-            + security (object)
-                + `secret_key`: `secret_key` (string, required)
-                + `client_id`: `client_id` (string, required)
-                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
-            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
-
-## Dummy for person request [/dummy/person_requests]
-
-### Sign person request [PATCH /dummy/person_requests/{id}/actions/sign]
-
-
-+ Parameters
-   + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
-   
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-            api-key: uXhEczJ56adsfh3Ri9SUkc4en
-            msp_drfo: 2534157686
-
-    + Attributes (object)
-        + status: APPROVED (string, required)
-        + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
-        + person (required)
-            + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
-            + include (Person_info_Public, required)
-        + patient_signed: true (boolean, required) - Факт подписания заявки на декларацию.
-        + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
-        + content: `<html><body><p>signed person data</p></body></html>` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
-        + channel: `MIS` (enum, required) - channel that invoke patient create service
-        
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + data (`Patient_short`)
-
-## Dummy for merge request [/dummy/merge_requests]
-
-### Sign merge request [PATCH /dummy/merge_requests/{id}/actions/sign]
-
-
-+ Parameters
-    + id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-            api-key: uXhEczJ56adsfh3Ri9SUkc4en
-
-    + Attributes (`Merge_request_sign_data`, required)
-         + patient_signed: true (boolean, required) - Master person's evidence of sign the merge request.
-        
-
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + meta (Response__Meta)
-            + code: 200 (number)
-        + data (`Merge_request_response`)
-            + status: SIGNED (string, required) - `status of the signed merge request. Merge completed`
-
-## Dummy for declaration request [/dummy/declaration_requests]
-
-### Sign declaration request [PATCH /dummy/declaration_requests/{id}/actions/sign]
-
-
-+ Parameters
-   + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
-   
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-            api-key: uXhEczJ56adsfh3Ri9SUkc4en
-            msp_drfo: 2534157686
-
-    + Attributes (`Decl_req_data_to_be_signed`, required)
-        
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + data (`Declaration_short`)
-
-## Dummy for medication request requests [/dummy/medication_request_requests]
-
-### Sign medication request requests [PATCH /dummy/medication_request_requests/{id}/actions/sign]
-
-
-+ Parameters
-   + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
-   
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-            api-key: uXhEczJ56adsfh3Ri9SUkc4en
-            msp_drfo: 2534157686
-
-    + Attributes (`Medication_request_Request_Sign`, required)
-    
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + data (`Medication_request_Request_Sign`)
-            + printout_form: `HTML` (string, required) - Generated printout form
-            + is_blocked: false (boolean, required) - Whether medication request is blocked or not
-        + meta (Response__Meta)
-        
-## Dummy for medication request [/dummy/medication_requests]
-
-### Reject medication request [PATCH /dummy/medication_requests/id/actions/reject]
-
-
-+ Parameters
-   + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
-   
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-            api-key: uXhEczJ56adsfh3Ri9SUkc4en
-            msp_drfo: 2534157686
-            
-    + Attributes (`Medication_request_Reject`, required)
-    
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + meta (Response__Meta)
-        + data (object)
-            + include `Medication_request_Reject_Response`
-
-
 
 # Group Public. Patient Cabinet
 
@@ -4914,7 +3965,6 @@ contractor_owner_id|true| підписант, зі сторони мед. зак
 contractor_base|true| на якій підставі діє підписант: закон/домовленість
 contractor_payment_details|true| об'єкт, що містить дані по рахунку, на який будуть здійснюватися виплати
 previous_request_id | false | опційне поле, яке вказує, що поточний запит на контракт є новою версією вказаного запиту
-contractor_divisions|true| масив id відділень мед. закладу, що включаються в договір
 start_date|false| пункт 9.2 - цей договір діє з (рік має бути поточний або настпуний)
 end_date|false| пункт 9.2 - цей договір діє по (рік має співпадати з роком у start_date або бути наступним за роком start_date за умови, що договір укладається строком на рік)
 id_form|true| словник `REIMBURSEMENT_CONTRACT_TYPE`
@@ -5019,9 +4069,6 @@ Reimbursement version:
     "payer_account": "UA3412345678901234567890",
     "bank_name": "Банк №1"
   },
-  "contractor_divisions": [
-    "adeac295-0d39-4a8e-8e16-9526787de3f1"
-  ],
   "start_date": "2019-04-20",
   "end_date": "2020-04-19",
   "id_form": "PMD_1",
@@ -5488,7 +4535,7 @@ In DS EDRPOU/DRFO must be equal to contractor_legal_entity.edrpou
 
 ***Scope  contract:read***
 
-This method is designed to obtain list of contracts with filters. This mothod return shorten information about contract, in order to see all information try to use 'get contract details'
+This method is designed to obtain list of contracts with filters. This method return shorten information about contract, in order to see all information try to use 'get contract details'
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of contract request
@@ -5505,7 +4552,7 @@ This method is designed to obtain list of contracts with filters. This mothod re
     + date_from_end_date: `2018-01-01` (string, optional)
     + date_to_end_date: `2019-01-01` (string, optional)
     + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
-    + medical_program_id: `2075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of a program that is a subject of contract
+    + medical_program_id: `2075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of a program that is a subject of a contract
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
 
@@ -5630,6 +4677,119 @@ After contract request was signed by both sides signed contract request with pri
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract identifier
             + `printout_content`: `Contract content` (string, required) - HTML document for contract
 
+
+## Medical program provision [/api/medical_program_provision]
+### Create Medical program provision [POST]
+This method allows to create medical program provision by divisions of user’s legal entity. It shows what divisions provide medical program according to legal entity contract.
+Method receives signed message (pkcs7) that consists of signed content, digital signature and signer public key. All signature fields will be validated (including signer certificate authority).
+Service will store signed copy of the request in Media Content Storage if all checks is passed. 
+
+**Scopes required:** `medical_program_provision:write`
+
+Look at [Dummy Create Medical program provision](https://uaehealthapi.docs.apiary.io/#reference/public.-contracts/medical-program-provision/dummy-create-medical-program-provision) for more details
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer F3GF124Df565FDS234SDF34
+        api-key: aDGFDFGT46S5gFGD
+        
+    + Attributes (object)
+        + `signed_content`:`ew0KICAicGVyaW9kIjogew0KIC...` (string, required, fixed-type)
+        + `signed_content_encoding`: `base64` (string, required)
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (array)
+            + (`Medical_program_provision_response`)
+
+
+### Dummy Create Medical program provision [POST]
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer F3GF124Df565FDS234SDF34
+        api-key: aDGFDFGT46S5gFGD
+        
+    + Attributes (Medical_program_provision_request)
+
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (array)
+            + (`Medical_program_provision_response`)
+            + (`Medical_program_provision_response`)
+                + id: `2060b523-b469-4fc5-89af-ddb5899d8efe` (string, required)
+                + `division_id`: `6d07bdb0-59c0-4b54-8a90-bada3e232877` (string, required)
+
+
+### Get Medical program provision List [GET /api/medical_program_provision{?contract_number,medical_program_id,division_id,is_active,page,page_size}]
+This method allows to get a list of medical programs already provided by the divisions of legal entity according to contracts. Also, this list can be filtered using search parameters.
+
+**Scopes required:** `medical_program_provision:read`
+
++ Parameters
+    + `contract_number`: `0000-PAP5-M000` (string, optional) - Contract number
+    + `medical_program_id`: `04d5ea65-d6e7-44f8-9eef-f0d3c1121d2b` (string, optional) - Medical program identifier
+    + `division_id`: `6d07bdb0-59c0-4b54-8a90-bada3e232877` (string, optional) - Division identifier
+    + `is_active`: true (boolean, optional) - Medical program provision status
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer F3GF124Df565FDS234SDF34
+        api-key: aDGFDFGT46S5gFGD
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection_V2)
+        + data (array)
+            + (`Medical_program_provision_response`)
+            + (`Medical_program_provision_response`)
+                + id: `2060b523-b469-4fc5-89af-ddb5899d8efe` (string, required)
+                + `division_id`: `6d07bdb0-59c0-4b54-8a90-bada3e232877` (string, required)
+
+### Deactivate Medical program provision [PATCH /api/medical_program_provision/{id}/actions/deactivate]
+This method allows to deactivate division that provide a medical program within user's legal entity.
+
+**Scopes required:** `medical_program_provision:write`
+
++ Parameters
+    + `id`: `2060b523-b469-4fc5-89af-ddb5899d8efe` (string, required) - Medical program provision identifier
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer F3GF124Df565FDS234SDF34
+        api-key: aDGFDFGT46S5gFGD
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (`Medical_program_provision_response`)
+            + `is_active`: false (boolean, required)
+            + `deactivate_reason`: `MANUAL_DEACTIVATION` (string, required, nullable) - the reason of deactivated status. According to `PROVISON_DEACTIVATE_REASON` dictionary
+
+## Group Public. Forbidden groups
+There are public methods presented to work with a forbidden groups data. 
+
+### Get Forbidden group list [GET /api/forbidden_groups]
+This web service returns a catalog of all active forbidden groups in eHealth.
+
++ Parameters
+    + `name`: `Some name` (string, optional) - Forbidden group name
+    + `page`: 2 (number, optional) - Page number
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array)
+            + (object)
+                + id: `f7f817b2-3134-4625-b87d-e2d7fc8e9b90` (string, required) - Forbidden group identifier
+                + name: `Some name` (string) - Forbidden group name
 
 # Group Private. Contracts
 
@@ -5951,6 +5111,885 @@ Assuming that all required business processes and validations is implemented on 
         + data (object)
             + url: `https://example.com/upload_url` (string, required)
 
+# Group Dummy methods
+
+## Dummy for legal entity [/dummy/legal_entities]
+
+### Create/Update Legal Entity - DEPRECATED [PUT]
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + include Legal_Entity_Request_Public
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include Legal_Entity_Request_Public
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include Legal_Entity_Request_Public
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+                - SUSPENDED
+            + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
+
+### Create/Update Legal Entity V2 [PUT /dummy/legal_entities/v2]
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + include Legal_Entity_Request_Public_V2
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include Legal_Entity_Response_Public_V2
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+                - SUSPENDED
+            + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include Legal_Entity_Response_Public_V2
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+                - SUSPENDED
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
+
+## Dummy for person request [/dummy/person_requests]
+
+### Sign person request [PATCH /dummy/person_requests/{id}/actions/sign]
+
+
++ Parameters
+   + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+   
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            msp_drfo: 2534157686
+
+    + Attributes (object)
+        + status: APPROVED (string, required)
+        + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+        + person (required)
+            + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
+            + include (Person_info_Public, required)
+        + patient_signed: true (boolean, required) - Факт подписания заявки на декларацию.
+        + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+        + content: `<html><body><p>signed person data</p></body></html>` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+        + channel: `MIS` (enum, required) - channel that invoke patient create service
+        
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (`Patient_short`)
+
+## Dummy for merge request [/dummy/merge_requests]
+
+### Sign merge request [PATCH /dummy/merge_requests/{id}/actions/sign]
+
+
++ Parameters
+    + id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+
+    + Attributes (`Merge_request_sign_data`, required)
+         + patient_signed: true (boolean, required) - Master person's evidence of sign the merge request.
+        
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (`Merge_request_response`)
+            + status: SIGNED (string, required) - `status of the signed merge request. Merge completed`
+
+## Dummy for declaration request [/dummy/declaration_requests]
+
+### Sign declaration request - DEPRECATED [PATCH /dummy/declaration_requests/{id}/actions/sign]
+
+
++ Parameters
+   + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+   
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            msp_drfo: 2534157686
+
+    + Attributes (`Decl_req_data_to_be_signed`, required)
+        
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (`Declaration_short`)
+
+## Dummy for medication request requests [/dummy/medication_request_requests]
+
+### Sign medication request requests [PATCH /dummy/medication_request_requests/{id}/actions/sign]
+
+
++ Parameters
+   + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+   
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            msp_drfo: 2534157686
+
+    + Attributes (`Medication_request_Request_Sign`, required)
+    
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (`Medication_request_Request_Sign`)
+            + printout_form: `HTML` (string, required) - Generated printout form
+            + is_blocked: false (boolean, required) - Whether medication request is blocked or not
+        + meta (Response__Meta)
+        
+## Dummy for medication request [/dummy/medication_requests]
+
+### Reject medication request [PATCH /dummy/medication_requests/id/actions/reject]
+
+
++ Parameters
+   + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+   
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            msp_drfo: 2534157686
+            
+    + Attributes (`Medication_request_Reject`, required)
+    
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+        + data (object)
+            + include `Medication_request_Reject_Response`
+
+## Dummy for medication dispense [/dummy/medication_dispenses]
+
+### Process medication dispense [PATCH /dummy/medication_dispenses/id/actions/process]
+
+
++ Parameters
+   + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+   
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            msp_drfo: 2534157686
+            
+    + Attributes (`Medication_Dispense_Process_Request`, required)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object)
+            + include `Medication_Dispense_Response`
+            + status: PROCESSED
+
+# Group Deprecated methods
+
+## Declaration Requests [/api/declaration_requests]
+
+### Get Declaration Requests List - Deprecated [GET /api/declaration_requests{?employee_id,legal_entity_id,status,page,page_size}]
+
+Use this method to obrain list of Declaration Requests for an `empolee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor or Admin is interested in current UI section.
+
+
+Also we suggest use `employee_id` and `legal_entity_id` to make sure that end-user understands context of actions that he or she will perform.
+
+Method returns shortened details, to obtain full information - get Declaration Request it by it's ID.
+
+**Important**
+This endpoint returns all declaration requests that were created through V2 and V3. If the declaration request was created according to version 3, then the block `person` will be empty.
+
++ Parameters
+    + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    + status: active (enum, optional)
+        - NEW
+        - APPROVED
+        - SIGNED
+        - REJECTED
+        - CANCELLED
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[`Declaration_Request_Short`])
+
+
+### Get Declaration Request by ID - Deprecated [GET /api/declaration_requests/{id}]
+
+This endpoint shows the declaration requests which are created by V2 and V3. Due to the fact that structure of declaration request V2 is different from the structure of decl request V3 , so not all fields of decl request v3 can be displayed.
+Block `person` has optional `id`.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + status: SIGNED (enum, optional)
+                - NEW
+                - APPROVED
+                - SIGNED
+                - CANCELLED
+                - REJECTED
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + start_date: `2017-03-02` (string, required) - Should be defined on the client side.
+            + end_date: `2017-03-02` (string, required) - Will be defined on eHealth side if it's not set.
+            + person(`Person_Request`, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
+                + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
+                + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+                + id: `53af47ba-d9eb-4a87-a2f7-4114adcf1fc4` (string, optional)
+            + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
+            + scope (enum, required)
+                - family doctor
+            + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
+            + declaration_id: `8311ab82-e341-4da0-8a95-235ec9885e23` (string, required) - presetted id for future declaration
+            + employee (Employee_Minimal)
+            + `legal_entity` (`Medical_Service_Provider`)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + division (`Division_Details`)
+            + content: `Declaration content` (string, optional) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + seed: hash (string, required) - Hash of previous block in declarations chain or other random component that should be signed with declaration.
+            + channel: `MIS` (enum, required) - channel that invoke declaration create service
+                - MIS
+                - CABINET
+        + urgent (object, required)
+            + `authentication_method_current` (object, required)
+                + type: `OTP` (enum, required)
+                    - OTP
+                    - OFFLINE
+                    - NA
+                + number: `+38093*****85` (string, required)
+            + documents (array[`media_content`], optional)
+
+### Create Declaration Request - Deprecated [POST /api/v2/declaration_requests]
+
+This method is used to create Declaration Request (as part of Declaration creation process). Fields descriptions are listed in request Example view.
+
+Each doctor has its own limit of declarations. In case there is a necessity to create more declarations `overlimit` should be TRUE. By default `overlimit`= FALSE
+
+Methods-independence (Online/Offline) the attacment with scan of declaration must be added. The scan should be single page JPEG document.
+
+After sign new declaration all previously created pending (status one of the following: NEW, APPROVED) declaration request will be cancelled automatically.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + `declaration_request` (Declaration_Request_Public)
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + seed: hash (string, required)
+            + include `Declaration_Request_Public_Response`
+            + status: `NEW` (string, required)
+            + employee (Employee_Minimal, required)
+            + `legal_entity` (`Medical_Service_Provider`, required)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + division (`Division_Declaration`, required)
+            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + channel: `MIS` (enum, required) - channel that invoke declaration create service
+            + `preferred_way_communication`: email (enum, optional)
+                - email
+                - phone
+        + urgent (object, required)
+            + `authentication_method_current` (object, required)
+                + type: `OTP` (enum, required)
+                    - OTP
+                    - OFFLINE
+                    - NA
+                + number: `+38093*****85` (string, required)
+            + documents (array[`media_content`], optional)
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Unverified phone number` (string, required)
+
+### Create Declaration Request V2 - Deprecated [POST /api/v2/declaration_requests]
+
+This method is used to create Declaration Request (as part of Declaration creation process) via new api. New version changes person search and adds new fields to request.
+
+This method makes it possible to update person data.
+When you filled `person.id`, you can update person data (for example, last name). If you give `person.id` and get an error, so you are trying to update another person and you need to create a new person (do not send `person.id`)
+
+If declaration_request without field `person.id`, a new person is created. But if such a person is already there, then there is an error that it is necessary to update the person.
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + `declaration_request` (Declaration_Request_Public_v2)
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + seed: hash (string, required)
+            + include `Declaration_Request_Public_Response_v2`
+            + status: `NEW` (string, required)
+            + employee (Employee_Minimal, required)
+            + `legal_entity` (`Medical_Service_Provider`, required)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + division (`Division_Declaration`, required)
+            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + channel: `MIS` (enum, required) - channel that invoke declaration create service
+            + `preferred_way_communication`: email (enum, optional)
+                - email
+                - phone
+        + urgent (object, required)
+            + `authentication_method_current` (object, required)
+                + type: `OTP` (enum, required)
+                    - OTP
+                    - OFFLINE
+                    - NA
+                + number: `+38093*****85` (string, required)
+            + documents (array[`media_content`], optional)
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Unverified phone number` (string, required)
+            
+
+
+
+### Approve Declaration Request - Deprecated [PATCH /api/declaration_requests/{id}/actions/approve]
+
+Use this method to approve previously created Declaration Request.
+
+In case if authentication_method is OTP, request example:
+```
+{
+  "verification_code": 3748
+}
+```
+In case if authentication_method is OFFLINE or N/A, request body should be empty.
+Before approve patient's scanned documents should be uploaded to the ([Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program)).
+All links are generated for one one-page document in jpeg format. Document should be no more than 10MB.
+If make declaration request via cabinet then nothing must be uploaded to URL.
+Clients can use signed URL's to directly access [s3 storage](https://storage.ehealth.gov.ua/) and upload files via API.
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + `verification_code`: 2836 (number, optional) - required if authentication_method is OTP
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + seed: hash (string, required)
+            + include `Declaration_Request_Public_Response`
+            + status: `APPROVED` (string, required)
+            + employee (Employee_Minimal, required)
+            + `legal_entity` (`Medical_Service_Provider`, required)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + division (`Division_Details`, required)
+            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + channel: `MIS` (enum, required) - channel that invoke declaration create service
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: request_malformed (string, required)
+            + message: `This doctor has X declarations and could not sign more` (string, required)
+
+### Reject Declaration Request - Deprecated [PATCH /api/declaration_requests/{id}/actions/reject]
+
+Use this method to reject previously created Declaration Request.
+
++ Parameters
+    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + seed: hash (string, required)
+            + include `Declaration_Request_Public_Response`
+            + status: `REJECTED` (string, required)
+            + employee (Employee_Minimal, required)
+            + `legal_entity` (`Medical_Service_Provider`, required)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + division (`Division_Details`, required)
+            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + channel: `MIS` (enum, required) - channel that invoke declaration create service
+
+### Resend Authorization OTP on Declaration Request - Deprecated [POST /api/declaration_requests/{id}/actions/resend_otp]
+
+Use this method to resend sms on previously created Declaration Request.
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (OTP)
+
+### Sign Declaration Request - Deprecated [PATCH /api/declaration_requests/{id}/actions/sign]
+
+This method is used to sign Declaration Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property.
+All signature fields will be validated (including signer certificate authority).
+
+This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
+
+Signed content MUST consists of JSON object with Declaration Request data and printout template. Object that need to be signed is returned by `Get Declaration request by ID` response, `JSON.Path: $.data`.
+Patient must re-read and sign declaration print form and after that `patient_signed` should be changed to TRUE.
+
+Declaration request can be signed either by doctor or admin (user with scope `declaration_request:sign`) from legal entity as in declaration request.
+
+**Important**
+Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in declarations chain or other random component that should be signed with declaration
+
+Look at [**Dummy Sign Declaration Request**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-declaration-request/sign-declaration-request) for more details.
+
++ Parameters
+    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + `signed_declaration_request`: `MIIWmAYJKoZIhvcNAQcCoIIWiTCCFoUCAQExCzAJBgUrDgMCGgUAMIISuwYJKoZIhvcNAQcBoIISrASCEqh7XHJ0ZjFcYW5zaVxhbnNpY3BnMTI1Mlxjb2NvYXJ0ZjE1MDRcY29jb2FzdWJydGY4MTANCntcZm9udHRibFxmMFxmc3dpc3NcZmNoYXJzZXQwIEhlbHZldGljYTt9DQp7XGNvbG9ydGJsO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1NTtccmVkNzBcZ3JlZW41M1xibHVlOTY7XHJlZDI0OVxncmVlbjI0OVxibHVlMjUxO30NCntcKlxleHBhbmRlZGNvbG9ydGJsOztcY3NzcmdiXGMzNDUxMFxjMjc4NDNcYzQ1MDk4O1xjc3NyZ2JcYzk4MDM5XGM5ODAzOVxjOTg4MjQ7fQ0KXG1hcmdsMTQ0MFxtYXJncjE0NDBcdmlld3cxMDgwMFx2aWV3aDg0MDBcdmlld2tpbmQwDQpcZGVmdGFiNzIwDQpccGFyZFxwYXJkZWZ0YWI3MjBccGFydGlnaHRlbmZhY3RvcjANCg0KXGYwXGZzMjggXGNmMiBcY2IzIFxleHBuZDBcZXhwbmR0dzBca2VybmluZzANClx7XA0KICAgImlkIjoiYjA3NWYxNDgiLFwNCiAgICJzdGFydF9kYXRlIjoiMjAxNy0wMy0wMlQxMDo0NToxNi4wMDBaIixcDQogICAiZW5kX2RhdGUiOiIyMDE3LTAzLTAyVDEwOjQ1OjE2LjAwMFoiLFwNCiAgICJwZXJzb24iOlx7XA0KICAgICAgImZpcnN0X25hbWUiOiJcdWMwXHUxMDU1IFx1MTA3NyBcdTEwOTAgXHUxMDg4IFx1MTA4NiAiLFwNCiAgICAgICJsYXN0X25hbWUiOiJcdWMwXHUxMDMwIFx1MTA3NCBcdTEwNzIgXHUxMDg1IFx1MTA4NiBcdTEwNzQgIixcDQogICAgICAic2blic Vjb25kX25hbWUiOiJcdWMwXHUxMDUyIFx1MTA4MCBcdTEwODIgXHUxMDg2IFx1MTA4MyBcdTEwNzIgXHUxMDgxIFx1MTA4NiBcdTEwNzQgXHUxMDgwIFx1MTA5NSAiLFwNCiAgICAgICJiaXJ0aF9kYXRlIjoiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIixcDQogICAgICAiYmlydGhfcGxhY2UiOiJcdWMwXHUxMDQyIFx1MTExMCBcdTEwODUgXHUxMDg1IFx1MTA4MCBcdTEwOTQgXHUxMTAzICwgXHUxMDU5IFx1MTA4MiBcdTEwODggXHUxMDcyIFx1MTExMSBcdTEwODUgXHUxMDcyICIsXA0KICAgICAgImdlbmRlciI6Ik1BTEUiLFwNCiAgICAgICJlbWFpbCI6ImVtYWlsQGV4YW1wbGUuY29tIixcDQogICAgICAidGF4X2lkIjoiMzEyNjUwOTgxNiIsXA0KICAgICAgIm5hdGlvbmFsX2lkIjoiQ0M3MTUwOTg1MjQzIixcDQogICAgICAic2VjcmV0Ijoic2VjcmV0IixcDQogICAgICAiZG9jdW1lbnRzIjpbXA0KICAgICAgICAgXHtcDQogICAgICAgICAgICAidHlwZSI6IlBBU1NQT1JUIixcDQogICAgICAgICAgICAibnVtYmVyIjoiMTIwNTE4IixcDQogICAgICAgICAgICAiaXNzdWVfZGF0ZSI6IjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIsXA0KICAgICAgICAgICAgImV4cGlyeV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAiaXNzdWVkX2J5IjoiRE1TVSJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImFkZHJlc3NlcyI6W1wNCiAgICAgICAgIFx7XA0KICAgICAgICAgICAgInR5cGUiOiJSRVNJREVOQ0UiLFwNCiAgICAgICAgICAgICJjb3VudHJ5IjoiVUEiLFwNCiAgICAgICAgICAgICJhcmVhIjoiXHVjMFx1MTA0NiBcdTEwODAgXHUxMDkwIFx1MTA4NiBcdTEwODQgXHUxMDgwIFx1MTA4OCBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAicmVnaW9uIjoiXHVjMFx1MTA0MSBcdTEwNzcgXHUxMDg4IFx1MTA3NiBcdTEwODAgXHUxMDk1IFx1MTExMCBcdTEwNzQgXHUxMDg5IFx1MTEwMCBcdTEwODIgXHUxMDgwIFx1MTA4MSAiLFwNCiAgICAgICAgICAgICJjaXR5IjoiXHVjMFx1MTA1MCBcdTEwODAgXHUxMTExIFx1MTA3NCAiLFwNCiAgICAgICAgICAgICJjaXR5X3R5cGUiOiJDSVRZIixcDQogICAgICAgICAgICAic3RyZWV0IjoiXHVjMFx1MTA3NCBcdTEwOTEgXHUxMDgzIC4gXHUxMDUzIFx1MTExMCBcdTEwNzggXHUxMDgwIFx1MTA4NSBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAiYnVpbGRpbmciOiIxNSIsXA0KICAgICAgICAgICAgImFwYXJ0bWVudCI6IjIzIixcDQogICAgICAgICAgICAiemlwIjoiMDIwOTAiXA0KICAgICAgICAgXH1cDQogICAgICBdLFwNCiAgICAgICJwaG9uZXMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiTU9CSUxFIixcDQogICAgICAgICAgICAibnVtYmVyIjoiKzM4MDUwMzQxMDg3MCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiU01TIixcDQogICAgICAgICAgICAicGhvbmVfbnVtYmVyIjoiKzM4MDUwODg4NzcwMCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImVtZXJnZW5jeV9jb250YWN0Ijpce1wNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIixcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgImNvbmZpZGFudF9wZXJzb24iOlx7XA0KICAgICAgICAgInJlbGF0aW9uX3R5cGUiOiJ0cnVzdGVlIixcDQogICAgICAgICAiZmlyc3RfbmFtZSI6Ilx1YzBcdTEwNTUgXHUxMDc3IFx1MTA5MCBcdTEwODggXHUxMDg2ICIsXA0KICAgICAgICAgImxhc3RfbmFtZSI6Ilx1YzBcdTEwMzAgXHUxMDc0IFx1MTA3MiBcdTEwODUgXHUxMDg2IFx1MTA3NCAiLFwNCiAgICAgICAgICJzZWNvbmRfbmFtZSI6Ilx1YzBcdTEwNTIgXHUxMDgwIFx1MTA4MiBcdTEwODYgXHUxMDgzIFx1MTA3MiBcdTEwODEgXHUxMDg2IFx1MTA3NCBcdTEwODAgXHUxMDk1ICIsXA0KICAgICAgICAgImJpcnRoX2RhdGUiOiIxOTkxLTA4LTE5VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICJiaXJ0aF9wbGFjZSI6Ilx1YzBcdTEwNDIgXHUxMTEwIFx1MTA4NSBcdTEwODUgXHUxMDgwIFx1MTA5NCBcdTExMDMgLCBcdTEwNTkgXHUxMDgyIFx1MTA4OCBcdTEwNzIgXHUxMTExIFx1MTA4NSBcdTEwNzIgIixcDQogICAgICAgICAiZ2VuZGVyIjoiTUFMRSIsXA0KICAgICAgICAgInRheF9pZCI6IjMxMjY1MDk4MTYiLFwNCiAgICAgICAgICJkb2N1bWVudHMiOltcDQogICAgICAgICAgICBce1wNCiAgICAgICAgICAgICAgICJ0eXBlIjoiUEFTU1BPUlQiLFwNCiAgICAgICAgICAgICAgICJudW1iZXIiOiIxMjA1MTgiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAgICAiZXhwaXJ5X2RhdGUiOiIyMDE1LTA0LTA3VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZWRfYnkiOiJETVNVIlwNCiAgICAgICAgICAgIFx9XA0KICAgICAgICAgXSxcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgInJlbmV3YWxfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicGF0aWVudF9zaWduZWQiOnRydWUsXA0KICAgICAgImRpc2Nsb3N1cmVfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicHJvY2Vzc19kYXRhX2NvbnNlbnQiOnRydWVcDQogICBcfSxcDQogICAiZW1wbG95ZWUiOlx7XA0KICAgICAgImlkIjoiZDI5MGYxZWUtNmM1NC00YjAxLTkwZTYtZDcwMTc0OGYwODUxIixcDQogICAgICAidGl0bGUiOiJcdWMwXHUxMDgzIFx1MTExMCBcdTEwODIgXHUxMDcyIFx1MTA4OCAiLFwNCiAgICAgICJwYXJ0eSI6XHtcDQogICAgICAgICAiaWQiOiJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLFwNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIlwNCiAgICAgIFx9XA0KICAgXH0sXA0KICAgIm1zcCI6XHtcDQogICAgICAiaWQiOiJkMjkwZjFlZSIsXA0KICAgICAgIm5hbWUiOiJcdWMwXHUxMDUwIFx1MTA4MyBcdTExMTAgXHUxMDg1IFx1MTExMCBcdTEwODIgXHUxMDcyICBcdTEwNDEgXHUxMDg2IFx1MTA4OCBcdTEwODAgXHUxMDg5ICIsXA0KICAgICAgInNob3J0X05hbWUiOiJcdWMwXHUxMDQxIFx1MTA4NiBcdTEwODggXHUxMDgwIFx1MTA4OSAiLFwNCiAgICAgICJ0eXBlIjoiXHVjMFx1MTA2MCBcdTEwNTQgXHUxMDU1ICIsXA0KICAgICAgImVkcnBvdSI6IjU0MzIzNDU0MzIiXA0KICAgXH0sXA0KICAgInNjb3BlIjoiZmFtaWx5IGRvY3RvciIsXA0KICAgInBsYWludGV4dF9jb250ZW50IjoiRGVjbGFyYXRpb24gY29udGVudCJcDQpcfX2gggIuMIICKjCCAZOgAwIBAgIJANj0sC/v0hWYMA0GCSqGSIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBLQ1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0NTczM1oXDTE3MDQyNjE0NTczM1owGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMuqrxE/0txT+ZVRKU1O85a8eaaUAOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0GA1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+CaflnzBJBgNVHSMEQjBAgBTET2SwL5UfUMKDyhuBGCA+Cafln6EdpBswGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY9LAv79IVmDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IVS28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjnw87JzkAy5KLDTiotQl8eknkd1bR3nIWINemck3GeGYkR8giG3gkNxz6ky1+63ZcoJkEiS46aneDhmS6BdH0V2G/3delos8+ZMYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQDFA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTcwMzI4MTE1NDEwWjAjBgkqhkiG9w0BCQQxFgQU5NSvVRVYHz5tG1GW8gXrjHSnLj8wUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEgYCdqnN8gGXw9OUmtxOvQQgHK5Ni/4/2WQWj7rxERh5AI6rhXs/hh3DNS5Z5mN6wO8z47SQuedbsMQ5hf6+9BbKhXD7WKeU+DtGyfa1ner5/ubz6BeVvuT98D4PrzHlqNSpe/7AirrA70QVO9kPoFSmGtBG6JjaqaCZBYbvF9InPRw==` (string, required)
+        + `signed_content_encoding`: base64 (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (`Declaration_short`)
+        
+
+## Legal Entities [/api/legal_entities]
+
+### Get Legal Entities - Deprecated [GET /api/legal_entities{?edrpou,legal_entity_id,settlement_id,type,owner_property,status,nhs_verified,page,page_size}]
+
+Use this method to get list of legal entities filtering by parameters.
+List consists of legal entities with parameter `is_active = true`.
+
++ Parameters
+    + `edrpou`: `341086` (string, optional)
+    + `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
+    + settlement_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
+    + type: MSP (enum, optional)
+        - MSP
+        + Default: MSP
+    + owner_property: state (enum, optional)
+        - state
+        - private
+    + status: ACTIVE (enum, optional)
+        - ACTIVE
+        - CLOSED
+    + `nhs_verified`: false (boolean, optional)
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array)
+            + (object)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+                + include `Legal_Entity_Request_Public_Short`
+                + status: ACTIVE (enum, required)
+                    - ACTIVE
+                    - CLOSED
+                + `nhs_verified`: false (boolean, required)
+
+### Get Legal Entity by ID - Deprecated [GET /api/legal_entities/{id}]
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include `Legal_Entity_Request_Public_Short`
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+            + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+
+### Create/Update Legal Entity - Deprecated [PUT]
+
+Use this method to register a new Legal Entity or update existing one.
+
+New Legal Entity is created with
+status = ACTIVE
+nhs_verified = false
+
+Method receives signed message (pkcs7) including signed content, digital signature and signer public key.
+All signature fields will be validated (including signer certificate authority).
+There is a [**dummy method**](https://uaehealthapi.docs.apiary.io/reference/dummy-methods/dummy-for-legal-entity/create/update-legal-entity) that describes the latest legal entity data model and can be used as documentation.
+Signed content MUST consists of JSON object with Legal Entity data:
+
+```
+{
+  "name": "Клініка Ноунейм",
+  "short_name": "Ноунейм",
+  "public_name": "Ноунейм",
+  "type": "MSP",
+  "owner_property_type": "STATE",
+  "legal_form": "140",
+  "edrpou": "32323454",
+  "kveds": [
+    "86.10"
+  ],
+  "addresses": [
+    {
+      "type": "RESIDENCE",
+      "country": "UA",
+      "area": "Житомирська",
+      "region": "Бердичівський",
+      "settlement": "Київ",
+      "settlement_type": "CITY",
+      "settlement_id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+      "street_type": "STREET",
+      "street": "вул. Ніжинська",
+      "building": "15",
+      "apartment": "23",
+      "zip": "02090"
+    }
+  ],
+  "phones": [
+    {
+      "type": "MOBILE",
+      "number": "+380503410870"
+    }
+  ],
+  "email": "email@example.com",
+  "website": "www.msp.com.ua",
+  "receiver_funds_code": "12345",
+  "beneficiary": "Борисов Борис Борисович",
+  "owner": {
+    "first_name": "Петро",
+    "last_name": "Іванов",
+    "second_name": "Миколайович",
+    "tax_id": "3015492563",
+    "birth_date": "1991-08-19",
+    "gender": "MALE",
+    "email": "email@example.com",
+    "documents": [
+      {
+        "type": "PASSPORT",
+        "number": "120518",
+        "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
+        "issued_at": "2017-02-28"
+      }
+    ],
+    "phones": [
+      {
+        "type": "MOBILE",
+        "number": "+380503410870"
+      }
+    ],
+    "position": "P6"
+  },
+  "medical_service_provider": {
+    "licenses": [
+      {
+        "license_number": "fd123443",
+        "issued_by": "Кваліфікацйна комісія",
+        "issued_date": "2017-02-28",
+        "expiry_date": "2017-02-28",
+        "active_from_date": "2017-02-28",
+        "what_licensed": "реалізація наркотичних засобів",
+        "order_no": "ВА43234"
+      }
+    ],
+    "accreditation": {
+      "category": "SECOND",
+      "issued_date": "2017-02-28",
+      "expiry_date": "2017-02-28",
+      "order_no": "fd123443",
+      "order_date": "2017-02-28"
+    }
+  },
+  "archive": [
+    {
+      "date": "2017-02-28",
+      "place": "вул. Грушевського 15"
+    }
+  ],
+  "security": {
+    "redirect_uri": "https://example.com"
+  },
+  "public_offer": {
+    "consent_text": "Consent text",
+    "consent": true
+  }
+}
+```
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + `signed_legal_entity_request`: `...` (string, required)
+        + `signed_content_encoding`: base64 (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include Legal_Entity_Response_Public
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+            + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include `Legal_Entity_Response_Public`
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+            + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
+            + is_active: true (boolean, required)
+            + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
+            + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
+            + created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
+            + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
+            + updated_by: `userid` (string, required)
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
+
+## Employee Requests [/api/employee_requests]
+
+### Create Employee Request - Deprecated[POST]
+
+Employee_Request consist of the three mandatory parts:
+* Person info
+* Employee info
+* User Info
+
+**For DOCTOR or PHARMACIST:**
+* Doctor ot Pharmacist info
+
+Additionally to register/update Physician the `Doctor info` for Doctors and `Pharmacist info` for Pharmacist should be passed.
+
+When the `Employee_Request` will be posted the Invitation e-mail with a request
+secret token will be sent to the User specified in the request.
+
+In case the employee doesn't have tax_id no_tax_id must be true and in fields tax_id input passport number (serial number in cyrillic without spaces)
+
+It can be also used to update employee data. In this case `employee_id` should be passed in the payload.
+
+User may accept or decline Invitation.
+
+For changes to take effect employee must confirm the changes.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + `employee_request` (Employee_Request)
+
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (Employee_Request_Details)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + inserted_at: `2017-05-05T14:09:59.232112` (string, required)
+            + updated_at: `2017-05-05T14:09:59.232112` (string, required)
+
+
+## Client secret [/admin/clients]
+
+### Refresh client secret - Deprecated [PATCH /admin/clients/{id}/refresh_secret]
+
+This method is used to refresh client secret for existing client (legal entity)
+Only legal entity owner can request new client secret for his own legal entity
+
+**Scopes required:** `secret:refresh`
+
++ Parameters
+    + id: `role-1380df72-275a-11e7-93ae-92361f002671` (string, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (`Client_Deprecated`)
+
 # Data Structures
 ## Responses
 ### `Response_Collection`
@@ -6268,13 +6307,13 @@ Assuming that all required business processes and validations is implemented on 
 + `process_disclosure_data_consent`: true (boolean, required)
 
 ### `Authentication_methods_request`
-- One of
+  - One of
     + object()
-        + action: delete (string, required)
+        + action: DEACTIVATE (string, required)
         + authentication_method(object)
             + id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, required)
     + object()
-        + action: insert (string, required)
+        + action: INSERT (string, required)
         + authentication_method(object)
             + type(enum, required)
                 - THIRD_PERSON
@@ -6284,7 +6323,7 @@ Assuming that all required business processes and validations is implemented on 
             + value: `7b100a9c-daaa-490e-b88d-2a911059b0d2` (string, optional) - identifier of active person. It's required when type= THIRd_PERSON 
             + alias: `husband` (string, optional) - it's required id type = THIRD_PERSON
     + object()
-        + action: update (string, required)
+        + action: UPDATE (string, required)
         + authentication_method(object)
             + id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, required)
             + alias: `wife` (string, optional)
@@ -6915,9 +6954,10 @@ status: `APPROVED` (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + status: APPROVED, DISMISSED (enum, required)
++ `is_active`: `true` (boolean, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (`Party_Response_old`)
-+ doctor (DoctorNew, optional)
++ doctor (DoctorNew, optional) - `Field's name depends of employee type name`
 
 ### `Employee_Update`
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
@@ -8096,8 +8136,20 @@ status: `APPROVED` (string, required)
 
 ## Medical programs
 ### `Medical_Program_Response`
-+ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ name: `Fee-For-Service` (string, required)
++ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
++ `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
++ `medical_program_settings`: (`Medical_program_settings`, required) - some conditions for using program
++ `medical_program_settings_text`: `Some text` (string, required) - justification of the possibility or impossibility of using the program on medication request with some settings
++ `is_active`: `true` (boolean, required) - Is medical program active or not. True - Active; False - Inactive
++ `medication_dispense_allowed`: true (boolean, required) - posibility to create medication dispense with program
++ `medication_dispense_allowed_text`: `Some text` (string, required) - justification of the possibility or impossibility of using the program on medication dispense
++ `medication_request_allowed`: true (boolean, required) - posibility to create medication request with program
++ `medication_request_allowed_text`: `Some text` (string, required) - justification of the possibility or impossibility of using the program on medication request
++ `type`: `MEDICATION` (string, required) - `Dictionary MEDICAL_PROGRAM_TYPE`
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### `Program_Service_Response`
 + id: `c290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -8204,7 +8256,7 @@ status: `APPROVED` (string, required)
 + text (string, optional)
 
 ### `Coding`
-+ system : `eHealth/resources` (string, optional)
++ system : `eHealth/resources` (string, required)
 + code : `patient` (string, required) - Symbol in syntax defined by the system
 
 ### `Duration`
@@ -8579,10 +8631,10 @@ status: `APPROVED` (string, required)
                         + code: `activity` (string)
 + `context`(Reference, optional, fixed-type)
     + identifier (Identifier)
-        + type (Codeable_Concept)
-            + coding (array, fixed-type)
+        + type (Codeable_Concept, required)
+            + coding (array, fixed-type, required)
                 + (Coding)
-                    + code: `encounter` (string)
+                    + code: `encounter` (string, required)
 + `dosage_instruction` (array, optional, fixed-type)
     + (Dosage_Instruction)
 
@@ -8613,12 +8665,12 @@ status: `APPROVED` (string, required)
                 + coding (array, fixed-type)
                     + (Coding)
                         + code: `activity` (string)
-+ `context`(Reference, optional, fixed-type)
++ `context`(Reference, required, fixed-type)
     + identifier (Identifier)
-        + type (Codeable_Concept)
-            + coding (array, fixed-type)
+        + type (Codeable_Concept, required)
+            + coding (array, fixed-type, required)
                 + (Coding)
-                    + code: `encounter` (string)
+                    + code: `encounter` (string, required)
 + `dosage_instruction` (array, optional, fixed-type)
     + (Dosage_Instruction)
 
@@ -8659,10 +8711,10 @@ status: `APPROVED` (string, required)
                         + code: `activity` (string)
 + `context`(Reference, optional, fixed-type)
     + identifier (Identifier)
-        + type (Codeable_Concept)
-            + coding (array, fixed-type)
+        + type (Codeable_Concept, required)
+            + coding (array, fixed-type, required)
                 + (Coding)
-                    + code: `encounter` (string)
+                    + code: `encounter` (string, required)
 + `dosage_instruction` (array, optional, fixed-type)
     + (Dosage_Instruction)
 
@@ -8757,6 +8809,7 @@ status: `APPROVED` (string, required)
 + consumer_price: 34.03 (number, optional) - Retail price for packaging, UAH
 + `reimbursement_daily_dosage`: 1.4438 (number, optional) - The amount of the compensation of the daily dose of the medical product, UAH
 + `estimated_payment_amount`: 5.15 (number, optional) - Amount of additional payment for packing, UAH
++ `container_dosage` (`Dosage_container`, required)
 + `package_min_qty`: 20 (number, optional) - indivisible part of medicine pacage
 + `package_qty`: 20 (number, optional) - quantity of medicine in a pacage
 + start_date: `2019-01-01` (string, optional) - Active from date
@@ -8777,12 +8830,40 @@ status: `APPROVED` (string, required)
 ### `medical_programs_response`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
 + `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
-+ `same_mnn_in_treatment_period`: true (boolean, required) - Allow to create new medication request with the same mnn in one treatment period
++ `medical_program_settings`: (`Medical_program_settings`, required) - some conditions for using program
++ `medical_program_settings_text`: `Some text` (string, required) - justification of the possibility or impossibility of using the program on medication request with some settings
 + `is_active`: `true` (boolean, required) - Is medical program active or not. True - Active; False - Inactive
++ `medication_dispense_allowed`: true (boolean, required) - posibility to create medication dispense with program
++ `medication_dispense_allowed_text`: `Some text` (string, required) - justification of the possibility or impossibility of using the program on medication dispense
++ `medication_request_allowed`: true (boolean, required) - posibility to create medication request with program
++ `medication_request_allowed_text`: `Some text` (string, required) - justification of the possibility or impossibility of using the program on medication request
++ `type`: `MEDICATION` (string, required) - `Dictionary MEDICAL_PROGRAM_TYPE`
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Medical_program_settings`
++ `care_plan_required`: true (boolean, required) - posibility to create medication request with reference on care plan
++ `employee_types_to_create_medication_request` (array, required) - posibility to create medication request for particular types of employees
+    + `SPECIALIST` (string, required)
+    + `DOCTOR` (string, required)    
++ `skip_mnn_in_treatment_period`: true (boolean, required) - posibility to create new medication request with the same mnn in one treatment period
++ `skip_employee_validation`: true (boolean, required) - posibility to create medication request by any user who has a scope
++ `speciality_types_allowed` (array, optional) - posibility to create medication request or care plan activity for particular specialities of employees
+    + `ENDOCRINOLOGY` (string, required)
+    + `PEDIATRIC_NEUROLOGY` (string, required)
++ `conditions_icd10_am_allowed` (array, optional) - posibility to create medication request or care plan activity for particular conditions from ICD10_AM
+    + `A00.0` (string, required)
+    + `A00.1` (string, required)
++ `conditions_icpc2_allowed` (array, optional) - posibility to create medication request or care plan activity for particular conditions from ICPC2
+    + `A01` (string, required)
+    + `A02` (string, required)
++ `providing_conditions_allowed` (array, optional) - posibility to create care plan activity for particular terms of service. - `Dictionary PROVIDING_CONDITION`
+    + `INPATIENT` (string, required)
+    + `OUTPATIENT` (string, required)
++ `medication_request_max_period_day`: 90 (number, optional) - maximum period length (in days) allowed for the Medication request with the medical program
+
 
 ### `medical_programs_list`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
@@ -8971,6 +9052,36 @@ status: `APPROVED` (string, required)
 + `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
 + `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
 + `reimbursement_amount`: 450 (number, required) - Amount to reimburse for medication package by medical_program
+
+### `Medication_Dispense_Process_Request`
++ `details` (array[`Medication_Dispense_Detail_Response`], fixed, required)
++ `dispensed_at`: `2017-08-17` (string, required) - date of dispense
++ dispensed_by: `Іванов Іван Іванович` (string, optional) - in case pharmacist uses owner's token this field should be filled with pharmacist's name
++ `division` (`Division_Declaration`, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
+    + working_hours (`workinghours`) - optional field, business hours by each day weekly, doesn't make any influence on business process and will be shown on portal and map.
+    + location (Location, optional) - optional field. geographical location, if it's empty, division won't be shown on a map.
+    + status: ACTIVE (enum, required)
+        - ACTIVE
+        - INACTIVE
+    + mountain_group: false (boolean, optional)
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Dispense Response Identifier
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `legal_entity` (`Legal_Entity_Short`, required) - Active legal entity (Pharmacy) the division belongs to Identifier
++ `medical_program` (`Medical_Program_Response`, required) - Active medical program within which medications are going to be provided
++ `medication_request` (`Medication_request_Public_Response`, required) - Medication request
++ `party` (object)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + include `Party_Short`
+    + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
+    + `no_tax_id`: false (boolean, optional)
+    + phones (array[Phone], optional)
++ `payment_amount`: 50 (number, required) - receipt amount which was paid by patient (UAH)
++ `payment_id`: 1239804 (string, optional) - receipt number for the paid medications
++ `status`: NEW (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
 
 ## `Reimbursement_Report`
 ### `Reimbursement_Report_Response`
@@ -9171,8 +9282,8 @@ status: `APPROVED` (string, required)
 + `contractor_payment_details` (object, required)
     + include (`Payment_details`, required)
 + `contractor_rmsp_amount`: `50000` (number, required) - the amount of population which were served by this MSP
-+ `contractor_divisions` (array, required)
-    + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
++ `contractor_divisions` (array, required) - division ID (only for CAPITATION)
+    + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 + `contractor_employee_divisions` (array, optional)
     + (object)
         + include `Employee_divisions`
@@ -9192,8 +9303,6 @@ status: `APPROVED` (string, required)
 + `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
 + `contractor_payment_details` (object, required)
     + include (`Payment_details`, required)
-+ `contractor_divisions` (array, required)
-    + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
 + `start_date`: `2017-04-20` (string, required) - contract start date
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + `id_form`: `PMD_1` (string, required) - type of contract {DICTIONARY REIMBURSEMENT_CONTRACT_TYPE}
@@ -9235,7 +9344,6 @@ status: `APPROVED` (string, required)
 + `nhs_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - nhs legal entity ID
 + `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
 + issue_city: `Київ` (string, optional) - place of contract request
-
 + `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
 + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
 + contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
@@ -9310,12 +9418,6 @@ status: `APPROVED` (string, required)
 + `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
 + `contractor_payment_details` (object, required)
     + include (`Payment_details`, required)
-
-+ `contractor_divisions` (array, fixed, required)
-    + (object)
-        + include `Contractor_divisions`
-
-
 + `start_date`: `2017-04-20` (string, required) - contract start date
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + `id_form`: `RMB-1` (string, required) - type of contract {DICTIONARY REIMBURSEMENT_CONTRACT_TYPE}
@@ -9449,7 +9551,6 @@ status: `APPROVED` (string, required)
     + (object)
         + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
         + name: Бориспільське відділення Клініки Ноунейм (string, required) - the full name of division
-
 + `nhs_signer_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - person which represents nhs
 + `nhs_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - nhs legal entity ID
 + `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
@@ -9527,10 +9628,7 @@ status: `APPROVED` (string, required)
 + `contractor_divisions` (array, fixed, required)
     + (object)
         + include `Contractor_divisions`
-
-
 + `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
-
 + `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
 + status: `VERIFIED` (string, required) - contract status
 + status_reason: `не було виконано умов контракту` (string, optional) - the reason of terminated status
@@ -9621,8 +9719,8 @@ status: `APPROVED` (string, required)
 + type: `CAPITATION` (string, required)
     - CAPITATION
     - REIMBURSEMENT
-+ `medical_programs` (array, required)
-    + `3914a240-63db-404e-b730-09222bfeb2d0` (string, required) - - ids of a medical programs that is a subject of contract
++ reason: `не було виконано умов контракту` (string, optional) - additional the reason of terminated status
++ `signed_content_location`: `bucket_name/folder_identifier/file_name` (string, optional) - Location of the signed content in media storage
 
 ### `Contracts_CRUD_response`
 + id: `8be63914-a278-470b-b868-1af5b9087332` (string, required) - Unique record identifier
@@ -9840,6 +9938,26 @@ status: `APPROVED` (string, required)
     - ACTIVE
     - INACTIVE
 + death_date: `2018-11-11` (string, optional) - date of death
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+## Medical program provision
+### `Medical_program_provision_request`
++ `contract_number`: `0000-PAP5-M000` (string, required)
++ `medical_program_id`: `04d5ea65-d6e7-44f8-9eef-f0d3c1121d2b` (string, required)
++ divisions (array[string], required)
+    + `15caea3f-cac3-483c-a3da-5875eba96430`
+    + `6d07bdb0-59c0-4b54-8a90-bada3e232877`
+
+### `Medical_program_provision_response`
++ id: `3e34da3d-9b8c-4aaf-be8e-24a161279b6a` (string, required) - identifier of the Medical program provision
++ `contract_number`: `0000-PAP5-M000` (string, required) - сontract number according to which Medical program provision has been created
++ `medical_program_id`: `04d5ea65-d6e7-44f8-9eef-f0d3c1121d2b` (string, required) - medical program that is provided
++ `division_id`: `15caea3f-cac3-483c-a3da-5875eba96430` (string, required) - division that provide a medical program
++ `is_active`: true (boolean, required) - status of the Medical program provision
++ `deactivate_reason`: (string, required, nullable) - the reason of deactivated status
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
