@@ -462,7 +462,7 @@ Look at [**Dummy Sign Person Request**](https://uaehealthapi.docs.apiary.io/#ref
 
 ### Get Person Requests List [GET /api/person_requests{?legal_entity_id,status,page,page_size}]
 
-Use this method to obrain list of Person Requests. 
+Use this method to obtain list of Person Requests. 
 If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor or Admin is interested in current UI section.
 
 Service returns only person request related to the same legal entity as the user.
@@ -744,7 +744,7 @@ This endpoint returns declaration requests that were created through V2 and V3. 
 
 ### Get Declaration Requests List V3 [GET /api/v3/declaration_requests{?employee_id,legal_entity_id,status,page,page_size}]
 
-Use this method to obrain list of Declaration Requests for an `empolee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor or Admin is interested in current UI section.
+Use this method to obtain list of Declaration Requests for an `empolee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor or Admin is interested in current UI section.
 
 
 Also we suggest use `employee_id` and `legal_entity_id` to make sure that end-user understands context of actions that he or she will perform.
@@ -803,7 +803,7 @@ Use this method to resend sms on previously created Declaration Request V3.
 
 ### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,status,declaration_number,page,page_size}]
 
-Use this method to obrain list of Declarations for an `empolee_id` and legal_entity_id. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
+Use this method to obtain list of Declarations for an `empolee_id` and legal_entity_id. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
 **Scopes required:** `declaration:read`
 
@@ -830,7 +830,7 @@ Method returns shortened details, to obtain full information - get Declaration D
         + data (array[`nhs_declaration_list_Public`])
 
 ### Get Declaration by ID [GET /api/declarations/{id}]
-This method allows to recive detailed information about person Declaration by declaration ID.
+This method allows to receive detailed information about person Declaration by declaration ID.
 
 **Scopes required:** `declaration:read`
 
@@ -2922,7 +2922,7 @@ Method returns shortened details, to obtain full information - Get Medication re
 
 ### Get Medication Request Request by ID [GET /api/medication_request_requests/{id}]
 
-Use this method to obrain full information of Medication request Request an `id`.
+Use this method to obtain full information of Medication request Request an `id`.
 
 + Parameters
     + id: `48416485-cc98-46c4-8bba-e321de9e1ecd` (string, required) - request id
@@ -5364,7 +5364,7 @@ Assuming that all required business processes and validations is implemented on 
 
 ### Get Declaration Requests List - Deprecated [GET /api/declaration_requests{?employee_id,legal_entity_id,status,page,page_size}]
 
-Use this method to obrain list of Declaration Requests for an `empolee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor or Admin is interested in current UI section.
+Use this method to obtain list of Declaration Requests for an `empolee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor or Admin is interested in current UI section.
 
 
 Also we suggest use `employee_id` and `legal_entity_id` to make sure that end-user understands context of actions that he or she will perform.
