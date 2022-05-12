@@ -1029,33 +1029,6 @@ Only employees with type DOCTOR can be reorganized.
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
             + division (Division_Short)
             + `legal_entity` (`Legal_Entity_Short`) 
-
-### Get Reorganized Employees List [GET /api/employees/reorganized{?legal_entity_id,no_tax_id,tax_id,party_id,division_id,employee_type,page,page_size}]
-
-Use this end-point to obtain all Reorganized Employees of the legal entity specified by the `legal_entity_id`.
-
-Method returns shortened details (for DOCTOR - additional returns specialities information).
-
-Method can be used by successor legal entity owner to obtain reorganized employees of reorganized legal entity (in case of available legal entities relation).
-
-+ Parameters
-    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, mandatory) - filter employees by reorganized legal_entity id
-    + no_tax_id: true (boolean, optional) - filer employees with or w/o tax_id
-    + tax_id: 3015492561 (string, optional)
-    + party_id: 3015492561 (string, optional)
-    + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
-    + employee_type: DOCTOR (string, optional)
-    + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
-
-+ Request (application/json)
-
-    + Headers
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
-+ Response 200 (application/json)
-    + Attributes (`Response_Collection_V2`)
-        + data (array[`Employee_Short_Reorganized`])
         
 
 ## Employee Requests [/api/employee_requests]
