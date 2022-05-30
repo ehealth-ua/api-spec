@@ -3260,7 +3260,7 @@ Only Medication dispenses linked to medication request id will be shown. If you 
                 + `medical_program` (`Medical_Program_Response`, required) - Active medical program within which medications are going to be provided
                 + `details` (array, fixed, required)
                     + (object)
-                        + `medication_qty`: 10.34 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
+                        + `medication_qty`: 10.34 (number, required) - qnty of medication_unit (count/ml/g/mg) which provides to the patient
                         + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
                         + `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
                         + `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
@@ -3376,7 +3376,7 @@ Use this method to obtain full information of Medication request an `id`.
             + include `Medication_request_Public_Response`
             + `medication_info` (object, required)
                 + include `Innm_Dosage_for_Medication_request_Responce`
-                + `medication_remaining_qty`: 10.23 (number, optional) - medication quantity allowed to dispense
+                + `medication_remaining_qty`: 10.34 (number, optional) - medication quantity allowed to dispense
 
 ## Medication Dispense [/api/medication_dispenses]
 
@@ -9501,7 +9501,7 @@ status: `APPROVED` (string, required)
 ### `Medication_Dispense_Detail_Request`
 + `program_medication_id`: `64c06ebc-0266-4645-85f0-7a6900d7dfbe` (string, optional) - Program participant id
 + `medication_id`: `787b6ef1-1d3a-4129-849c-87716c9a2130` (string, required) - Identifier of brand medications
-+ `medication_qty`: 10.34 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
++ `medication_qty`: 10.34 (number, required) - qnty of medication_unit (count/ml/g/mg) which provides to the patient
 + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
 + `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
 + `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
@@ -9509,7 +9509,7 @@ status: `APPROVED` (string, required)
 ### `Medication_Dispense_Detail_Response`
 + `medication` (`Medication_Short`, required) - Identifier of brand medications
 + `program_medication_id`: `64c06ebc-0266-4645-85f0-7a6900d7dfbe` (string, optional) - Program participant id
-+ `medication_qty`: 10.34 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
++ `medication_qty`: 10.34 (number, required) - qnty of medication_unit (count/ml/g/mg) which provides to the patient
 + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
 + `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
 + `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
@@ -9576,7 +9576,7 @@ status: `APPROVED` (string, required)
         + `employee_type`: `DOCTOR` (string) - `Dictionary: EMPLOYEE_TYPE`
     + `medical_program` (`Medical_Program_Response`, required)
     + `medication` (`Medication_Short`, required) - Identifier of brand medications
-    + `medication_qty`: 10.34 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
+    + `medication_qty`: 10.34 (number, required) - qnty of medication_unit (count/ml/g/mg) which provides to the patient
     + `medication_dispense`(object, optional)
     + `id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, optional) - Medication dispense Identifier
     + `dispensed_at`: `2017-08-17` (string, optional) - date of dispense
@@ -9591,7 +9591,7 @@ status: `APPROVED` (string, required)
             + include `Medication_Short`
             + `package_qty`: 30 (number, required) - qnty medications in the package
             + `details` (object, required)
-                + `medication_qty`: 10.34 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
+                + `medication_qty`: 10.34 (number, required) - qnty of medication_unit (count/ml/g/mg) which provides to the patient
                 + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
                 + `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
                 + `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
