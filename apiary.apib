@@ -3621,13 +3621,13 @@ This method is used to obtain events by id.
     + Attributes (`Response_OK`)
          + data (array[`Get_events`])
 
-### Get events list [GET /api/events/{??date=2017-12-06T15%3A00%3A00&date_to=2017-12-07T15%3A00%3A00&event_type=StatusChangeEvent&entity_type=MedicationDispense&attribute_name=status&new_value=COMPLETED&page=2&page_size=50}]
+### Get events list [GET /api/events/{?date=2017-12-06T15%3A00%3A00&date_to=2017-12-07T15%3A00%3A00&event_type=StatusChangeEvent&entity_type=MedicationDispense&attribute_name=status&new_value=COMPLETED&page=2&page_size=50}]
 
 This method is used to abtain list of events with filters.
 
 + Parameters
     + date: `2017-12-06T15:00:00` (datetime, optional) - events created between datetime and now.(or 'date_to' if included).
-    + date: `2017-12-07T15:00:00` (datetime, optional) - evets created from 'date' (if included) and before datetime.
+    + date_to: `2017-12-07T15:00:00` (datetime, optional) - events created from 'date' (if included) and before datetime.
     + event_type: `StatusChangeEvent` (enum, optional) - type of event.
     + entity_type: `MedicationDispense` (enum, optional) - type of entity.
     + attribute_name: `status` (string, optional) - name of event in properties.
