@@ -3621,13 +3621,35 @@ This method is used to obtain events by id.
     + Attributes (`Response_OK`)
          + data (array[`Get_events`])
 
-### Get events list [GET /api/events/{?date=2017-12-06T15%3A00%3A00&date_to=2017-12-07T15%3A00%3A00&event_type=StatusChangeEvent&entity_type=MedicationDispense&attribute_name=status&new_value=COMPLETED&page=2&page_size=50}]
+### Get events list [GET /api/events/{?date,date_to,event_type,entity_type,attribute_name,new_value,page,page_size}]
 
-This method is used to abtain list of events with filters.
+This method is used to obtain list of events with filters.
+
+The period of events provided in response is also limited by configuration, not only by the request parameters.
+
+Object `properties` may has a different fields depending on the `entity_type`. 
+
+Entity_type|Possible fields
+----------|-----------
+Approval|`status`
+CarePlan|`status`
+CarePlan Activity|`detail.status`
+Contract|`is_suspended` or `status`
+ContractRequest|`status`
+Declaration|`status`
+Division|`dls_verified`
+Employee|`status`
+EmployeeRequest|`status` and `employee_id`
+MedicationDispense|`status`
+MedicationRequest|`status`
+LegalEntity|`status`
+Person|`verification_status` or `status`
+Preperson|`status`
+ServiceRequest|`program_processing_status` or `status`
 
 + Parameters
-    + date: `2017-12-06T15:00:00` (datetime, optional) - events created between datetime and now.(or 'date_to' if included).
-    + date_to: `2017-12-07T15:00:00` (datetime, optional) - events created from 'date' (if included) and before datetime.
+    + date: `2017-12-06T15:00:00` (datetime, optional) - evets created between datetime and now (or 'date_to' if included).
+    + date_to: `2017-12-07T15:00:00` (datetime, optional) - evets created from 'date' (if included) and before datetime.
     + event_type: `StatusChangeEvent` (enum, optional) - type of event.
     + entity_type: `MedicationDispense` (enum, optional) - type of entity.
     + attribute_name: `status` (string, optional) - name of event in properties.
