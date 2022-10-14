@@ -1,5 +1,5 @@
 FORMAT: 1A
-HOST: https://api.ehealth.gov.ua/
+HOST: http://ehealth.com/
 
 # eHealth MIS API
 
@@ -6904,7 +6904,7 @@ Only legal entity owner can request new client secret for his own legal entity
 + type (enum) - Type of data that is located in `data` attribute.
     - object (string) - `data` attribute is a JSON object.
     - list (string) - `data` attribute is a list.
-+ `request_id`: `6617aeec-15e2-4d6f-b9bd-53559c358f97#17810` (string) - [Request ID](https://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header.
++ `request_id`: `req-adasdoijasdojsda` (string) - [Request ID](https://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header.
 
 ### `Response__Error`
 + type: type_atom (string) - Atom that represents error type.
@@ -9130,8 +9130,18 @@ status: `APPROVED` (string, required)
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
 + `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
 + `medical_program_settings`: (`Medical_program_settings`, required) - some conditions for using program
++ `medical_program_settings_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication request with some settings
++ `is_active`: `true` (boolean, optional) - Is medical program active or not. True - Active; False - Inactive
++ `medication_dispense_allowed`: true (boolean, optional) - posibility to create medication dispense with program
++ `medication_dispense_allowed_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication dispense
++ `medication_request_allowed`: true (boolean, optional) - posibility to create medication request with program
++ `medication_request_allowed_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication request
++ `type`: `MEDICATION` (string, optional) - `Dictionary MEDICAL_PROGRAM_TYPE`
 + `funding_source`: `NHS` (string, required) - `Dictionary FUNDING_SOURCE`
-+ `mr_blank_type`: `F-1` (string, required) - `Dictionary MR_BLANK_TYPES`
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, optional) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, optional)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, optional) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, optional)
 
 ### `Program_Service_Response`
 + id: `c290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -9391,11 +9401,6 @@ status: `APPROVED` (string, required)
 + `dosage` (`Dosage_drug`, required) - Dosage of innm_dosage object (to be excluded)
 + `ingredients` (array[`Ingredient_v2`], required) - Details of dosage of INNM ingredients, added 2022-04-23, part 1
 + `medication_qty`: 10.34 (number, required) - Medication quantity issued by the doctor
-
-### `block_legal_entity_object`
-+ `block_legal_entity` (object, required)
-    + `id`: `UUID` (string, required, nullable)
-    + `type`: `NHS` (string, required, nullable)
 
 ### `MR_MRR_additional_fields`
 + priority: routine (enum, optional) - `Dictionary MEDICATION_REQUEST_PRIORITY`
@@ -9902,13 +9907,6 @@ status: `APPROVED` (string, required)
 + `medication_request_notification_disabled`: true (boolean, required) - check if patient should not be notified via SMS on operations with medication request (create/reject/resend)
 + `skip_contract_provision_verify`: true (boolean, required) - check if validations of Contract and Medical Program Provisions should be invoked for the medical program
 + `medication_dispense_period_day`: 90 (number, optional) - medication dispense period (in days)
-+ `medical_program_change_on_dispense_allowed`: true (boolean, required) - check if medication request can be dispensed with another medical program.
-+ `patient_categories_allowed` (array, optional) - posibility to create care plan activity for particular terms of service. - `Dictionary eHealth/clinical_impression_patient_categories`
-    + `insulin_1` (string, required)
-    + `insulin_2` (string, required)
-+ `license_types_allowed` (array, optional) - the types of legal entity licenses required to dispense medication request - `Dictionary LICENSE_TYPE`
-    + `PHARMACY` (string, required)
-    + `PHARMACY_DRUGS` (string, required)
 
 ### `medical_programs_list`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
