@@ -9907,6 +9907,13 @@ status: `APPROVED` (string, required)
 + `medication_request_notification_disabled`: true (boolean, required) - check if patient should not be notified via SMS on operations with medication request (create/reject/resend)
 + `skip_contract_provision_verify`: true (boolean, required) - check if validations of Contract and Medical Program Provisions should be invoked for the medical program
 + `medication_dispense_period_day`: 90 (number, optional) - medication dispense period (in days)
++ `medical_program_change_on_dispense_allowed`: true (boolean, required) - check if medication request can be dispensed with another medical program.
++ `patient_categories_allowed` (array, optional) - posibility to create care plan activity for particular terms of service. - `Dictionary eHealth/clinical_impression_patient_categories`
+    + `insulin_1` (string, required)
+    + `insulin_2` (string, required)
++ `license_types_allowed` (array, optional) - the types of legal entity licenses required to dispense medication request - `Dictionary LICENSE_TYPE`
+    + `PHARMACY` (string, required)
+    + `PHARMACY_DRUGS` (string, required)
 
 ### `medical_programs_list`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
