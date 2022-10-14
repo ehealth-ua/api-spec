@@ -6904,7 +6904,7 @@ Only legal entity owner can request new client secret for his own legal entity
 + type (enum) - Type of data that is located in `data` attribute.
     - object (string) - `data` attribute is a JSON object.
     - list (string) - `data` attribute is a list.
-+ `request_id`: `req-adasdoijasdojsda` (string) - [Request ID](https://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header.
++ `request_id`: `6617aeec-15e2-4d6f-b9bd-53559c358f97#17810` (string) - [Request ID](https://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header.
 
 ### `Response__Error`
 + type: type_atom (string) - Atom that represents error type.
@@ -10118,8 +10118,9 @@ status: `APPROVED` (string, required)
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `reject_reason_code`: `PATIENT_REJECT` (string, required, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
 + is_blocked: false (boolean, required) - Whether medication request is blocked or not
-+ block_reason: `Підозра на фрод` (string, required) - Block or unblock reason description
-+ block_reason_code: `WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ `block_reason`: `Підозра на фрод` (string) - Block or unblock reason description
++ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 
 ### `Medication_request_Private_Response`
