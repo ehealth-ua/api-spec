@@ -953,7 +953,7 @@ Use this end-point to obtain all Employees of the legal entity specified by the 
 
 We suggest to use `status` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
 
-Method returns shortened details (For DOCTOR, SPECIALIST, ASSISTANT, PHARMACIST, MED_ADMIN, LABORANT or MED_COORDINATOR - additional returns specialities information), to obtain full information - get Employee it by ID.
+Method returns shortened details (for DOCTOR or PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
 
 + Parameters
     + no_tax_id: true (boolean, optional) - filer employees with or w/o tax_id
@@ -1332,25 +1332,35 @@ Entity data:
     + Attributes (object)
         + `signed_request`: `MIIUKAYJKoZIhvcNAQcCoIIUGTCCFBUCAQExDjAMBgoqhiQCAQEBAQIBMIIGRgYJKoZIhvcNAQcBoIIGNwSCBjN7CiAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICJsYXN0X25hbWUiOiAi0IbQstCw0L3QvtCyIiwKICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICJiaXJ0aF9kYXRlIjogIjE5OTEtMDgtMTkiLAogICAgImJpcnRoX2NvdW50cnkiOiAi0KPQutGA0LDRl9C90LAiLAogICAgImJpcnRoX3NldHRsZW1lbnQiOiAi0JLRltC90L3QuNGG0Y8iLAogICAgImdlbmRlciI6ICJNQUxFIiwKICAgICJlbWFpbCI6ICJlbWFpbEBleGFtcGxlLmNvbSIsCiAgICAidGF4X2lkIjogIjMxMjY1MDk4MTYiLAogICAgInNlY3JldCI6ICJzZWNyZXQiLAogICAgImRvY3VtZW50cyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlBBU1NQT1JUIiwKICAgICAgICAibnVtYmVyIjogIjEyMDUxOCIsCiAgICAgICAgImlzc3VlZF9ieSI6ICLQoNC+0LrQuNGC0L3Rj9C90YHRjNC60LjQvCDQoNCSINCT0KMg0JzQktChINCa0LjRl9Cy0YHRjNC60L7RlyDQvtCx0LvQsNGB0YLRliIsCiAgICAgICAgImlzc3VlZF9hdCI6ICIyMDE3LTAyLTI4IgogICAgICB9CiAgICBdLAogICAgImFkZHJlc3NlcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlJFU0lERU5DRSIsCiAgICAgICAgImNvdW50cnkiOiAiVUEiLAogICAgICAgICJhcmVhIjogItCW0LjRgtC+0LzQuNGA0YHRjNC60LAiLAogICAgICAgICJyZWdpb24iOiAi0JHQtdGA0LTQuNGH0ZbQstGB0YzQutC40LkiLAogICAgICAgICJzZXR0bGVtZW50IjogItCa0LjRl9CyIiwKICAgICAgICAic2V0dGxlbWVudF90eXBlIjogIkNJVFkiLAogICAgICAgICJzZXR0bGVtZW50X2lkIjogIjQzNDMyNDMyIiwKICAgICAgICAic3RyZWV0X3R5cGUiOiAiU1RSRUVUIiwKICAgICAgICAic3RyZWV0IjogItCy0YPQuy4g0J3RltC20LjQvdGB0YzQutCwIiwKICAgICAgICAiYnVpbGRpbmciOiAiMTUiLAogICAgICAgICJhcGFydG1lbnQiOiAiMjMiLAogICAgICAgICJ6aXAiOiAiMDIwOTAiCiAgICAgIH0KICAgIF0sCiAgICAicGhvbmVzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiTU9CSUxFIiwKICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgIH0KICAgIF0sCiAgICAiYXV0aGVudGljYXRpb25fbWV0aG9kcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIk9UUCIsCiAgICAgICAgInBob25lX251bWJlciI6ICIrMzgwNTA4ODg3NzAwIgogICAgICB9CiAgICBdLAogICAgInByZWZlcnJlZF93YXlfY29tbXVuaWNhdGlvbiI6ICJlbWFpbCIsCiAgICAiZW1lcmdlbmN5X2NvbnRhY3QiOiB7CiAgICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICAgInBob25lcyI6IFsKICAgICAgICB7CiAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICAgIH0KICAgICAgXQogICAgfSwKICAgICJwcm9jZXNzX2Rpc2Nsb3N1cmVfZGF0YV9jb25zZW50IjogdHJ1ZQogIH0KfQqgggW5MIIFtTCCBV2gAwIBAgIUDYTtobuTgegEAAAAXrQiAL+zdAAwDQYLKoYkAgEBAQEDAQEwggFCMXwwegYDVQQKDHPQn9Cj0JHQm9CG0KfQndCVINCQ0JrQptCG0J7QndCV0KDQndCVINCi0J7QktCQ0KDQmNCh0KLQktCeINCa0J7QnNCV0KDQptCG0JnQndCY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
 ` (string, required)
+
 + Response 201 (application/json)
     + Attributes (`Response_OK`)
         + meta (Response__Meta)
             + code: 201 (number)
         + data (`Person_Full`)
+
 ### Get Person Declaration [GET /api/persons/{id}/declaration]
+
 This method allows to receive active person declarations issued by current legal entity (based on access_token). It can be used to check if Patient has active declarations in other Legal Entities.
+
 It returns:
 1. Short declaration info if **active declaration found** AND issued by legal entity that is available for `access_token` scope.
 2. 404 error if **active declaration not found**.
 3. 403 if **active declaration found** issued by **other** (not available by access scopes) legal entity.
+
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
 + Request (application/json)
+
     + Headers
+
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
 + Response 200 (application/json)
     + Attributes (`Response_Collection`)
         + data (array[`Declaration_Details`])
+
 + Response 403 (application/json)
     + Attributes (`Response_Error`)
         + meta (Response__Meta, fixed-type)
@@ -2422,8 +2432,11 @@ Immutable parameters:
         + meta (Response__Meta)
             + code: 200 (number)
         + data (`Equipment_response`)
+
 ### Get equipment list [GET /api/equipment{?division_id,type,external_id,status,page,page_size}]
+
 + Parameters
+
     + division_id: `8be63914-a278-470b-b868-1af5b9087332` (string, optional) - Division identifier
     + type: `43235435` (string, optional) - `Code from dictionary EQUIPMENT_TYPE`
     + external_id: `123-ASD-1` (string, optional) - `Identifier from external system`
@@ -2676,6 +2689,7 @@ There is a [**dummy method**](https://uaehealthapi.docs.apiary.io/#reference/dum
 ### Resend Authorization OTP on merge request [POST /api/merge_requests/{id}/actions/resend_otp]
 
 Use this method to resend sms with OTP-code on previously created merge request (patient`s authentification method is OTP).
+
 + Parameters
     + id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
 
@@ -2743,9 +2757,13 @@ Method returns merge request details by it's ID. Depending on merge request stat
         + urgent (object, required)
             + `authentication_method_current` (array[`Authentication_Method`], required) - `Current authentication method of the master person`
             + documents (array[`media_content`], optional) - `Documents of the master person
+
 ## Licenses [/api/licenses]
+
 ### Get licenses [GET /api/licenses{?id,license_number,type,is_primary,page,page_size}]
+
 Use this end-point to obtain all Licenses of the legal entity.
+
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
     + license_number: `fd12344344` (string, optional)
@@ -2753,31 +2771,46 @@ Use this end-point to obtain all Licenses of the legal entity.
     + is_primary: true (boolean, optional) - primary or additional license flag
     + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
         + data (array[`crud_licenses_get`])
+
 ### Create license [POST /api/licenses]
+
 This method must be used to create additional licenses for legal entity (`is_primary=false`) in the system.
+
 Primary license must be added with `Create/Update Legal Entity V2` method.
+
 + Request (application/json)
     + Attributes (`crud_licenses_post`)
       + `is_primary`: false (boolean, required)
+
 + Response 201 (application/json)
     + Attributes (`Response_OK`)
         + data (`crud_licenses_get`)
+
 ### Update license [PATCH /api/licenses/{id}]
+
 This method must be used to update additional license (`is_primary=false`) for legal entity in the system.
+
 Primary license must be updated with `Create/Update Legal Entity V2` method.
+
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
 + Request (application/json)
     + Attributes (`crud_licenses_post`)
       + is_primary: false (boolean, required)
+
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (`crud_licenses_get`)
+
 # Group Public. Medical Programs
+
 ## Medical Program [/api/medical_program]
+
 ### Get medical programs list [GET /api/medical_programs{?id,name,is_active,mr_blank_type,page,page_size}]
 Method returns list of medical programs filtering by parameters. By default method returns only active medical programs `is_active=true`
 
@@ -4277,14 +4310,21 @@ Entity data:
     + Attributes (object)
         + `signed_request`: `MIIUKAYJKoZIhvcNAQcCoIIUGTCCFBUCAQExDjAMBgoqhiQCAQEBAQIBMIIGRgYJKoZIhvcNAQcBoIIGNwSCBjN7CiAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICJsYXN0X25hbWUiOiAi0IbQstCw0L3QvtCyIiwKICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICJiaXJ0aF9kYXRlIjogIjE5OTEtMDgtMTkiLAogICAgImJpcnRoX2NvdW50cnkiOiAi0KPQutGA0LDRl9C90LAiLAogICAgImJpcnRoX3NldHRsZW1lbnQiOiAi0JLRltC90L3QuNGG0Y8iLAogICAgImdlbmRlciI6ICJNQUxFIiwKICAgICJlbWFpbCI6ICJlbWFpbEBleGFtcGxlLmNvbSIsCiAgICAidGF4X2lkIjogIjMxMjY1MDk4MTYiLAogICAgInNlY3JldCI6ICJzZWNyZXQiLAogICAgImRvY3VtZW50cyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlBBU1NQT1JUIiwKICAgICAgICAibnVtYmVyIjogIjEyMDUxOCIsCiAgICAgICAgImlzc3VlZF9ieSI6ICLQoNC+0LrQuNGC0L3Rj9C90YHRjNC60LjQvCDQoNCSINCT0KMg0JzQktChINCa0LjRl9Cy0YHRjNC60L7RlyDQvtCx0LvQsNGB0YLRliIsCiAgICAgICAgImlzc3VlZF9hdCI6ICIyMDE3LTAyLTI4IgogICAgICB9CiAgICBdLAogICAgImFkZHJlc3NlcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlJFU0lERU5DRSIsCiAgICAgICAgImNvdW50cnkiOiAiVUEiLAogICAgICAgICJhcmVhIjogItCW0LjRgtC+0LzQuNGA0YHRjNC60LAiLAogICAgICAgICJyZWdpb24iOiAi0JHQtdGA0LTQuNGH0ZbQstGB0YzQutC40LkiLAogICAgICAgICJzZXR0bGVtZW50IjogItCa0LjRl9CyIiwKICAgICAgICAic2V0dGxlbWVudF90eXBlIjogIkNJVFkiLAogICAgICAgICJzZXR0bGVtZW50X2lkIjogIjQzNDMyNDMyIiwKICAgICAgICAic3RyZWV0X3R5cGUiOiAiU1RSRUVUIiwKICAgICAgICAic3RyZWV0IjogItCy0YPQuy4g0J3RltC20LjQvdGB0YzQutCwIiwKICAgICAgICAiYnVpbGRpbmciOiAiMTUiLAogICAgICAgICJhcGFydG1lbnQiOiAiMjMiLAogICAgICAgICJ6aXAiOiAiMDIwOTAiCiAgICAgIH0KICAgIF0sCiAgICAicGhvbmVzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiTU9CSUxFIiwKICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgIH0KICAgIF0sCiAgICAiYXV0aGVudGljYXRpb25fbWV0aG9kcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIk9UUCIsCiAgICAgICAgInBob25lX251bWJlciI6ICIrMzgwNTA4ODg3NzAwIgogICAgICB9CiAgICBdLAogICAgInByZWZlcnJlZF93YXlfY29tbXVuaWNhdGlvbiI6ICJlbWFpbCIsCiAgICAiZW1lcmdlbmN5X2NvbnRhY3QiOiB7CiAgICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICAgInBob25lcyI6IFsKICAgICAgICB7CiAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICAgIH0KICAgICAgXQogICAgfSwKICAgICJwcm9jZXNzX2Rpc2Nsb3N1cmVfZGF0YV9jb25zZW50IjogdHJ1ZQogIH0KfQqgggW5MIIFtTCCBV2gAwIBAgIUDYTtobuTgegEAAAAXrQiAL+zdAAwDQYLKoYkAgEBAQEDAQEwggFCMXwwegYDVQQKDHPQn9Cj0JHQm9CG0KfQndCVINCQ0JrQptCG0J7QndCV0KDQndCVINCi0J7QktCQ0KDQmNCh0KLQktCeINCa0J7QnNCV0KDQptCG0JnQndCY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
 ` (string, required)
+
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (`cabinet_person_response`)
+
 ### Create Declaration Request online [POST /api/cabinet/declaration_requests]
+
 This method is used to create Declaration Request online (as part of Declaration creation process). Fields descriptions are listed in request Example view.
+
 + Request (application/json)
+
     + Headers
+
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
     + Attributes (object)
         + include `Declaration_Request_Online`
 
@@ -4606,9 +4646,11 @@ As an input parameters should be transfered signed data in PKCS7 format. Digital
 In DS EDRPOU/DRFO must be equal to contractor_legal_entity.edrpou
 #### Contract_request object scheme to be signed
 The following tables describes contract_request object fields and it`s child objects.
+
 There are two types of schemas depending on contract_type - capitation version and reimbursement version
 For reimbursement version only documents are optional.ci
 #####Capitation Contract_request
+
 Attribute |Is required| Description
 ----------|-----------|-------------
 contractor_owner_id|true| підписант, зі сторони мед. закладу
@@ -4625,7 +4667,9 @@ contract_number|false| human-redable номер контракту
 statute_md5|true| хеш завантаженого документу (статуту)
 additional_document_md5|true| хеш завантаженого документу (додатковий документ)
 consent_text|true|
+
 #####Reimbursement Contract_request
+
 Attribute |Is required| Description
 ----------|-----------|-------------
 contractor_owner_id|true| підписант, зі сторони мед. закладу
@@ -4677,11 +4721,15 @@ medical_service|true| послуга, що надається на відділ�
 1. Create new or update existsing contract
 
     > 1.1 In order to create new contract, contract_number should be empty, start_date and end_date should be filled.
+
     > 1.2 In order to update existing contract, contract_number should be filled, start_date and end_date should be empty. Existing contract must be in `VERIFIED` status.
+
 2. External contractors
 
     > 2.1 In case you have external_contractors - external_contractors_flag should be set as TRUE and external_contractors array must be provided (filled).
+
     > 2.2 In case you don't have external_contractors - external_contractors_flag should be set as FALSE and external_contractors array must empty.
+
 ####JSON example
 Capitation version:
 ```
@@ -4899,9 +4947,13 @@ This WS is designed to enrich conract request with information from NHS side. NH
 In case of reimbursement contract, nhs_contract_price shouldn`t be filled.
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract request identifier
+
 + Request (application/json)
+
     + Headers
+
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
     + Attributes (object)
         + include `Contract_request_Update`
 
@@ -5163,6 +5215,7 @@ This data must be signed.
 In DS EDRPOU/DRFO must be equal to contractor_legal_entity.edrpou
 
 > **Note!** In response you will receive Contract object.
+
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
