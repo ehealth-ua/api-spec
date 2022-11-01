@@ -32,40 +32,6 @@ DEMO    | https://api-demo.ehealth.gov.ua
 PREPROD | https://api-preprod.ehealth.gov.ua
 PROD    | https://api.ehealth.gov.ua
 
-FORMAT: 1A
-HOST: http://ehealth.com/
-
-# eHealth MIS API
-
-This is a **MIS-related consumers  part** of API documentation for Ukrainian Health Services government institution back-end, that should provide:
-
-* Master Patients Index (MPI)
-* Global Medical Institutions and Doctors Registries
-* Partnership Relation Management (PRM) module that describes business relations between this 3 entities.
-
-
-This API design in based on [Nebo #15 API Design Manifest](http://docs.apimanifest.apiary.io/).
-
-## Context Switching for end-users
-
-Since Doctor may have multiple work-places, you MUST fetch list of possible work-contexts and apply `legal_entity_id` filter on each request, where this parameter is available.
-
-Thus you will make sure that end-user understand from which context entities are managed.
-
-If our API returns only one work context, you are free to hide context picker.
-
-## Submitting Issues
-
-To submit issues you should use [Issue Tracking Repo](https://github.com/ehealth-ua/api-spec), issues in all other repositories are used to plan backlog and non-related issued will be closed.
-
-# Group Public. Medical Service Provider Integration Layer
-the below table reflects actual API endpoints for all the ehealth environments
-Env     | Host
---------|-----
-DEMO    | https://api-demo.ehealth.gov.ua
-PREPROD | https://api-preprod.ehealth.gov.ua
-PROD    | https://api.ehealth.gov.ua
-
 ##oAuth [/api/oauth]
 
 1. Client UI: redirects user to Login UI with `client_id`, `redirect_uri` and `response_type=code` query params;
