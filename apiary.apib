@@ -32,6 +32,40 @@ DEMO    | https://api-demo.ehealth.gov.ua
 PREPROD | https://api-preprod.ehealth.gov.ua
 PROD    | https://api.ehealth.gov.ua
 
+FORMAT: 1A
+HOST: http://ehealth.com/
+
+# eHealth MIS API
+
+This is a **MIS-related consumers  part** of API documentation for Ukrainian Health Services government institution back-end, that should provide:
+
+* Master Patients Index (MPI)
+* Global Medical Institutions and Doctors Registries
+* Partnership Relation Management (PRM) module that describes business relations between this 3 entities.
+
+
+This API design in based on [Nebo #15 API Design Manifest](http://docs.apimanifest.apiary.io/).
+
+## Context Switching for end-users
+
+Since Doctor may have multiple work-places, you MUST fetch list of possible work-contexts and apply `legal_entity_id` filter on each request, where this parameter is available.
+
+Thus you will make sure that end-user understand from which context entities are managed.
+
+If our API returns only one work context, you are free to hide context picker.
+
+## Submitting Issues
+
+To submit issues you should use [Issue Tracking Repo](https://github.com/ehealth-ua/api-spec), issues in all other repositories are used to plan backlog and non-related issued will be closed.
+
+# Group Public. Medical Service Provider Integration Layer
+the below table reflects actual API endpoints for all the ehealth environments
+Env     | Host
+--------|-----
+DEMO    | https://api-demo.ehealth.gov.ua
+PREPROD | https://api-preprod.ehealth.gov.ua
+PROD    | https://api.ehealth.gov.ua
+
 ##oAuth [/api/oauth]
 
 1. Client UI: redirects user to Login UI with `client_id`, `redirect_uri` and `response_type=code` query params;
@@ -479,7 +513,7 @@ More detailed information - https://e-health-ua.atlassian.net/wiki/x/BADDIw
         - REJECTED
         - CANCELLED
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 
 + Request (application/json)
@@ -774,7 +808,7 @@ If declaration request is created by v2, the field `person_id` will be empty
         - REJECTED
         - CANCELLED
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 
 + Request (application/json)
@@ -825,7 +859,7 @@ Method returns shortened details, to obtain full information - get Declaration D
         + Default: active
     + reason: offline (string, optional) - filter declaration by reason
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -919,7 +953,7 @@ Use this end-point to obtain all Employees of the legal entity specified by the 
 
 We suggest to use `status` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
 
-Method returns shortened details (for DOCTOR and PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
+Method returns shortened details (For DOCTOR, SPECIALIST, ASSISTANT, PHARMACIST, MED_ADMIN, LABORANT or MED_COORDINATOR - additional returns specialities information), to obtain full information - get Employee it by ID.
 
 + Parameters
     + no_tax_id: true (boolean, optional) - filer employees with or w/o tax_id
@@ -933,7 +967,7 @@ Method returns shortened details (for DOCTOR and PHARMACIST - additional return
         - DISMISSED
     + employee_type: DOCTOR (string, optional)
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -955,12 +989,12 @@ Response structure differs depending on employee type:
 * Employee info
 * User Info
 
-**For DOCTOR, SPECIALIST, ASSISTANT, PHARMACIST or MED_ADMIN:**
+**For DOCTOR, SPECIALIST, ASSISTANT, PHARMACIST, MED_ADMIN, LABORANT or MED_COORDINATOR:**
 
 * Person info
 * Employee info
 * User Info
-* Doctor info
+* Employee info
 
 + Parameters
     + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1019,8 +1053,8 @@ Employee_Request consist of the three mandatory parts:
 * Employee info
 * User Info
 
-**MED_ADMIN:**
-* MED_ADMIN employee could have zero or one record with `speciality_officio=true` value
+**MED_ADMIN, MED_COORDINATOR:**
+* Employee could have zero or one record with `speciality_officio=true` value
 
 **For DOCTOR or PHARMACIST:**
 * Doctor ot Pharmacist info
@@ -1039,7 +1073,7 @@ User may accept or decline Invitation.
 For changes to take effect employee must confirm the changes.
 Method receives signed message (pkcs7) including signed content, digital signature and signer public key.
 All signature fields will be validated (including signer certificate authority).
-Signed content MUST consists of JSON object with the `employee_request` block of [data](https://uaehealthapi.docs.apiary.io/#reference/public.-medical-service-provider-integration-layer/employee-requests/create-employee-request):
+Signed content MUST consists of JSON object with the `employee_request` block of [data](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-employee-request/create-employee-request-v2):
 
 + Request (application/json)
 
@@ -1074,7 +1108,7 @@ Signed content MUST consists of JSON object with the `employee_request` block of
         - APPROVED
         + Default: NEW
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -1298,35 +1332,25 @@ Entity data:
     + Attributes (object)
         + `signed_request`: `MIIUKAYJKoZIhvcNAQcCoIIUGTCCFBUCAQExDjAMBgoqhiQCAQEBAQIBMIIGRgYJKoZIhvcNAQcBoIIGNwSCBjN7CiAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICJsYXN0X25hbWUiOiAi0IbQstCw0L3QvtCyIiwKICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICJiaXJ0aF9kYXRlIjogIjE5OTEtMDgtMTkiLAogICAgImJpcnRoX2NvdW50cnkiOiAi0KPQutGA0LDRl9C90LAiLAogICAgImJpcnRoX3NldHRsZW1lbnQiOiAi0JLRltC90L3QuNGG0Y8iLAogICAgImdlbmRlciI6ICJNQUxFIiwKICAgICJlbWFpbCI6ICJlbWFpbEBleGFtcGxlLmNvbSIsCiAgICAidGF4X2lkIjogIjMxMjY1MDk4MTYiLAogICAgInNlY3JldCI6ICJzZWNyZXQiLAogICAgImRvY3VtZW50cyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlBBU1NQT1JUIiwKICAgICAgICAibnVtYmVyIjogIjEyMDUxOCIsCiAgICAgICAgImlzc3VlZF9ieSI6ICLQoNC+0LrQuNGC0L3Rj9C90YHRjNC60LjQvCDQoNCSINCT0KMg0JzQktChINCa0LjRl9Cy0YHRjNC60L7RlyDQvtCx0LvQsNGB0YLRliIsCiAgICAgICAgImlzc3VlZF9hdCI6ICIyMDE3LTAyLTI4IgogICAgICB9CiAgICBdLAogICAgImFkZHJlc3NlcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlJFU0lERU5DRSIsCiAgICAgICAgImNvdW50cnkiOiAiVUEiLAogICAgICAgICJhcmVhIjogItCW0LjRgtC+0LzQuNGA0YHRjNC60LAiLAogICAgICAgICJyZWdpb24iOiAi0JHQtdGA0LTQuNGH0ZbQstGB0YzQutC40LkiLAogICAgICAgICJzZXR0bGVtZW50IjogItCa0LjRl9CyIiwKICAgICAgICAic2V0dGxlbWVudF90eXBlIjogIkNJVFkiLAogICAgICAgICJzZXR0bGVtZW50X2lkIjogIjQzNDMyNDMyIiwKICAgICAgICAic3RyZWV0X3R5cGUiOiAiU1RSRUVUIiwKICAgICAgICAic3RyZWV0IjogItCy0YPQuy4g0J3RltC20LjQvdGB0YzQutCwIiwKICAgICAgICAiYnVpbGRpbmciOiAiMTUiLAogICAgICAgICJhcGFydG1lbnQiOiAiMjMiLAogICAgICAgICJ6aXAiOiAiMDIwOTAiCiAgICAgIH0KICAgIF0sCiAgICAicGhvbmVzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiTU9CSUxFIiwKICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgIH0KICAgIF0sCiAgICAiYXV0aGVudGljYXRpb25fbWV0aG9kcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIk9UUCIsCiAgICAgICAgInBob25lX251bWJlciI6ICIrMzgwNTA4ODg3NzAwIgogICAgICB9CiAgICBdLAogICAgInByZWZlcnJlZF93YXlfY29tbXVuaWNhdGlvbiI6ICJlbWFpbCIsCiAgICAiZW1lcmdlbmN5X2NvbnRhY3QiOiB7CiAgICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICAgInBob25lcyI6IFsKICAgICAgICB7CiAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICAgIH0KICAgICAgXQogICAgfSwKICAgICJwcm9jZXNzX2Rpc2Nsb3N1cmVfZGF0YV9jb25zZW50IjogdHJ1ZQogIH0KfQqgggW5MIIFtTCCBV2gAwIBAgIUDYTtobuTgegEAAAAXrQiAL+zdAAwDQYLKoYkAgEBAQEDAQEwggFCMXwwegYDVQQKDHPQn9Cj0JHQm9CG0KfQndCVINCQ0JrQptCG0J7QndCV0KDQndCVINCi0J7QktCQ0KDQmNCh0KLQktCeINCa0J7QnNCV0KDQptCG0JnQndCY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
 ` (string, required)
-
 + Response 201 (application/json)
     + Attributes (`Response_OK`)
         + meta (Response__Meta)
             + code: 201 (number)
         + data (`Person_Full`)
-
 ### Get Person Declaration [GET /api/persons/{id}/declaration]
-
 This method allows to receive active person declarations issued by current legal entity (based on access_token). It can be used to check if Patient has active declarations in other Legal Entities.
-
 It returns:
 1. Short declaration info if **active declaration found** AND issued by legal entity that is available for `access_token` scope.
 2. 404 error if **active declaration not found**.
 3. 403 if **active declaration found** issued by **other** (not available by access scopes) legal entity.
-
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-
 + Request (application/json)
-
     + Headers
-
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
 + Response 200 (application/json)
     + Attributes (`Response_Collection`)
         + data (array[`Declaration_Details`])
-
 + Response 403 (application/json)
     + Attributes (`Response_Error`)
         + meta (Response__Meta, fixed-type)
@@ -1548,7 +1572,7 @@ List consists of legal entities with parameter `is_active = true`.
         - CLOSED
     + `nhs_verified`: false (boolean, optional)
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -1613,7 +1637,7 @@ User may accept or decline Invitation.
 
 For changes to take effect employee must confirm the changes.
 
-There is a [**dummy method Create/Update legal entity V2**](https://ehealthmisapi1.docs.apiary.io/#reference/dummy-methods/dummy-for-legal-entity/create/update-legal-entity-v2) that describes the latest legal entity data model and can be used as documentation.
+There is a [**dummy method Create/Update legal entity V2**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-legal-entity/create/update-legal-entity-v2) that describes the latest legal entity data model and can be used as documentation.
 
 + Request (application/json)
 
@@ -1723,7 +1747,7 @@ Use this method to get the list of child legal entities which are related to cur
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
     + `page`: 2 (number) - Page number.
-    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -1750,7 +1774,7 @@ Use this method to get the list of child legal entities which are related to cur
         - ACTIVE
         - INACTIVE
     + `page`: 2 (number) - Page number.
-    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 
 + Response 200 (application/json)
@@ -1817,7 +1841,7 @@ API for searching Ukrainian Addresses
     + name: `Незалежності` (string, optional) - Street name
     + type: STREET (string, optional) - Street type (Dictionary STREET_TYPE)
     + `page`: 2 (number) - Page number.
-    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 
 + Response 200 (application/json)
@@ -1838,7 +1862,7 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
     + district: `Києво-Святошинський` (string, optional) - Administrative district of province
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
     + `page`: 2 (number) - Page number.
-    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 
 + Response 200 (application/json)
@@ -1868,7 +1892,7 @@ Use this method to obtain city details.
     + name: Київ (string, optional) - Province name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
     + `page`: 2 (number) - Page number.
-    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -1885,7 +1909,7 @@ Use this method to obtain city details.
     + name: `Києво-Святошинський` (string, optional) - Administrative district of province
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
     + `page`: 2 (number) - Page number.
-    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -1899,7 +1923,7 @@ Use this method to obtain city details.
     + name: `Києво-Святошинський` (string, optional) - Filter by district name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
     + `page`: 2 (number) - Page number.
-    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -1915,7 +1939,7 @@ Get list of cities by district
     + name: `Київ` (string, optional) - Filter by settlement name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
     + `page`: 2 (number) - Page number.
-    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -1936,7 +1960,7 @@ Roles are set separately for each Client.
 + Parameters
     + name: `My role` (string, optional) - Return only roles that contains `name` substring.
     + `page`: 2 (number) - Page number.
-    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -2120,7 +2144,7 @@ Capitation reports are created monthly
 
 + Parameters
     + `page`: 2 (number) - Page number
-    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -2227,16 +2251,17 @@ All other attributes are immutable
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
 
-### Get healthcare services [GET /api/healthcare_services/{?division_id,speciality_type,providing_condition,category,status,page,page_size}]
+### Get healthcare services [GET /api/healthcare_services/{?division_id,speciality_type,providing_condition,category,type,status,page,page_size}]
 
 + Parameters
     + division_id: `8be63914-a278-470b-b868-1af5b9087332` (string, optional) - Division identifier
     + `speciality_type`: `FAMILY_DOCTOR` (string, optional) - `Dictionary SPECIALITY_TYPE`
     + `providing_condition`: OUTPATIENT (string, optional) - `Dictionary PROVIDING_CONDITION`
     + `category`: MSP (string, optional) - `Dictionary HEALTHCARE_SERVICE_CATEGORIES`
+    + `type`: SALE (string, optional) - `Dictionary of types for category, example HEALTHCARE_SERVICE_PHARMACY_DRUGS_TYPES`
     + status: ACTIVE (string, optional) - Entity status
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -2299,7 +2324,7 @@ At least one query parameter must be provided
     + `healthcare_service_id`: `c4de7c6e-8c6e-4d4f-8843-6bc122977227` (string, optional) - Healthcare service identifier
     + status: active (string, optional) - Search only for active or inactive employee roles.
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -2397,17 +2422,14 @@ Immutable parameters:
         + meta (Response__Meta)
             + code: 200 (number)
         + data (`Equipment_response`)
-
 ### Get equipment list [GET /api/equipment{?division_id,type,external_id,status,page,page_size}]
-
 + Parameters
-
     + division_id: `8be63914-a278-470b-b868-1af5b9087332` (string, optional) - Division identifier
     + type: `43235435` (string, optional) - `Code from dictionary EQUIPMENT_TYPE`
     + external_id: `123-ASD-1` (string, optional) - `Identifier from external system`
     + status: ACTIVE (string, optional) - Entity status
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -2654,7 +2676,6 @@ There is a [**dummy method**](https://uaehealthapi.docs.apiary.io/#reference/dum
 ### Resend Authorization OTP on merge request [POST /api/merge_requests/{id}/actions/resend_otp]
 
 Use this method to resend sms with OTP-code on previously created merge request (patient`s authentification method is OTP).
-
 + Parameters
     + id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
 
@@ -2683,7 +2704,7 @@ Method returns a list of merge requests. Service returns only merge requests rel
     + master_person_id: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, optional) - MPI identifier of the master preperson.
     + merge_person_id: `7c3da506-804d-4550-8993-bf17f9ee0403` (string, optional) - MPI identifier of the merge person \(preperson\).
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -2722,60 +2743,41 @@ Method returns merge request details by it's ID. Depending on merge request stat
         + urgent (object, required)
             + `authentication_method_current` (array[`Authentication_Method`], required) - `Current authentication method of the master person`
             + documents (array[`media_content`], optional) - `Documents of the master person
-
 ## Licenses [/api/licenses]
-
 ### Get licenses [GET /api/licenses{?id,license_number,type,is_primary,page,page_size}]
-
 Use this end-point to obtain all Licenses of the legal entity.
-
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
     + license_number: `fd12344344` (string, optional)
     + type: MSP (string, optional) - Dictionary LICENSE_TYPE
     + is_primary: true (boolean, optional) - primary or additional license flag
     + `page`: 2 (number) - Page number.
-    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
-
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
         + data (array[`crud_licenses_get`])
-
 ### Create license [POST /api/licenses]
-
 This method must be used to create additional licenses for legal entity (`is_primary=false`) in the system.
-
 Primary license must be added with `Create/Update Legal Entity V2` method.
-
 + Request (application/json)
     + Attributes (`crud_licenses_post`)
       + `is_primary`: false (boolean, required)
-
 + Response 201 (application/json)
     + Attributes (`Response_OK`)
         + data (`crud_licenses_get`)
-
 ### Update license [PATCH /api/licenses/{id}]
-
 This method must be used to update additional license (`is_primary=false`) for legal entity in the system.
-
 Primary license must be updated with `Create/Update Legal Entity V2` method.
-
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
 + Request (application/json)
     + Attributes (`crud_licenses_post`)
       + is_primary: false (boolean, required)
-
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (`crud_licenses_get`)
-
 # Group Public. Medical Programs
-
 ## Medical Program [/api/medical_program]
-
 ### Get medical programs list [GET /api/medical_programs{?id,name,is_active,mr_blank_type,page,page_size}]
 Method returns list of medical programs filtering by parameters. By default method returns only active medical programs `is_active=true`
 
@@ -2787,7 +2789,7 @@ Method returns list of medical programs filtering by parameters. By default meth
     + `is_active`: `true` (boolean, optional) - Is medical program active or not. Default: true
     + `mr_blank_type`: `F-1` (string, optional) - Type of blank required by Program for prescription of Medications
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -2828,7 +2830,7 @@ This endpoint returns list of service program members.
 + Parameters
     + medical_program_id: `1380df72-275a-11e7-93ae-92361f002671` (string, required)
     + page: 2 (number, optional) - Page number
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 500. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -2865,9 +2867,15 @@ This endpoint returns service program member by id.
         + data (`Program_Service_Response`)
 
 
-### Get Services Dictionary [GET /api/services]
+### Get Services Dictionary [GET /api/services{?code,name,page,page_size}]
 
 This web service returns a catalog of services that could be submitted in eHealth. The catalog has a tree data structure. Each node represents group of services (or sub-group), except end-node, that represents services themselves. Maximum nesting level is 4.
+
++ Parameters
+    + `code`: `JF2 01` (string, optional) - Service code.
+    + `name`: `Some Name` (string, optional) - Service name.
+    + `page`: 2 (number, optional) - Page number.
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -2886,7 +2894,7 @@ This web service returns a catalog of services that could be submitted in eHealt
 
 ## Drugs [/apidrugs]
 
-### Get drugs list v2 [GET /api/v2/drugs{?innm_id,innm_name,innm_sctid,innm_dosage_form,innm_dosage_id,innm_dosage_name,medication_code_atc,medical_program_id,mr_blank_type,dosage_form_is_dosed,page,page_size}]
+### Get drugs list v2 [GET /api/v2/drugs{?innm_id,innm_name,innm_sctid,innm_dosage_form,innm_dosage_id,innm_dosage_name,medication_code_atc,medical_program_id,mr_blank_type,dosage_form_is_dosed,medication_request_allowed,care_plan_activity_allowed,page,page_size}]
 
 This endpoint returns list of drugs. Each drug contains all allowed package forms and related innm.
 The method contains is_primary parameter, which indicates whether the ingredient is the primary in the drug.
@@ -2905,9 +2913,11 @@ The method contains is_primary parameter, which indicates whether the ingredient
     + `medication_code_atc`: `С01BD01` (string, optional) - Medication code ATC.
     + `medical_program_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - medical program id.
     + `mr_blank_type`: `F-1` (string, optional) - parameter of Likarska form, specifying of paper form for issuing of Medication request, example F-1 or F-3.
-    + `dosage_form_is_dosed`: TRUE (boolean, optional) - parameter of Likarska form, specifying of type of Likarska form - dosed, like `pills`, or not dosed, like `salve`.    
+    + `dosage_form_is_dosed`: TRUE (boolean, optional) - parameter of Likarska form, specifying of type of Likarska form - dosed, like `pills`, or not dosed, like `salve`.  
+    + `medication_request_allowed`: TRUE (boolean, optional) - flag whether medications are allowed to be dispensed by the program.
+    + `care_plan_activity_allowed`: TRUE (boolean, optional) - flag whether activities are allowed to be created with product as this medications.
     + `page`: 2 (number, optional) - Page number.
-    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -2938,7 +2948,7 @@ This endpoint returns list of drugs. Each drug contains all allowed package form
     + `medication_code_atc`: `С01BD01` (string, optional) - Medication code ATC.
     + `medical_program_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - medical program id.
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -3044,7 +3054,7 @@ Use [**Get Medication request requests details**](https://uaehealthapi.docs.apia
         - REJECTED
     + intent: order (string, optional) - Medication request request intent
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -3076,7 +3086,7 @@ Use [**Get Medication request requests details**](https://uaehealthapi.docs.apia
     + intent: order (string, optional) - Medication request request intent
     + `encounter_id`: `7075e0e2-6b57-47fd-aff7-324806efa7e5` (string, optional) - encounter identifier
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -3186,7 +3196,7 @@ Use [**Get Medication request requests by ID**](https://uaehealthapi.docs.apiary
     + `care_plan_id`: `8838982b-6a77-4cb5-87cd-cdb82eb55364` (string, optional) - care plan identifier
     + `encounter_id`: `7075e0e2-6b57-47fd-aff7-324806efa7e5` (string, optional) - encounter identifier
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -3274,7 +3284,7 @@ Use [**Get medication requests details**](https://uaehealthapi.docs.apiary.io/#r
     + `encounter_id`: `7075e0e2-6b57-47fd-aff7-324806efa7e5` (string, optional) - encounter identifier
     + `episode_id`: `6f305d0e-1758-4920-9167-d4f97225ad7e` (string, optional) - Unique episode identifier, look into episode in encounter.
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -3311,7 +3321,7 @@ Use [**Get medication requests details**](https://uaehealthapi.docs.apiary.io/#r
     + intent: order (string, optional) - Medication request intent
     + `encounter_id`: `7075e0e2-6b57-47fd-aff7-324806efa7e5` (string, optional) - encounter identifier
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -3418,6 +3428,8 @@ Use [**Get Medication dispense details**](https://uaehealthapi.docs.apiary.io/#r
 + Parameters
     + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
     + status: PROCESSED (string, optional) - Status
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
     
 
 + Request (application/json)
@@ -3444,6 +3456,8 @@ Use [**Get Medication dispense details in person context**](https://uaehealthapi
     + `person_id`: `5e661b15-a39a-4713-b18e-ba03a4a48ecc` (string, required) - person_id of a patient.
     + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
     + status: PROCESSED (string, optional) - Status
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
     
 
 + Request (application/json)
@@ -3536,7 +3550,7 @@ Use [**Get Medication request by ID**](https://uaehealthapi.docs.apiary.io/#refe
     + `care_plan_id`: `8838982b-6a77-4cb5-87cd-cdb82eb55364` (string, optional) - care plan identifier
     + `encounter_id`: `7075e0e2-6b57-47fd-aff7-324806efa7e5` (string, optional) - encounter identifier
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -3591,8 +3605,8 @@ For pharmacists please use [**Block Medication Request by Pharmacy User**](https
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
 
     + Attributes (object)
-       + block_reason: `перевищено норми відпуску` (string, required) - Block reason
-       + block_reason_code: `WRONG_QTY_DRUG` (string, required) - Block reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
+       + `block_reason`: `перевищено норми відпуску` (string, required) - Block reason
+       + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, required) - Block reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
@@ -3616,8 +3630,8 @@ Use this method to unblock previously blocked Medication request for dispense. I
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
     
     + Attributes (object)
-       + block_reason: `помилки відсутні` (string, required) - Unblock reason
-       + block_reason_code: `DEFAULT` (string, required) - Unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`       
+       + `block_reason`: `помилки відсутні` (string, required) - Unblock reason
+       + `block_reason_code`: `UNBLOCK_DEFAULT` (string, required) - Unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`       
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
@@ -3644,8 +3658,8 @@ For employees with other types please use [**Block Medication Request**](https:/
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
 
     + Attributes (object)
-       + block_reason: `перевищено норми відпуску` (string, required) - Block reason
-       + block_reason_code: `WRONG_QTY_DRUG` (string, required) - Block reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
+       + `block_reason`: `перевищено норми відпуску` (string, required) - Block reason
+       + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, required) - Block reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
@@ -3672,7 +3686,9 @@ To be depricated. Please see a similar endpoint with role context ("Create Medic
 This method is used to dispense medications to patient
 Full list of all validations can be found [here](https://e-health-ua.atlassian.net/wiki/spaces/EH/pages/583403856/Create+Medication+Dispense)
 
-If medical program has setting with parameter `skip_medication_dispense_sign` = true then  fields `payment_amount` and `payment_id` should be submitted. In this case process of medication dispense will be performed on create (w/o using digital sign)
+If medical program has setting with parameter `skip_medication_dispense_sign` = true then  fields `payment_amount (optional, if medical program has funding sourse != NHS)` and `payment_id (optional)` should be submitted. In this case process of medication dispense will be performed on create (w/o using digital sign)
+
+If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `payment_amount`, `discount_amount` must be submitted.
 
 **Important** In case medications are dispensed to patient under specific medical program, program participant id must be provided also
 
@@ -3711,7 +3727,9 @@ This method is used to dispense medications to patient
 
 Full list of all validations can be found [here](https://e-health-ua.atlassian.net/wiki/spaces/EH/pages/583403856/Create+Medication+Dispense)
 
-If medical program has setting with parameter `skip_medication_dispense_sign` = true then  fields `payment_amount` and `payment_id` should be submitted. In this case process of medication dispense will be performed on create (w/o using digital sign)
+If medical program has setting with parameter `skip_medication_dispense_sign` = true then  fields `payment_amount (optional, if medical program has funding sourse != NHS)` and `payment_id (optional)` should be submitted. In this case process of medication dispense will be performed on create (w/o using digital sign)
+
+If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `payment_amount`, `discount_amount` must be submitted.
 
 **Important** In case medications are dispensed to patient under specific medical program, program participant id must be provided also
 
@@ -3751,7 +3769,7 @@ To be depricated. Please see a similar endpoint with role context ("Process Medi
 This method is used to process created dispense
 
 **Important**
-Invoke Get Medication dispanse details to obtain previously created medication dispense. In order to process dispense `payment_id (optional)` and `payment_amount` should be added.
+Invoke Get Medication dispanse details to obtain previously created medication dispense. In order to process dispense `payment_id (optional)` and `payment_amount (optional, if medical program has funding sourse != NHS)` should be added.
 
 Look at [**Dummy Process Medication Dispense**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-medication-dispense/process-medication-dispense) for more details.
 
@@ -3781,7 +3799,7 @@ Look at [**Dummy Process Medication Dispense**](https://uaehealthapi.docs.apiary
 This method is used to process created dispense
 
 **Important**
-Invoke Get Medication dispense details by Pharmacy User to obtain previously created medication dispense. In order to process dispense `payment_id (optional)` and `payment_amount` should be added.
+Invoke Get Medication dispense details by Pharmacy User to obtain previously created medication dispense. In order to process dispense `payment_id (optional)` and `payment_amount (optional, if medical program has funding sourse != NHS)` should be added.
 
 Look at [**Dummy Process Medication Dispense by Pharmacy User**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-medication-dispense/process-medication-dispense-by-pharmacy-user) for more details.
 
@@ -3844,11 +3862,11 @@ Use [**Get Medication dispense details**](https://uaehealthapi.docs.apiary.io/#r
     + legal_entity_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Legal entity ID
     + division_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Division ID
     + status: PROCESSED (string, optional) - Status
-    + dispensed_from: '2017-09-01' (string, optional) - date of dispense
-    + dispensed_to: '2017-10-01' (string, optional) - date of dispense
+    + dispensed_from: `2017-09-01` (string, optional) - date of dispense
+    + dispensed_to: `2017-10-01` (string, optional) - date of dispense
     + `care_plan_id`: `8838982b-6a77-4cb5-87cd-cdb82eb55364` (string, optional) - care plan identifier
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 
 + Request (application/json)
@@ -3877,11 +3895,11 @@ Use [**Get Medication dispense  by Pharmacy User**](https://uaehealthapi.docs.ap
     + legal_entity_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Legal entity ID
     + division_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Division ID
     + status: PROCESSED (string, optional) - Status
-    + dispensed_from: '2017-09-01' (string, optional) - date of dispense
-    + dispensed_to: '2017-10-01' (string, optional) - date of dispense
+    + dispensed_from: `2017-09-01` (string, optional) - date of dispense
+    + dispensed_to: `2017-10-01` (string, optional) - date of dispense
     + `care_plan_id`: `8838982b-6a77-4cb5-87cd-cdb82eb55364` (string, optional) - care plan identifier
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 
 + Request (application/json)
@@ -3978,7 +3996,7 @@ Reimbursement Report combines information about Medication requests and correspo
     + date_from_dispense: `2017-09-01` (date, optional) - Start date for Medication Dispense disbursed_at date
     + date_to_dispense: `2017-10-01` (date, optional) - End date for Medication Dispense disbursed_at date
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 
 + Request (application/json)
@@ -4120,21 +4138,21 @@ Division|`dls_verified`
 Employee|`status`
 EmployeeRequest|`status` and `employee_id`
 MedicationDispense|`status`
-MedicationRequest|`status`
+MedicationRequest|`is_blocked` or `status`
 LegalEntity|`status`
 Person|`verification_status` or `status`
 Preperson|`status`
 ServiceRequest|`program_processing_status` or `status`
 
 + Parameters
-    + date: `2017-12-06T15:00:00` (datetime, optional) - evets created between datetime and now (or 'date_to' if included).
-    + date_to: `2017-12-07T15:00:00` (datetime, optional) - evets created from 'date' (if included) and before datetime.
+    + date: `2017-12-07T12:00:00` (datetime, optional) - evets created between datetime and datetime plus 3 hours (or 'date_to' if included, but max 3 hours).
+    + date_to: `2017-12-07T15:00:00` (datetime, optional) - evets created from 'date' (if included) and before datetime, max difference 3 hours.
     + event_type: `StatusChangeEvent` (enum, optional) - type of event.
     + entity_type: `MedicationDispense` (enum, optional) - type of entity.
     + attribute_name: `status` (string, optional) - name of event in properties.
     + new_value: `COMPLETED` (enum, optional)- new status of entity.
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -4259,21 +4277,14 @@ Entity data:
     + Attributes (object)
         + `signed_request`: `MIIUKAYJKoZIhvcNAQcCoIIUGTCCFBUCAQExDjAMBgoqhiQCAQEBAQIBMIIGRgYJKoZIhvcNAQcBoIIGNwSCBjN7CiAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICJsYXN0X25hbWUiOiAi0IbQstCw0L3QvtCyIiwKICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICJiaXJ0aF9kYXRlIjogIjE5OTEtMDgtMTkiLAogICAgImJpcnRoX2NvdW50cnkiOiAi0KPQutGA0LDRl9C90LAiLAogICAgImJpcnRoX3NldHRsZW1lbnQiOiAi0JLRltC90L3QuNGG0Y8iLAogICAgImdlbmRlciI6ICJNQUxFIiwKICAgICJlbWFpbCI6ICJlbWFpbEBleGFtcGxlLmNvbSIsCiAgICAidGF4X2lkIjogIjMxMjY1MDk4MTYiLAogICAgInNlY3JldCI6ICJzZWNyZXQiLAogICAgImRvY3VtZW50cyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlBBU1NQT1JUIiwKICAgICAgICAibnVtYmVyIjogIjEyMDUxOCIsCiAgICAgICAgImlzc3VlZF9ieSI6ICLQoNC+0LrQuNGC0L3Rj9C90YHRjNC60LjQvCDQoNCSINCT0KMg0JzQktChINCa0LjRl9Cy0YHRjNC60L7RlyDQvtCx0LvQsNGB0YLRliIsCiAgICAgICAgImlzc3VlZF9hdCI6ICIyMDE3LTAyLTI4IgogICAgICB9CiAgICBdLAogICAgImFkZHJlc3NlcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlJFU0lERU5DRSIsCiAgICAgICAgImNvdW50cnkiOiAiVUEiLAogICAgICAgICJhcmVhIjogItCW0LjRgtC+0LzQuNGA0YHRjNC60LAiLAogICAgICAgICJyZWdpb24iOiAi0JHQtdGA0LTQuNGH0ZbQstGB0YzQutC40LkiLAogICAgICAgICJzZXR0bGVtZW50IjogItCa0LjRl9CyIiwKICAgICAgICAic2V0dGxlbWVudF90eXBlIjogIkNJVFkiLAogICAgICAgICJzZXR0bGVtZW50X2lkIjogIjQzNDMyNDMyIiwKICAgICAgICAic3RyZWV0X3R5cGUiOiAiU1RSRUVUIiwKICAgICAgICAic3RyZWV0IjogItCy0YPQuy4g0J3RltC20LjQvdGB0YzQutCwIiwKICAgICAgICAiYnVpbGRpbmciOiAiMTUiLAogICAgICAgICJhcGFydG1lbnQiOiAiMjMiLAogICAgICAgICJ6aXAiOiAiMDIwOTAiCiAgICAgIH0KICAgIF0sCiAgICAicGhvbmVzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiTU9CSUxFIiwKICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgIH0KICAgIF0sCiAgICAiYXV0aGVudGljYXRpb25fbWV0aG9kcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIk9UUCIsCiAgICAgICAgInBob25lX251bWJlciI6ICIrMzgwNTA4ODg3NzAwIgogICAgICB9CiAgICBdLAogICAgInByZWZlcnJlZF93YXlfY29tbXVuaWNhdGlvbiI6ICJlbWFpbCIsCiAgICAiZW1lcmdlbmN5X2NvbnRhY3QiOiB7CiAgICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICAgInBob25lcyI6IFsKICAgICAgICB7CiAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICAgIH0KICAgICAgXQogICAgfSwKICAgICJwcm9jZXNzX2Rpc2Nsb3N1cmVfZGF0YV9jb25zZW50IjogdHJ1ZQogIH0KfQqgggW5MIIFtTCCBV2gAwIBAgIUDYTtobuTgegEAAAAXrQiAL+zdAAwDQYLKoYkAgEBAQEDAQEwggFCMXwwegYDVQQKDHPQn9Cj0JHQm9CG0KfQndCVINCQ0JrQptCG0J7QndCV0KDQndCVINCi0J7QktCQ0KDQmNCh0KLQktCeINCa0J7QnNCV0KDQptCG0JnQndCY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
 ` (string, required)
-
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (`cabinet_person_response`)
-
 ### Create Declaration Request online [POST /api/cabinet/declaration_requests]
-
 This method is used to create Declaration Request online (as part of Declaration creation process). Fields descriptions are listed in request Example view.
-
 + Request (application/json)
-
     + Headers
-
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
     + Attributes (object)
         + include `Declaration_Request_Online`
 
@@ -4358,7 +4369,7 @@ This WS allows to see history of all patient's declarations and filter them.
     + status: active (string, optional)
     + start_year: 2018 (string, optional)
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -4402,7 +4413,7 @@ This WS allows to see history of all patient's declaration requests and filter t
     + status: active (string, optional)
     + start_year: 2018 (string, optional)
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -4444,7 +4455,7 @@ Method returns shortened details, to obtain full information - get Medication re
     + intent: order (string, optional) - Medication request intent
     + encounter_id: `8838982b-6a77-4cb5-87cd-cdb82eb55364` (string, optional) - Encounter identifier
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -4490,7 +4501,7 @@ Use this method to obtain full information of Medication request an `id`.
     + dispensed_from: '2017-09-01' (string, optional) - date of dispense
     + dispensed_to: '2017-10-01' (string, optional) - date of dispense
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 
 + Request (application/json)
@@ -4532,7 +4543,7 @@ Use this method to get information about justification for monitoring patient's 
     + `expires_from`: `2017-09-01` (string, optional) - date when justification expires
     + `expires_to`: `2022-10-01` (string, optional) - date when justification expires
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 
 + Request (application/json)
@@ -4595,11 +4606,9 @@ As an input parameters should be transfered signed data in PKCS7 format. Digital
 In DS EDRPOU/DRFO must be equal to contractor_legal_entity.edrpou
 #### Contract_request object scheme to be signed
 The following tables describes contract_request object fields and it`s child objects.
-
 There are two types of schemas depending on contract_type - capitation version and reimbursement version
 For reimbursement version only documents are optional.ci
 #####Capitation Contract_request
-
 Attribute |Is required| Description
 ----------|-----------|-------------
 contractor_owner_id|true| підписант, зі сторони мед. закладу
@@ -4616,9 +4625,7 @@ contract_number|false| human-redable номер контракту
 statute_md5|true| хеш завантаженого документу (статуту)
 additional_document_md5|true| хеш завантаженого документу (додатковий документ)
 consent_text|true|
-
 #####Reimbursement Contract_request
-
 Attribute |Is required| Description
 ----------|-----------|-------------
 contractor_owner_id|true| підписант, зі сторони мед. закладу
@@ -4670,15 +4677,11 @@ medical_service|true| послуга, що надається на відділ�
 1. Create new or update existsing contract
 
     > 1.1 In order to create new contract, contract_number should be empty, start_date and end_date should be filled.
-
     > 1.2 In order to update existing contract, contract_number should be filled, start_date and end_date should be empty. Existing contract must be in `VERIFIED` status.
-
 2. External contractors
 
     > 2.1 In case you have external_contractors - external_contractors_flag should be set as TRUE and external_contractors array must be provided (filled).
-
     > 2.2 In case you don't have external_contractors - external_contractors_flag should be set as FALSE and external_contractors array must empty.
-
 ####JSON example
 Capitation version:
 ```
@@ -4787,7 +4790,7 @@ This method is designed to obtain list of contract request with filters. This me
     + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
     + medical_program_id: `2075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of a program that is a subject of contract
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -4896,13 +4899,9 @@ This WS is designed to enrich conract request with information from NHS side. NH
 In case of reimbursement contract, nhs_contract_price shouldn`t be filled.
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract request identifier
-
 + Request (application/json)
-
     + Headers
-
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-
     + Attributes (object)
         + include `Contract_request_Update`
 
@@ -5164,7 +5163,6 @@ This data must be signed.
 In DS EDRPOU/DRFO must be equal to contractor_legal_entity.edrpou
 
 > **Note!** In response you will receive Contract object.
-
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
@@ -5214,7 +5212,7 @@ This method is designed to obtain list of contracts with filters. This method re
     + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
     + medical_program_id: `2075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of a program that is a subject of a contract
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -5402,7 +5400,7 @@ This method allows to get a list of medical programs already provided by the div
     + `is_active`: true (boolean, optional) - Medical program provision status
     + `msp_legal_entity_id`: `15d5ea65-d6e7-44f8-9eef-f0d3c1121d3a` (string, optional) - MSP legal entity identifier
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 500. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -5449,7 +5447,7 @@ This web service returns a catalog of all active forbidden groups in eHealth.
 + Parameters
     + `name`: `Some name` (string, optional) - Forbidden group name
     + `page`: 2 (number, optional) - Page number
-    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -5488,7 +5486,6 @@ This web service returns forbidden group details filtered by ID with active code
                         + service_id: `b2e4464e-609e-480c-a32c-6db4fbb04cf1` (string)
                         + service_group_id: `d838dbea-0ca0-4295-bf46-819dc069b8d4` (string)
                         + creation_reason: `Some text` (string, required) - Forbidden group service creation reason
-
 
 # Group Private. Contracts
 
@@ -5557,7 +5554,7 @@ Assuming that all required business processes and validations is implemented on 
     + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
     + medical_program_id: `2075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of a program that is a subject of reimbursement contract
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -5648,7 +5645,7 @@ Assuming that all required business processes and validations is implemented on 
     + division_id: `f93ac873-b999-47d2-a945-32e7f582eed0` (string, optional) - Division identifier
     + is_active: true (boolean, optional) - wether contract divisions is active
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -5740,7 +5737,7 @@ Assuming that all required business processes and validations is implemented on 
     + contract_id: `82286646-ee07-4d89-929d-29287c367e8a` (string, optional) - Contract identifier
     + is_active: true (boolean, optional) - wether contract employees is active
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned. Maximum: 500
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -5855,7 +5852,7 @@ This group of endpoints is implemented for NHS Admin to manipulate with reimburs
     + `care_plan_id`: `8838982b-6a77-4cb5-87cd-cdb82eb55364` (string, optional) - care plan identifier
     + `encounter_id`: `7075e0e2-6b57-47fd-aff7-324806efa7e5` (string, optional) - encounter identifier
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -5883,8 +5880,8 @@ This group of endpoints is implemented for NHS Admin to manipulate with reimburs
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
 
     + Attributes (object)
-       + block_reason: `перевищено норми відпуску` (string, required) - Block reason
-       + block_reason_code: `DEFAULT` (string, required) - Block reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
+       + `block_reason`: `перевищено норми відпуску` (string, required) - Block reason
+       + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, required) - Block reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
@@ -5906,8 +5903,8 @@ This group of endpoints is implemented for NHS Admin to manipulate with reimburs
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
 
     + Attributes (object)
-       + block_reason: `помилки відсутні` (string, required) - Unblock reason
-       + block_reason_code: `DEFAULT` (string, required) - Unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
+       + `block_reason`: `помилки відсутні` (string, required) - Unblock reason
+       + `block_reason_code`: `UNBLOCK_DEFAULT` (string, required) - Unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
@@ -5931,7 +5928,7 @@ This group of endpoints is implemented for NHS Admin to manipulate with reimburs
     + dispensed_to: '2017-10-01' (string, optional) - date of dispense
     + `care_plan_id`: `8838982b-6a77-4cb5-87cd-cdb82eb55364` (string, optional) - care plan identifier
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 
 + Request (application/json)
@@ -6160,9 +6157,8 @@ This group of endpoints is implemented for NHS Admin to manipulate with reimburs
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
         + data (object)
-            + include `Medication_request_Request_Sign`
+            + include `Medication_request_Public_Response`
             + printout_form: `HTML` (string, required) - Generated printout form
-            + is_blocked: false (boolean, required) - Whether medication request is blocked or not
         + meta (Response__Meta)
         
 ## Dummy for medication request [/dummy/medication_requests]
@@ -6234,6 +6230,29 @@ This group of endpoints is implemented for NHS Admin to manipulate with reimburs
         + data (object)
             + include `Medication_Dispense_Response_for_Pharmacist`
             + status: PROCESSED
+            
+## Dummy for employee request [/dummy/v2/employee_requests]
+
+### Create Employee Request v2 [POST]
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + `employee_request` (Employee_Update_v2)
+
+
++ Response 200 (application/json)
+    + Attributes (`Response__Process_OK`)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (`Employee_Request_Details`)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + inserted_at: `2017-05-05T14:09:59.232112` (string, required)
+            + updated_at: `2017-05-05T14:09:59.232112` (string, required)
 
 # Group Deprecated methods
 
@@ -6261,7 +6280,7 @@ This endpoint returns all declaration requests that were created through V2 and 
         - REJECTED
         - CANCELLED
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 
 + Request (application/json)
@@ -6594,7 +6613,7 @@ List consists of legal entities with parameter `is_active = true`.
         - CLOSED
     + `nhs_verified`: false (boolean, optional)
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -6904,7 +6923,7 @@ Only legal entity owner can request new client secret for his own legal entity
 + type (enum) - Type of data that is located in `data` attribute.
     - object (string) - `data` attribute is a JSON object.
     - list (string) - `data` attribute is a list.
-+ `request_id`: `req-adasdoijasdojsda` (string) - [Request ID](https://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header.
++ `request_id`: `6617aeec-15e2-4d6f-b9bd-53559c358f97#17810` (string) - [Request ID](https://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header.
 
 ### `Response__Error`
 + type: type_atom (string) - Atom that represents error type.
@@ -6923,6 +6942,24 @@ Only legal entity owner can request new client secret for his own legal entity
     + rules (array)
         + rule: required (string) - String constant that represents validation rule type. List of all types can be found in [API Manifest](https://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors).
         + params (array) - Validation Parameters.
+        
+### `Response__Error_ValidationFailed_Extended`
++ `error` (object)
+    + type: validation_failed (string) - type of an error.
+    + message: Validation failed. You can find validators description at our API Manifest: https://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors. (string)
+    + invalid (array)
+        + (object)
+            + `entry`: `$.cvv` (string, required) - JSON Path to an invalid property.
+            + `entry_type`: `json_data_property` (string, required) - Type of error.
+            + `rules` (array)
+                + (object)
+                    + `description`: `value is not allowed in enum` (string, required) - value of error might be different
+                    + params (object) - Validation Parameters.
+                        + `values` (array)
+                    + `raw_description`: `value is not allowed in enum` (string, required) - value of error might be different
+                    + `rule`: required (string) - String constant that represents validation rule type. List of all types can be found in [API Manifest](https://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors).
+                            - required
+                            - inclusion
 
 ### `Response__Pagination`
 + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
@@ -6934,7 +6971,7 @@ Only legal entity owner can request new client secret for his own legal entity
 
 ### `Response__Pagination__V2`
 + page_number: 2 (number) - Page number.
-+ page_size: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
++ page_size: 50 (number) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 + total_entries: 1000 (number) - Total number of objects in collection.
 + total_pages: 23 (number) - Total number of pages.
 
@@ -7778,6 +7815,21 @@ status: `APPROVED` (string, required)
 + specialities (array[`Speciality_party`], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
 + science_degree (ScienceDegree, optional)
 
+### `Party_Update_v2`
++ include `Party_Short`
++ no_tax_id: false (boolean, optional)
++ tax_id: 3126509816 (string, required)
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ gender: MALE(string, required) - `Dictionary GENDER`
++ documents (array[`PartyDocument`], optional)
++ phones (array[`Phone`], optional)
++ working_experience: 10 (number, optional) - full years of working experience
++ about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
++ educations (array[`Education`], optional)  - освіта
++ qualifications (array[`Qualification`], optional) - підвищення кваліфікації
++ specialities (array[`Speciality_party`], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
++ science_degree (ScienceDegree, optional)
+
 ### `crud_party`
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
@@ -7891,6 +7943,15 @@ status: `APPROVED` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + status: APPROVED, DISMISSED (enum, required)
 + party (Party_Update)
++ doctor (DoctorNew, optional)
+
+### `Employee_Update_v2`
++ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
++ position: лікар (string, required)
++ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2018-03-02T10:45:16.000Z` (string, optional)
++ status: 'NEW' (string, required) 
++ party (Party_Update_v2)
 + doctor (DoctorNew, optional)
 
 ### `Employee_Request`
@@ -8803,6 +8864,7 @@ status: `APPROVED` (string, required)
     + `medication_request_allowed_text`: `Some text` (string, required) - justification of the possibility or impossibility of using the program on medication request
     + `type`: `MEDICATION` (string, required) - `Dictionary MEDICAL_PROGRAM_TYPE`
     + `funding_source`: `NHS` (string, required) - `Dictionary FUNDING_SOURCE`
+    + `mr_blank_type`: `F-1` (string, required) - `Dictionary MR_BLANK_TYPES`
 + division(object, required) - division that provide a medical program
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
     + name: `Aдоніс` (string, required)
@@ -9120,28 +9182,23 @@ status: `APPROVED` (string, required)
 + `medication_request_allowed_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication request
 + `type`: `MEDICATION` (string, optional) - `Dictionary MEDICAL_PROGRAM_TYPE`
 + `funding_source`: `NHS` (string, required) - `Dictionary FUNDING_SOURCE`
-+ `mr_blank_type`: `F-1` (string, optional) - `Dictionary MR_BLANK_TYPES`
++ `mr_blank_type`: `F-1` (string, required) - `Dictionary MR_BLANK_TYPES`
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, optional) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, optional)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, optional) - ISO 8601 date and time in UTC timezone.
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, optional)
 
+### `Medical_Program_Response_Report`
++ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
++ `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
++ `mr_blank_type`: `F-1` (string, required) - `Dictionary MR_BLANK_TYPES`
+
 ### `Medical_Program_Response_min`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
 + `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
 + `medical_program_settings`: (`Medical_program_settings`, required) - some conditions for using program
-+ `medical_program_settings_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication request with some settings
-+ `is_active`: `true` (boolean, optional) - Is medical program active or not. True - Active; False - Inactive
-+ `medication_dispense_allowed`: true (boolean, optional) - posibility to create medication dispense with program
-+ `medication_dispense_allowed_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication dispense
-+ `medication_request_allowed`: true (boolean, optional) - posibility to create medication request with program
-+ `medication_request_allowed_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication request
-+ `type`: `MEDICATION` (string, optional) - `Dictionary MEDICAL_PROGRAM_TYPE`
 + `funding_source`: `NHS` (string, required) - `Dictionary FUNDING_SOURCE`
-+ `inserted_at`: `2017-04-20T19:14:13Z` (string, optional) - ISO 8601 date and time in UTC timezone.
-+ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, optional)
-+ `updated_at`: `2017-04-20T19:14:13Z` (string, optional) - ISO 8601 date and time in UTC timezone.
-+ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, optional)
++ `mr_blank_type`: `F-1` (string, required) - `Dictionary MR_BLANK_TYPES`
 
 ### `Program_Service_Response`
 + id: `c290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -9240,6 +9297,8 @@ status: `APPROVED` (string, required)
 + id: `e477a845-972b-47a1-8ca3-1c71e4fd00c2` (string, required) - Program medication id
 + start_date: `2019-01-01` (string, optional) - Active from date
 + end_date: `2019-06-30` (string, optional) - Active to date
++ `medication_request_allowed`: TRUE (boolean, optional) - flag whether medications are allowed to be dispensed by the program.
++ `care_plan_activity_allowed`: TRUE (boolean, optional) - flag whether activities are allowed to be created with product as this medications.
 + registry_number: `REG-1111` (string, optional) - Registry number
 
 ## Complex FHIR Types
@@ -9325,7 +9384,7 @@ status: `APPROVED` (string, required)
     + coding (array, fixed-type)
         + (Coding)
             + system: `eHealth/dose_and_rate` (string, required)
-            + code: ordered (string, required)
+            + code: 'ordered' (string, required)
 - One Of
     + dose_range (Range)
     + dose_quantity (Simple_Quantity)
@@ -9402,6 +9461,11 @@ status: `APPROVED` (string, required)
 + `ingredients` (array[`Ingredient_v2`], required) - Details of dosage of INNM ingredients, added 2022-04-23, part 1
 + `medication_qty`: 10.34 (number, required) - Medication quantity issued by the doctor
 
+### `block_legal_entity_object`
++ `block_legal_entity` (object, required)
+    + `id`: `UUID` (string, required, nullable)
+    + `type`: `NHS` (string, required, nullable)
+
 ### `MR_MRR_additional_fields`
 + priority: routine (enum, optional) - `Dictionary MEDICATION_REQUEST_PRIORITY`
     - routine - The request has normal priority.
@@ -9475,6 +9539,7 @@ status: `APPROVED` (string, required)
 + `ingredients` (array, required)
     + (object)
         + include `Ingredient_request`
++ `drlz_sku_id`: `0404466792737630283703997321` (string, optional) - identifier of a product out of external DRLZ register 
 
 ### `Medication_Response`
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
@@ -9498,6 +9563,7 @@ status: `APPROVED` (string, required)
 + inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
++ `drlz_sku_id`: `0404466792737630283703997321` (string, optional) - identifier of a product out of external DRLZ register 
 
 ### `Medication_Response_Short`
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
@@ -9511,6 +9577,7 @@ status: `APPROVED` (string, required)
 + `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `container` (`Dosage_container`, required)
 + `form_pharm`: `DISPERSIBLE_TABLET` (string, optional) - Pharmaceutical form of drugs. FORM_PHARM_LIST dictionary used for the values.
++ `drlz_sku_id`: `0404466792737630283703997321` (string, optional) - identifier of a product out of external DRLZ register
 
 ### `Program_medications_Request`
 + `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) -  Medication Identifier
@@ -9847,9 +9914,10 @@ status: `APPROVED` (string, required)
 + `container_dosage` (`Dosage_container`, required)
 + `package_min_qty`: 20 (number, optional) - indivisible part of medicine pacage
 + `package_qty`: 20 (number, optional) - quantity of medicine in a pacage
-+ start_date: `2019-01-01` (string, optional) - Active from date
-+ end_date: `2019-06-30` (string, optional) - Active to date
-+ registry_number: `REG-1111` (string, optional) - Registry number
++ `start_date`: `2019-01-01` (string, optional) - Active from date
++ `end_date`: `2019-06-30` (string, optional) - Active to date
++ `registry_number`: `REG-1111` (string, optional) - Registry number
++ `drlz_sku_id`: `0404466792737630283703997321` (string, optional) - identifier of a product out of external DRLZ register 
 
 ### `Qualify_by_ID_Request_for_Medication_request_Responce`
 + include `Qualify_Medication_request_Request_Responce`
@@ -9861,6 +9929,8 @@ status: `APPROVED` (string, required)
 ### `medical_programs_request`
 + `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
 + `same_mnn_in_treatment_period`: true (boolean, required) - Allow to create new medication request with the same mnn in one treatment period
++ `funding_source`: `NHS` (string, required) - `Dictionary FUNDING_SOURCE`
++ `mr_blank_type`: `F-1` (string, required) - `Dictionary MR_BLANK_TYPES`
 
 ### `medical_programs_response`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
@@ -9874,7 +9944,7 @@ status: `APPROVED` (string, required)
 + `medication_request_allowed_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication request
 + `type`: `MEDICATION` (string, optional) - `Dictionary MEDICAL_PROGRAM_TYPE`
 + `funding_source`: `NHS` (string, required) - `Dictionary FUNDING_SOURCE`
-+ `mr_blank_type`: `F-1` (string, optional) - `Dictionary MR_BLANK_TYPES`
++ `mr_blank_type`: `F-1` (string, required) - `Dictionary MR_BLANK_TYPES`
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, optional) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, optional)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, optional) - ISO 8601 date and time in UTC timezone.
@@ -9907,11 +9977,20 @@ status: `APPROVED` (string, required)
 + `medication_request_notification_disabled`: true (boolean, required) - check if patient should not be notified via SMS on operations with medication request (create/reject/resend)
 + `skip_contract_provision_verify`: true (boolean, required) - check if validations of Contract and Medical Program Provisions should be invoked for the medical program
 + `medication_dispense_period_day`: 90 (number, optional) - medication dispense period (in days)
++ `medical_program_change_on_dispense_allowed`: true (boolean, required) - check if medication request can be dispensed with another medical program.
++ `patient_categories_allowed` (array, optional) - posibility to create care plan activity for particular terms of service. - `Dictionary eHealth/clinical_impression_patient_categories`
+    + `insulin_1` (string, required)
+    + `insulin_2` (string, required)
++ `license_types_allowed` (array, optional) - the types of legal entity licenses required to dispense medication request - `Dictionary LICENSE_TYPE`
+    + `PHARMACY` (string, required)
+    + `PHARMACY_DRUGS` (string, required)
 
 ### `medical_programs_list`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
 + `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
 + `is_active`: `true` (boolean, required) - Is medical program active or not. True - Active; False - Inactive
++ `funding_source`: `NHS` (string, required) - `Dictionary FUNDING_SOURCE`
++ `mr_blank_type`: `F-1` (string, required) - `Dictionary MR_BLANK_TYPES`
 
 ## `Medication request`
 ### `Medication_request_Public_Response`
@@ -9963,10 +10042,11 @@ status: `APPROVED` (string, required)
 + `rejected_at`: `2022-01-28` (string, optional, nullable) - Reject date - ISO 8601 date and time in UTC timezone.
 + `rejected_by`: `e8e5a969-74d8-4620-8496-f5e41f2e8312` (string, optional, nullable) - Rejected user identifier
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
-+ `reject_reason_code`: `PATIENT_REJECT` (string, required, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
++ `reject_reason_code`: `PATIENT_REJECT` (string, optional, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
 + is_blocked: false (boolean, required) - Whether medication request is blocked or not
-+ block_reason: `Підозра на фрод` (string, required) - Block or unblock reason description
-+ block_reason_code: `WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
++ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 
 ### `Medication_request_Public_Response_for_Pharmacist`
@@ -10012,10 +10092,11 @@ status: `APPROVED` (string, required)
 + `dosage_instruction` (array, required, fixed-type)
     + (Dosage_Instruction)
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
-+ `reject_reason_code`: `PATIENT_REJECT` (string, required, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
++ `reject_reason_code`: `PATIENT_REJECT` (string, optional, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
 + is_blocked: false (boolean, required) - Whether medication request is blocked or not
-+ block_reason: `Підозра на фрод` (string, required) - Block or unblock reason description
-+ block_reason_code: `WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
++ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 
 ### `Medication_request_Public_Response_with_Medical_Program_min`
@@ -10067,10 +10148,11 @@ status: `APPROVED` (string, required)
 + `rejected_at`: `2022-01-28` (string, optional, nullable) - Reject date - ISO 8601 date and time in UTC timezone.
 + `rejected_by`: `e8e5a969-74d8-4620-8496-f5e41f2e8312` (string, optional, nullable) - Rejected user identifier
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
-+ `reject_reason_code`: `PATIENT_REJECT` (string, required, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
++ `reject_reason_code`: `PATIENT_REJECT` (string, optional, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
 + is_blocked: false (boolean, required) - Whether medication request is blocked or not
-+ block_reason: `Підозра на фрод` (string, required) - Block or unblock reason description
-+ block_reason_code: `WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
++ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 
 ### `Medication_request_Public_Response_with_Medical_Program_min_for_Pharmacist`
@@ -10118,8 +10200,8 @@ status: `APPROVED` (string, required)
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `reject_reason_code`: `PATIENT_REJECT` (string, required, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
 + is_blocked: false (boolean, required) - Whether medication request is blocked or not
-+ `block_reason`: `Підозра на фрод` (string) - Block or unblock reason description
-+ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
++ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
 + include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 
@@ -10172,10 +10254,11 @@ status: `APPROVED` (string, required)
 + `rejected_at`: `2022-01-28` (string, optional, nullable) - Reject date - ISO 8601 date and time in UTC timezone.
 + `rejected_by`: `e8e5a969-74d8-4620-8496-f5e41f2e8312` (string, optional, nullable) - Rejected user identifier
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
-+ `reject_reason_code`: `PATIENT_REJECT` (string, required, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
++ `reject_reason_code`: `PATIENT_REJECT` (string, optional, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
 + is_blocked: false (boolean, required) - Whether medication request is blocked or not
-+ block_reason: `Підозра на фрод` (string, required) - Block or unblock reason description
-+ block_reason_code: `WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
++ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 
 ### `Medication_request_Private_Response_with_Medical_Program_min`
@@ -10229,8 +10312,9 @@ status: `APPROVED` (string, required)
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `reject_reason_code`: `PATIENT_REJECT` (string, required, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
 + is_blocked: false (boolean, required) - Whether medication request is blocked or not
-+ block_reason: `Підозра на фрод` (string, required) - Block or unblock reason description
-+ block_reason_code: `WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ `block_reason`: `Підозра на фрод` (string, required) - Block or unblock reason description
++ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 
 ### `Medication_request_Reject_Public_Response`
@@ -10274,6 +10358,9 @@ status: `APPROVED` (string, required)
     - WRONG_QTY
     - WRONG_SIGNATURE
 + `reject_reason`: `Помилка призначення. Несумісні препарати.` (string, optional) - Medication request reject reason
++ `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
++ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 
 ### `Medication_request_Reject_Response`
@@ -10314,6 +10401,9 @@ status: `APPROVED` (string, required)
 + `status`: `REJECTED` (enum[string], required) - Medication Request status. Find available **statuses** on State Charts wiki page
 + `medical_program` (`Medical_Program_Response`, required)
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
++ `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
++ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 
 ### `Medication_request_Public_Response_without_block_data`
@@ -10378,8 +10468,8 @@ status: `APPROVED` (string, required)
 + `dispense_details` (array, fixed, required)
     + (object)
         + include `Medication_Dispense_Detail_Request`
-+ `payment_id`: 1239804 (string, optional) - receipt number for the paid medications. Sould not be submitted if medical program requires digital sign, and it's optional if not requires 
-+ `payment_amount`: 50 (number, optional) - receipt amount which was paid by patient (UAH). Sould not be submitted if medical program requires digital sign, and should be if not requires.
++ `payment_id`: 1239804 (string, optional) - receipt number for the paid medications. Should not be submitted if medical program requires digital sign, and it's optional if not requires 
++ `payment_amount`: 50 (number, optional) - receipt amount which was paid by patient (UAH). Should not be submitted if medical program requires digital sign, and should be if not requires and medical program has funding source NHS
 
 ### `Medication_Dispense_Response`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Dispense Response Identifier
@@ -10478,18 +10568,18 @@ status: `APPROVED` (string, required)
 + `program_medication_id`: `64c06ebc-0266-4645-85f0-7a6900d7dfbe` (string, optional) - Program participant id
 + `medication_id`: `787b6ef1-1d3a-4129-849c-87716c9a2130` (string, required) - Identifier of brand medications
 + `medication_qty`: 10.34 (number, required) - qnty of medication_unit (count/ml/g/mg) which provides to the patient
-+ `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
-+ `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
-+ `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
++ `sell_price`: 18.65 (number, optional) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol). Must be submitted if medical program has funding source NHS
++ `sell_amount`: 186.5 (number, optional) - total pharmacy's price for the requested medication quantity. Must be submitted if medical program has funding source NHS
++ `discount_amount`: 150 (number, optional) - pharmacy's expected price of dicsount for the requested medication quantity. Must be submitted if medical program has funding source NHS
 + `medication_2d_codes` (array[`Medication_2d_code`], optional) - array of medication 2d codes
 
 ### `Medication_Dispense_Detail_Response`
 + `medication` (`Medication_Short`, required) - Identifier of brand medications
 + `program_medication_id`: `64c06ebc-0266-4645-85f0-7a6900d7dfbe` (string, optional) - Program participant id
 + `medication_qty`: '10.34' (number, required) - qnty of medication_unit (count/ml/g/mg) which provides to the patient
-+ `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
-+ `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
-+ `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
++ `sell_price`: 18.65 (number, optional) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
++ `sell_amount`: 186.5 (number, optional) - total pharmacy's price for the requested medication quantity
++ `discount_amount`: 150 (number, optional) - pharmacy's expected price of dicsount for the requested medication quantity
 + `reimbursement_amount`: 450 (number, required) - Amount to reimburse for medication package by medical_program
 + `medication_2d_codes` (array[`Medication_2d_code`], optional) - array of medication 2d codes
 
@@ -10497,9 +10587,9 @@ status: `APPROVED` (string, required)
 + `medication` (`Medication_Short`, required) - Identifier of brand medications
 + `program_medication_id`: `64c06ebc-0266-4645-85f0-7a6900d7dfbe` (string, optional) - Program participant id
 + `medication_qty`: 10.34 (number, required) - qnty of medication_unit (count/ml/g/mg) which provides to the patient
-+ `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
-+ `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
-+ `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
++ `sell_price`: 18.65 (number, optional) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
++ `sell_amount`: 186.5 (number, optional) - total pharmacy's price for the requested medication quantity
++ `discount_amount`: 150 (number, optional) - pharmacy's expected price of dicsount for the requested medication quantity
 + `reimbursement_amount`: 450 (number, required) - Amount to reimburse for medication package by medical_program
 
 ### `Medication_Dispense_Process_Request`
@@ -10594,7 +10684,7 @@ status: `APPROVED` (string, required)
         + `second_name`: `Миколайович` (string, optional)
         + `position`: `P6` (string, required) - `Dictionary POSITION`
         + `employee_type`: `DOCTOR` (string) - `Dictionary: EMPLOYEE_TYPE`
-    + `medical_program` (`Medical_Program_Response_min`, optional)
+    + `medical_program` (`Medical_Program_Response_Report`, optional)
     + `medication` (`Medication_Short`, required) - Identifier of brand medications
     + `medication_qty`: 10.34 (number, required) - qnty of medication_unit (count/ml/g/mg) which provides to the patient
     + `medication_dispense`(object, optional)
@@ -10632,6 +10722,25 @@ status: `APPROVED` (string, required)
         + `second_name`: `Миколайович` (string, optional)
 
 ## Uploading and processing registers
+
+### `file`
+
+### `Medication_Registers_response`
++ `job` (object, optional)
+    + `id`: `11ecabef-5b67-4838-8f4c-72155e05dd12` (string, required)
+    + `name`: `Name of operation with the registry`  (string, required)
+    + `type`: `type_of_operation`  (string, required)
+    + `strategy`: `SEQUENTIALLY`  (string, required)
+    + `status`: `PENDING`  (string, required)
+            - FAILED
+            - PROCESSED
+            - PENDING
+    + `meta` (object, required)
+        + `register_type`: `REGISTER_TYPE` (string, required)
+        + `reason_description`: `appropriate text` (string, required)
+    + `ended_at`: `2022-08-21T15:37:40.625778Z` (string, required) - ISO 8601 date and time in UTC timezone.
+    + `inserted_at`: `2022-08-21T15:35:38.625778Z` (string, required) - ISO 8601 date and time in UTC timezone.
+    + `updated_at`: `2022-08-21T15:37:40.625778Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
 ### `Registers_response`
 + `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required)
@@ -10717,7 +10826,7 @@ status: `APPROVED` (string, required)
 + user_id: `user-1380df72-275a-11e7-93ae-92361f002671` (string, required) - Owner-user internal ID, a UUID string.
 + `client_type_id`: `261d52f9-b355-4029-863d-8fc52e9d0b81` - Client Type identifier
 + is_blocked: `false` (string, required) - whether the client is marked as fraud
-+ block_reason: `MSP has fakes doctors` (string, optional) - the reason to block
++ `block_reason`: `MSP has fakes doctors` (string, optional) - the reason to block
 + inserted_at: `2017-04-20T19:14:13Z` (string, required) - date and time, when the entity was created
 + updated_at: `2017-04-20T19:14:13Z` (string, required) - date and time, when the entity was updated
 
@@ -10735,7 +10844,7 @@ status: `APPROVED` (string, required)
 + entity_type: `MedicationDispense` (string, required) - the name of entity that was changed
 + entity_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - uuid of changed object
 + properties (object, required)
-    + status (object, optional) - may has a different name depending on the `entity_type` (`program_processing_status`, `detail.status`, `is_suspended`, `dls_verified`, `verification_status`)
+    + status (object, optional) - may has a different name depending on the `entity_type` (`program_processing_status`, `detail.status`, `is_suspended`, `dls_verified`, `verification_status`, `is_blocked`)
         + include (`Event_properties`, required)
     + `employee_id` (object, optional) - field is required if parameter `entity_type = EmployeeRequest`
         + new_value: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string)
@@ -10810,6 +10919,9 @@ status: `APPROVED` (string, required)
 + `parent_contract_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - parent contract id
 + `start_date`: `2017-04-20` (string, required) - contract start date
 + `end_date`: `2017-04-20` (string, required) - contract end date
++ `id_form`: `PMD_1` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
 
 
@@ -10833,6 +10945,9 @@ status: `APPROVED` (string, required)
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + `medical_programs` (array, required)
     + `3914a240-63db-404e-b730-09222bfeb2d0` (string, required) - - ids of a medical programs that is a subject of reimbursment contract
++ `id_form`: `RMB-1` (string, required) - type of contract {DICTIONARY REIMBURSEMENT_CONTRACT_TYPE}
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
 
 ### `Contract_request_Update`
@@ -10886,6 +11001,8 @@ status: `APPROVED` (string, required)
 + `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown only for requests in `APPROVED`, `PENDING_NHS_SIGN`, `NHS_SIGNED`, `SIGNED` statuses.
 + `previous_request_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - changed contract request id
 + `assignee_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - NHS employee which review contract request
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
 
 
@@ -10922,6 +11039,8 @@ status: `APPROVED` (string, required)
 + `assignee_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - NHS employee which review contract request
 + `medical_programs` (array, required)
     + `3914a240-63db-404e-b730-09222bfeb2d0` (string, required) - - ids of a medical programs that is a subject of reimbursment contract
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
 
 ### `Contract_request_Details_Full`
@@ -11018,6 +11137,8 @@ status: `APPROVED` (string, required)
 + id_form: `PMD` (string, required)
 + parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
 + `assignee_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - NHS employee which review contract request
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
 
 ### `Contracts_list_reimbursement`
@@ -11047,6 +11168,8 @@ status: `APPROVED` (string, required)
 + `assignee_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - NHS employee which review contract request
 + `medical_programs` (array, required)
     + `3914a240-63db-404e-b730-09222bfeb2d0` (string, required) - - ids of a medical programs that is a subject of reimbursment contract
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
 
 
@@ -11090,6 +11213,8 @@ status: `APPROVED` (string, required)
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + id_form: `PMD` (string, required)
 + parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
 
 
@@ -11126,6 +11251,8 @@ status: `APPROVED` (string, required)
 + parent_contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
 + `medical_programs` (array, required)
     + `3914a240-63db-404e-b730-09222bfeb2d0` (string, required) - - ids of a medical programs that is a subject of reimbursment contract
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
 
 ### `Capitation_report`
@@ -11315,7 +11442,7 @@ status: `APPROVED` (string, required)
 + id: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, required)
 + email: example@gmail.com (string, required) - User's email
 + is_blocked: `false` (string, required) - whether the user is marked as fraud
-+ block_reason: `User has fakes data` (string, optional) - the reason to block
++ `block_reason`: `User has fakes data` (string, optional) - the reason to block
 + person_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MPI ID of a patient.
 + tax_id: 3126509816 (string, optional)
 + settings (object) - User settings
