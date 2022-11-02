@@ -5506,6 +5506,51 @@ This web service returns forbidden group details filtered by ID with active code
                         + service_group_id: `d838dbea-0ca0-4295-bf46-819dc069b8d4` (string)
                         + creation_reason: `Some text` (string, required) - Forbidden group service creation reason
 
+## Group Public. Groups of Diagnoses
+There are public methods presented to work with Groups of Diagnoses data. 
+
+### Get Groups of Diagnoses list [GET /api/diagnoses_groups{?name,code,page,page_size}]
+This web service returns a catalog of all active Groups of Diagnoses in eHealth.
+
++ Parameters
+    + `name`: `Some name` (string, optional) - Group of Diagnoses name
+    + `code`: `H00` (string, optional) - Group of Diagnoses code
+    + `page`: 2 (number, optional) - Page number
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array)
+            + (object)
+                + id: `f7f817b2-3134-4625-b87d-e2d7fc8e9b90` (string, required) - Group of Diagnoses identifier
+                + name: `Some name` (string, required) - Group of Diagnoses name
+                + code: `H00` (string, required) - Group of Diagnoses code
+                + description: `Some description` (string) - Group of Diagnoses description
+
+### Get Group of Diagnoses details [GET /api/diagnoses_groups/{id}]
+This web service returns Group of Diagnoses details filtered by ID with active diagnosis codes in eHealth.
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (array)
+            + (object)
+                + id: `f7f817b2-3134-4625-b87d-e2d7fc8e9b90` (string, required) - Group of Diagnoses identifier
+                + name: `Some name` (string, required) - Group of Diagnoses name
+                + code: `H00` (string, required) - Group of Diagnoses code
+                + description: `Some description` (string) - Group of Diagnoses description
+                + `diagnoses_group_codes` (array)
+                    + (object)
+                        + id: `f016a994-4826-48ae-be65-8d459a75f021` (string, required) - Diagnoses Group Code identifier
+                        + code: `G30.9` (string, required)
+                        + system: `eHealth/ICD10_AM/condition_codes` (string, required)
+
 # Group Private. Contracts
 
 This group of endpoints is implemented for trusted third party to manipulate with contract records in ehealth system.
