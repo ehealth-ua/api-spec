@@ -9526,7 +9526,7 @@ status: `APPROVED` (string, required)
 + `medication_qty`: 10.34 (number, required) - Medication quantity issued by the doctor
 
 ### `block_legal_entity_object`
-+ `block_legal_entity` (object, required)
++ `block_legal_entity` (object, optional)
     + `id`: `UUID` (string, required, nullable)
     + `type`: `NHS` (string, required, nullable)
 
@@ -10402,7 +10402,7 @@ status: `APPROVED` (string, required)
 + intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT
     - plan - The request represents an intention to ensure something occurs without providing an authorization for others to act. "medical_program" is absent
     - order - The request represents a request/demand and authorization for action. "medical_program" is required
-+ is_blocked: false (boolean, required) - Whether medication request is blocked or not
++ is_blocked: false (boolean, optional) - Whether medication request is blocked or not
 + `legal_entity` (`Legal_Entity_Short`, required)
     + `id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
     + licenses (array[`MSP_License`], required)
