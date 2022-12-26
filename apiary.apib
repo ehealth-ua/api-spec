@@ -931,6 +931,7 @@ Method returns shortened details (for DOCTOR or PHARMACIST - additional returns 
     + status: APPROVED (enum, optional) - filet employees by status
         - APPROVED
         - DISMISSED
+        - REORGANIZED
     + employee_type: DOCTOR (string, optional)
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
@@ -8049,7 +8050,7 @@ status: `APPROVED` (string, required)
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
-+ status: APPROVED, DISMISSED (enum, required) - Employee status
++ status: APPROVED, DISMISSED, REORGANIZED (enum, required) - Employee status
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
