@@ -3,7 +3,7 @@ This is the eHealth public API specification repo.
 TBD..
 
 # Support
-All the support tickets related to the public API should be registered with the `kind/support` label.
+Test word All the support tickets related to the public API should be registered with the `kind/support` label.
 
 It should consist of the below chapters
 
