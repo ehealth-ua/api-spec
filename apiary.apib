@@ -10,8 +10,6 @@ This is a **MIS-related consumers  part** of API documentation for Ukrainian Hea
 * Partnership Relation Management (PRM) module that describes business relations between this 3 entities.
 
 
-This API design in based on [Nebo #15 API Design Manifest](http://docs.apimanifest.apiary.io/).
-
 ## Context Switching for end-users
 
 Since Doctor may have multiple work-places, you MUST fetch list of possible work-contexts and apply `legal_entity_id` filter on each request, where this parameter is available.
@@ -148,19 +146,45 @@ In future, you will be able to refresh access tokens to extend `access_token` li
 
 ## Dictionaries [/api/dictionaries]
 
-Method is used to retreive eHealth dictionaries
+Methods is used to retreive eHealth dictionaries
 
 Response **$.data** object contains a list of all dictionaries.
 
+### Get dictionaries [GET]
 Each dictionary is an object that contains *{key}*:*{value}* pairs where:
 * ***{key}*** is a dictionary record
 * ***{value}*** is a dictionary record description
 
-### Get dictionaries [GET]
++ Parameters
+    + `name`: `eHealth/LOINC/observation_codes` (string, optional) - dictionary name
+    + `is_active`: true (boolean, optional) - dictionary status
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (array[`Dictionary`])
+
+
+### Get dictionaries v2 [GET /api/v2/dictionaries{?name,is_active,value_code,value_description,value_is_active}]
+Each dictionary is an object that contains not only a code and description of a value, but also a status of the value. In addition, it can represent hierarchical dictionaries with subordinate (child) values
+
++ Parameters
+    + `name`: `eHealth/ICF/classifiers` (string, optional) - dictionary name
+    + `is_active`: true (boolean, optional) - dictionary status
+    + `value_code`: `b1142` (string, optional) - code of the dictionary value
+    + `value_description`: `Орієнтація в особі` (string, optional) - description of the dictionary value
+    + `value_is_active`: true (string, optional) - status of the dictionary value
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (array[`Dictionary_v2`])
+            + (object)
+                + include `Dictionary_v2`
+                + name: `eHealth/ICPC2/condition_codes` (string, required) - Unique dictionary name
+                + description: `Коди станів за ICPC2` (string, required) - dictionary description for a user
+                + values (array, required)
+                    + (Dictionary_value)
+                        + code: `D88` (string, required) - code of the dictionary value
+                        + description: `Апендицит` (string, required) - description of the code
 
 ## OTP Verification [/api/verifications]
 
@@ -913,18 +937,17 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /api/employees{?no_tax_id,tax_id,party_id,edrpou,legal_entity_id,division_id,status,employee_type,page,page_size}]
+### Get Employees list [GET /api/employees{?no_tax_id,tax_id,party_id,verification_status,edrpou,legal_entity_id,division_id,status,employee_type,page,page_size}]
 
-Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`.
+Use this end-point to obtain all Employees of the legal entity.
+Method returns shortened data structure. Use [**Get Employee details**](https://uaehealthapi.docs.apiary.io/#reference/public.-medical-service-provider-integration-layer/employees/get-employee-details) to get detailed information.
 
-We suggest to use `status` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
-
-Method returns shortened details (for DOCTOR or PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
+**Scopes required:** `employee:read`
 
 + Parameters
     + no_tax_id: true (boolean, optional) - filer employees with or w/o tax_id
     + tax_id: 3015492561 (string, optional)
-    + party_id: 3015492561 (string, optional)
+    + party_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + edrpou: 38782323 (string, optional) - filter employees by legal_entity edrpou
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional) - filter employees by legal_entity id
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
@@ -946,22 +969,23 @@ Method returns shortened details (for DOCTOR or PHARMACIST - additional returns 
     + Attributes (`Response_Collection_V2`)
         + data (array[`Employee_Short`])
 
-### Get Employee Details [GET /api/employees/{employee_id}]
+### Get Employee details [GET /api/employees/{employee_id}]
 
+Use this end-point to obtain detailed information about employee.
 Response structure differs depending on employee type:
 
 **For HR, ACCOUNTANT, OWNER or PHARMACY_OWNER:**
-
 * Person info
 * Employee info
 * User Info
 
 **For DOCTOR, SPECIALIST, ASSISTANT, PHARMACIST, MED_ADMIN, LABORANT or MED_COORDINATOR:**
-
 * Person info
 * Employee info
 * User Info
 * Employee info
+
+**Scopes required:** `employee:details`
 
 + Parameters
     + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1011,6 +1035,54 @@ Employee deactivation:
             + division (Division_Short)
                 + `legal_entity` (`Legal_Entity_Short`)
 
+### Get Party verification details [GET /api/parties/{id}/verification]
+This method returns current party's verification status and another information about it.
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Party identifier
+    
+    
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+
++ Response 200 (application/json)
+    + Attributes (`Response__Process_OK`)
+        + meta (Response__Meta)
+        + data (object)
+            + include `Party_Verification_Details`
+                    
+
+### Update Party verification status [PATCH /api/parties/{id}/verification]
+Use this method to update party's verification status. Now updating of DRACS death verification status is allowed.
+
+**Scopes required:** `party_verification:write`
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Party identifier
+    
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+       + `dracs_death` (object)
+           + `verification_status`: `VERIFIED` (string, required) - Party DRACS death verification status according to `PARTY_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
+           + `verification_reason`: `MANUAL_COMFIRMED` (string, required) - Verification reason according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL_CONFIRMED` OR `MANUAL_NOT_CONFIRMED` are allowed.
+           + `verification_comment`: `Смерть співробітника підтверджено` (string) - Verification comment
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + meta (Response__Meta)
+        + data (object)
+            + include `Party_Verification_Details`
+
+
 ## Employee Requests [/api/employee_requests]
 
 ### Create Employee Request v2 [POST /api/v2/employee_requests]
@@ -1018,6 +1090,7 @@ Employee deactivation:
 Employee_Request consist of the three mandatory parts:
 * Person info
 * Employee info
+    * the specialties block should contain all the specialties of the employee
 * User Info
 
 **MED_ADMIN, MED_COORDINATOR:**
@@ -1396,6 +1469,8 @@ This process describes adding an additional authentication method to an existing
 
 Confluence - https://e-health-ua.atlassian.net/wiki/x/FwC_J
 
+**Scopes required:** `authentication_method_request:write`
+
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
 
@@ -1444,6 +1519,8 @@ In case if authentication_method is OFFLINE, request body should be empty. Befor
 
 Confluence - https://e-health-ua.atlassian.net/wiki/x/G4DJJ
 
+**Scopes required:** `authentication_method_request:write`
+
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
     + request_id: `1096f147-7f93-3fc6-bddc-9d71b198fb7f` (string, required) - Request identifier
@@ -1481,6 +1558,7 @@ Confluence - https://e-health-ua.atlassian.net/wiki/x/G4DJJ
 
 This method is used when you need to re-send SMS to a person or third person
 
+**Scopes required:** `authentication_method_request:write`
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
@@ -1500,7 +1578,7 @@ This method is used when you need to re-send SMS to a person or third person
         + data (`OTP`)
 
 
-### Get Person verification details [GET  /api/persons/{id}/verification]
+### Get Person verification details [GET /api/persons/{id}/verification]
 This method returns current person's verification status and another information about it.
 
 + Parameters
@@ -1517,17 +1595,64 @@ This method returns current person's verification status and another information
     
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
+         + data (object)
+            + include `Person_Verification_Details`
+            
+
+### Update Person verification status [PATCH /api/persons/{id}/verification]
+Use this method to update person's verification status. Now updating of DRACS death verification status is allowed.
+
+**Scopes required:** `person_verification:write`
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person identifier
+    
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+       + `dracs_death` (object)
+           + `verification_status`: `VERIFICATION_NEEEDED` (string, required) - Person DRACS death verification status according to `PERSON_VERIFICATION_STATUSES` dictionary. `VERIFICATION_NEEEDED` only is allowed.
+           + `verification_reason`: `MANUAL_COMFIRMED` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL_CONFIRMED` OR `MANUAL_NOT_CONFIRMED` are allowed.
+           + `verification_comment`: `Смерть пацієнта підтверджено` (string, required) - Verification comment
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + meta (Response__Meta)
         + data (object)
-            + `verification_status`: `NOT_VERIFIED` (enum, required) - status of person verification according to `PERSON_VERIFICATION_STATUSES` dictionary
-                - VERIFIED
-                - NOT_VERIFIED
-                - IN_REVIEW
-                - VERIFICATION_NEEDED
-            + `verification_reason`: `MANUAL` (enum, required) - how current verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
-                - MANUAL
-                - AUTO
-                - INITIAL
-            + `verification_comment`: `Бракує даних паспорту пацієнта та його ІПН` (string, optional) - verification status description set by NHS in case NOT_VERIFIED
+            + include `Person_Verification_Details`
+
+
+### Get Person Emergency contact [GET  /api/patients/{patient_id}/{medical_event_type}/{medical_event_id}/emergency_contact]
+
+This method returns person's emergency contact.
+
+**Scopes required:** `person_emergency_contact:read`
+
++ Parameters
+    + patient_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Patient identifier
+    + medical_event_type: `conditions` (enum, required) - Medical event type
+        - conditions
+        - diagnostic_reports
+    + medical_event_id: `164f9ce8-4455-4759-b0c2-726db7218224` (string, required) - Medical event identifier
+    
+    
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+    
+    
++ Response 200 (application/json)
+    + Attributes (`Response__Process_OK`)
+        + data (object)
+            + first_name: Петро (string, required)
+            + phones (array[`Phone`], required)
 
 
 ## Legal Entities [/api/legal_entities]
@@ -1800,7 +1925,7 @@ More details can be found [here](https://e-health-ua.atlassian.net/wiki/x/GQB7Iw
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (`crud_division_get`)
-        
+
 ### Deactivate division [PATCH /api/divisions/{id}/actions/deactivate]
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -3042,7 +3167,7 @@ This method is used to create Medication request Request (as a part of Medicatio
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Medication_request_Request_Public_Response`
+            + include `Medication_request_Request_Response`
         + urgent (object, required)
             + `authentication_method_current` (object, required)
                 + type: `OTP` (enum, required)
@@ -3079,7 +3204,8 @@ Use [**Get Medication request requests details**](https://uaehealthapi.docs.apia
         - REJECTED
     + intent: order (string, optional) - Medication request request intent
     + page: 2 (number, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50.
+    
 
 + Request (application/json)
 
@@ -3286,7 +3412,7 @@ This method is used to qualify (possibility to use Innm for the program) Medicat
             + type: unverified (string, required)
             + message: `Only for active MPI record can create medication request!` (string, required)
 
-### Get medication requests by search params [GET /api/persons/{person_id}/medication_requests{?legal_entity_id,employee_id,status,request_number,created_from,created_to,medication_id,intent,care_plan_id,encounter_id,episode_id,page,page_size}]
+### Get medication requests by search params [GET /api/persons/{person_id}/medication_requests{?legal_entity_id,employee_id,status,request_number,created_from,created_to,medication_id,intent,care_plan_id,encounter_id,episode_id,page,page_size,medical_program_id,started_at_from,started_at_to,ended_at_from,ended_at_to,dispense_valid_from_start,dispense_valid_from_end,dispense_valid_to_start,dispense_valid_to_end}]
 
 Use this method to obtain list of Medication Requests. 
 Use [**Get medication requests details**](https://uaehealthapi.docs.apiary.io/#reference/public.-reimbursement/medication-request/get-medication-requests-details) to get Medication Request by ID.
@@ -3310,6 +3436,16 @@ Use [**Get medication requests details**](https://uaehealthapi.docs.apiary.io/#r
     + `episode_id`: `6f305d0e-1758-4920-9167-d4f97225ad7e` (string, optional) - Unique episode identifier, look into episode in encounter.
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+    + `medical_program_id`: `9a2fc263-6029-4b2b-b40a-66f4435509b7` (string, optional) - Internal medical program ID, a UUID string.
+    + `started_at_from`: `2017-08-16` (string, optional) - Start date of the period of treatment initiation period. Format DATE '2017-08-16'.
+    + `ended_at_from`: `2017-09-16` (string, optional) - End date of the period of treatment initiation period. Format DATE '2017-09-16'.
+    + `started_at_to`: `2017-08-20` (string, optional) - Start date of the period of treatment ending period. Format DATE '2017-08-20'.
+    + `ended_at_to`: `2017-09-20` (string, optional) - End date of the period of treatment ending period. Format DATE '2017-09-20'.
+    + `dispense_valid_from_start`: `2017-02-17` (string, optional) - Start date of the period of dispense issue date. Format DATE '2017-02-17'.
+    + `dispense_valid_from_end`: `2017-02-19` (string, optional) - End date of the period of dispense issue date. Format DATE '2017-02-19'.
+    + `dispense_valid_to_start`: `2017-03-26` (string, optional) - Start date of the period of dispense expiry date. Format DATE '2017-03-26'.
+    + `dispense_valid_to_end`: `2017-03-30` (string, optional) - End date of the period of dispense expiry date. Format DATE '2017-03-30'.
+
 
 + Request (application/json)
 
@@ -3323,7 +3459,7 @@ Use [**Get medication requests details**](https://uaehealthapi.docs.apiary.io/#r
             + (object)
                 + include `Medication_request_Public_Response_with_Medical_Program_min`
 
-### Get Medication requests in care plan context [GET /api/care_plans/{care_plan_id}/medication_requests{?legal_entity_id,employee_id,person_id,status,request_number,created_from,created_to,medication_id,intent,encounter_id,page,page_size}]
+### Get Medication requests in care plan context [GET /api/care_plans/{care_plan_id}/medication_requests{?legal_entity_id,employee_id,person_id,status,request_number,created_from,created_to,medication_id,intent,encounter_id,page,page_size,medical_program_id,started_at_from,started_at_to,ended_at_from,ended_at_to,dispense_valid_from_start,dispense_valid_from_end,dispense_valid_to_start,dispense_valid_to_end}]
 
 The method returns a list of medication requests in the context of a care plan. 
 User must have an approval on the care plan from url.
@@ -3347,6 +3483,15 @@ Use [**Get medication requests details**](https://uaehealthapi.docs.apiary.io/#r
     + `encounter_id`: `7075e0e2-6b57-47fd-aff7-324806efa7e5` (string, optional) - encounter identifier
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+    + `medical_program_id`: `9a2fc263-6029-4b2b-b40a-66f4435509b7` (string, optional) - Internal medical program ID, a UUID string.
+    + `started_at_from`: `2017-08-16` (string, optional) - Start date of the period of treatment initiation period. Format DATE '2017-08-16'.
+    + `ended_at_from`: `2017-09-16` (string, optional) - End date of the period of treatment initiation period. Format DATE '2017-09-16'.
+    + `started_at_to`: `2017-08-20` (string, optional) - Start date of the period of treatment ending period. Format DATE '2017-08-20'.
+    + `ended_at_to`: `2017-09-20` (string, optional) - End date of the period of treatment ending period. Format DATE '2017-09-20'.
+    + `dispense_valid_from_start`: `2017-02-17` (string, optional) - Start date of the period of dispense issue date. Format DATE '2017-02-17'.
+    + `dispense_valid_from_end`: `2017-02-19` (string, optional) - End date of the period of dispense issue date. Format DATE '2017-02-19'.
+    + `dispense_valid_to_start`: `2017-03-26` (string, optional) - Start date of the period of dispense expiry date. Format DATE '2017-03-26'.
+    + `dispense_valid_to_end`: `2017-03-30` (string, optional) - End date of the period of dispense expiry date. Format DATE '2017-03-30'.
 
 + Request (application/json)
 
@@ -3388,7 +3533,7 @@ Use this method to reject previously created and signed Medication request.
 
 **Important**
 
-Invoke Get Medication request by ID to obtain previously created medication request. In order to reject medication request `reject_reason (optional)` and `reject_reason_code (required)` should be added.
+Invoke Get Medication request by ID to obtain previously created medication request. In order to reject medication request `reject_reason_code` and `reject_reason` (`optional`, but required for `reject_reason_code` = `OTHER`) should be added.
 
 **Note!** that medication request with intent *plan* and *order* has different structure.
 
@@ -3415,7 +3560,46 @@ Look at [**Dummy Reject Medication Request**](https://uaehealthapi.docs.apiary.i
     + Attributes (`Response__Process_OK`)
         + meta (Response__Meta)
         + data (object)
-            + include `Medication_request_Public_Response_with_Medical_Program_min`
+            + include `Medication_request_reject_Public_Response_with_Medical_Program_min`
+            + `rejected_at`: `2017-04-20T19:14:13Z` (string, required, nullable) - Reject date - ISO 8601 date and time in UTC timezone.
+            + `rejected_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required, nullable) - Rejected user identifier
+            + `reject_reason`: `Помилка призначення. Несумісні препарати.` (string, optional, nullable) - Medication request reject reason
+            + `reject_reason_code`: `INCORRECT_DOSAGE` (string, required, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
+
+### Reject Medication Request by Pharmacy User [PATCH /api/pharmacy/medication_requests/{id}/actions/reject]
+
+Use this method to reject existing active Medication request.
+
+**Important**
+
+Invoke Get Medication Request by ID by Pharmacy User to obtain previously created medication request. In order to reject medication request `reject_reason_code` and `reject_reason` (`optional`, but required for `reject_reason_code` = `OTHER`) should be added.
+
+**Note!** that medication request with intent *plan* and *order* has different structure.
+
+* *Medical program* is required for *order*
+* *Medical program* is absent in *plan*
+
+Look at [**Dummy Reject Medication Request by Pharmacy User**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-medication-request/dummy-reject-medication-request-by-pharmacy-user) for more details.
+
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+
+    + Attributes (object)
+        + `signed_medication_reject`: `MIIWmAYJKoZIhvcNAQcCoIIWiTCCFoUCAQExCzAJBgUrDgMCGgUAMIISuwYJKoZIhvcNAQcBoIISrASCEqh7XHJ0ZjFcYW5zaVxhbnNpY3BnMTI1Mlxjb2NvYXJ0ZjE1MDRcY29jb2FzdWJydGY4MTANCntcZm9udHRibFxmMFxmc3dpc3NcZmNoYXJzZXQwIEhlbHZldGljYTt9DQp7XGNvbG9ydGJsO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1NTtccmVkNzBcZ3JlZW41M1xibHVlOTY7XHJlZDI0OVxncmVlbjI0OVxibHVlMjUxO30NCntcKlxleHBhbmRlZGNvbG9ydGJsOztcY3NzcmdiXGMzNDUxMFxjMjc4NDNcYzQ1MDk4O1xjc3NyZ2JcYzk4MDM5XGM5ODAzOVxjOTg4MjQ7fQ0KXG1hcmdsMTQ0MFxtYXJncjE0NDBcdmlld3cxMDgwMFx2aWV3aDg0MDBcdmlld2tpbmQwDQpcZGVmdGFiNzIwDQpccGFyZFxwYXJkZWZ0YWI3MjBccGFydGlnaHRlbmZhY3RvcjANCg0KXGYwXGZzMjggXGNmMiBcY2IzIFxleHBuZDBcZXhwbmR0dzBca2VybmluZzANClx7XA0KICAgImlkIjoiYjA3NWYxNDgiLFwNCiAgICJzdGFydF9kYXRlIjoiMjAxNy0wMy0wMlQxMDo0NToxNi4wMDBaIixcDQogICAiZW5kX2RhdGUiOiIyMDE3LTAzLTAyVDEwOjQ1OjE2LjAwMFoiLFwNCiAgICJwZXJzb24iOlx7XA0KICAgICAgImZpcnN0X25hbWUiOiJcdWMwXHUxMDU1IFx1MTA3NyBcdTEwOTAgXHUxMDg4IFx1MTA4NiAiLFwNCiAgICAgICJsYXN0X25hbWUiOiJcdWMwXHUxMDMwIFx1MTA3NCBcdTEwNzIgXHUxMDg1IFx1MTA4NiBcdTEwNzQgIixcDQogICAgICAic2blic Vjb25kX25hbWUiOiJcdWMwXHUxMDUyIFx1MTA4MCBcdTEwODIgXHUxMDg2IFx1MTA4MyBcdTEwNzIgXHUxMDgxIFx1MTA4NiBcdTEwNzQgXHUxMDgwIFx1MTA5NSAiLFwNCiAgICAgICJiaXJ0aF9kYXRlIjoiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIixcDQogICAgICAiYmlydGhfcGxhY2UiOiJcdWMwXHUxMDQyIFx1MTExMCBcdTEwODUgXHUxMDg1IFx1MTA4MCBcdTEwOTQgXHUxMTAzICwgXHUxMDU5IFx1MTA4MiBcdTEwODggXHUxMDcyIFx1MTExMSBcdTEwODUgXHUxMDcyICIsXA0KICAgICAgImdlbmRlciI6Ik1BTEUiLFwNCiAgICAgICJlbWFpbCI6ImVtYWlsQGV4YW1wbGUuY29tIixcDQogICAgICAidGF4X2lkIjoiMzEyNjUwOTgxNiIsXA0KICAgICAgIm5hdGlvbmFsX2lkIjoiQ0M3MTUwOTg1MjQzIixcDQogICAgICAic2VjcmV0Ijoic2VjcmV0IixcDQogICAgICAiZG9jdW1lbnRzIjpbXA0KICAgICAgICAgXHtcDQogICAgICAgICAgICAidHlwZSI6IlBBU1NQT1JUIixcDQogICAgICAgICAgICAibnVtYmVyIjoiMTIwNTE4IixcDQogICAgICAgICAgICAiaXNzdWVfZGF0ZSI6IjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIsXA0KICAgICAgICAgICAgImV4cGlyeV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAiaXNzdWVkX2J5IjoiRE1TVSJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImFkZHJlc3NlcyI6W1wNCiAgICAgICAgIFx7XA0KICAgICAgICAgICAgInR5cGUiOiJSRVNJREVOQ0UiLFwNCiAgICAgICAgICAgICJjb3VudHJ5IjoiVUEiLFwNCiAgICAgICAgICAgICJhcmVhIjoiXHVjMFx1MTA0NiBcdTEwODAgXHUxMDkwIFx1MTA4NiBcdTEwODQgXHUxMDgwIFx1MTA4OCBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAicmVnaW9uIjoiXHVjMFx1MTA0MSBcdTEwNzcgXHUxMDg4IFx1MTA3NiBcdTEwODAgXHUxMDk1IFx1MTExMCBcdTEwNzQgXHUxMDg5IFx1MTEwMCBcdTEwODIgXHUxMDgwIFx1MTA4MSAiLFwNCiAgICAgICAgICAgICJjaXR5IjoiXHVjMFx1MTA1MCBcdTEwODAgXHUxMTExIFx1MTA3NCAiLFwNCiAgICAgICAgICAgICJjaXR5X3R5cGUiOiJDSVRZIixcDQogICAgICAgICAgICAic3RyZWV0IjoiXHVjMFx1MTA3NCBcdTEwOTEgXHUxMDgzIC4gXHUxMDUzIFx1MTExMCBcdTEwNzggXHUxMDgwIFx1MTA4NSBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAiYnVpbGRpbmciOiIxNSIsXA0KICAgICAgICAgICAgImFwYXJ0bWVudCI6IjIzIixcDQogICAgICAgICAgICAiemlwIjoiMDIwOTAiXA0KICAgICAgICAgXH1cDQogICAgICBdLFwNCiAgICAgICJwaG9uZXMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiTU9CSUxFIixcDQogICAgICAgICAgICAibnVtYmVyIjoiKzM4MDUwMzQxMDg3MCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiU01TIixcDQogICAgICAgICAgICAicGhvbmVfbnVtYmVyIjoiKzM4MDUwODg4NzcwMCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImVtZXJnZW5jeV9jb250YWN0Ijpce1wNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIixcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgImNvbmZpZGFudF9wZXJzb24iOlx7XA0KICAgICAgICAgInJlbGF0aW9uX3R5cGUiOiJ0cnVzdGVlIixcDQogICAgICAgICAiZmlyc3RfbmFtZSI6Ilx1YzBcdTEwNTUgXHUxMDc3IFx1MTA5MCBcdTEwODggXHUxMDg2ICIsXA0KICAgICAgICAgImxhc3RfbmFtZSI6Ilx1YzBcdTEwMzAgXHUxMDc0IFx1MTA3MiBcdTEwODUgXHUxMDg2IFx1MTA3NCAiLFwNCiAgICAgICAgICJzZWNvbmRfbmFtZSI6Ilx1YzBcdTEwNTIgXHUxMDgwIFx1MTA4MiBcdTEwODYgXHUxMDgzIFx1MTA3MiBcdTEwODEgXHUxMDg2IFx1MTA3NCBcdTEwODAgXHUxMDk1ICIsXA0KICAgICAgICAgImJpcnRoX2RhdGUiOiIxOTkxLTA4LTE5VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICJiaXJ0aF9wbGFjZSI6Ilx1YzBcdTEwNDIgXHUxMTEwIFx1MTA4NSBcdTEwODUgXHUxMDgwIFx1MTA5NCBcdTExMDMgLCBcdTEwNTkgXHUxMDgyIFx1MTA4OCBcdTEwNzIgXHUxMTExIFx1MTA4NSBcdTEwNzIgIixcDQogICAgICAgICAiZ2VuZGVyIjoiTUFMRSIsXA0KICAgICAgICAgInRheF9pZCI6IjMxMjY1MDk4MTYiLFwNCiAgICAgICAgICJkb2N1bWVudHMiOltcDQogICAgICAgICAgICBce1wNCiAgICAgICAgICAgICAgICJ0eXBlIjoiUEFTU1BPUlQiLFwNCiAgICAgICAgICAgICAgICJudW1iZXIiOiIxMjA1MTgiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAgICAiZXhwaXJ5X2RhdGUiOiIyMDE1LTA0LTA3VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZWRfYnkiOiJETVNVIlwNCiAgICAgICAgICAgIFx9XA0KICAgICAgICAgXSxcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgInJlbmV3YWxfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicGF0aWVudF9zaWduZWQiOnRydWUsXA0KICAgICAgImRpc2Nsb3N1cmVfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicHJvY2Vzc19kYXRhX2NvbnNlbnQiOnRydWVcDQogICBcfSxcDQogICAiZW1wbG95ZWUiOlx7XA0KICAgICAgImlkIjoiZDI5MGYxZWUtNmM1NC00YjAxLTkwZTYtZDcwMTc0OGYwODUxIixcDQogICAgICAidGl0bGUiOiJcdWMwXHUxMDgzIFx1MTExMCBcdTEwODIgXHUxMDcyIFx1MTA4OCAiLFwNCiAgICAgICJwYXJ0eSI6XHtcDQogICAgICAgICAiaWQiOiJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLFwNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIlwNCiAgICAgIFx9XA0KICAgXH0sXA0KICAgIm1zcCI6XHtcDQogICAgICAiaWQiOiJkMjkwZjFlZSIsXA0KICAgICAgIm5hbWUiOiJcdWMwXHUxMDUwIFx1MTA4MyBcdTExMTAgXHUxMDg1IFx1MTExMCBcdTEwODIgXHUxMDcyICBcdTEwNDEgXHUxMDg2IFx1MTA4OCBcdTEwODAgXHUxMDg5ICIsXA0KICAgICAgInNob3J0X05hbWUiOiJcdWMwXHUxMDQxIFx1MTA4NiBcdTEwODggXHUxMDgwIFx1MTA4OSAiLFwNCiAgICAgICJ0eXBlIjoiXHVjMFx1MTA2MCBcdTEwNTQgXHUxMDU1ICIsXA0KICAgICAgImVkcnBvdSI6IjU0MzIzNDU0MzIiXA0KICAgXH0sXA0KICAgInNjb3BlIjoiZmFtaWx5IGRvY3RvciIsXA0KICAgInBsYWludGV4dF9jb250ZW50IjoiRGVjbGFyYXRpb24gY29udGVudCJcDQpcfX2gggIuMIICKjCCAZOgAwIBAgIJANj0sC/v0hWYMA0GCSqGSIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBLQ1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0NTczM1oXDTE3MDQyNjE0NTczM1owGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMuqrxE/0txT+ZVRKU1O85a8eaaUAOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0GA1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+CaflnzBJBgNVHSMEQjBAgBTET2SwL5UfUMKDyhuBGCA+Cafln6EdpBswGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY9LAv79IVmDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IVS28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjnw87JzkAy5KLDTiotQl8eknkd1bR3nIWINemck3GeGYkR8giG3gkNxz6ky1+63ZcoJkEiS46aneDhmS6BdH0V2G/3delos8+ZMYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQDFA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTcwMzI4MTE1NDEwWjAjBgkqhkiG9w0BCQQxFgQU5NSvVRVYHz5tG1GW8gXrjHSnLj8wUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEgYCdqnN8gGXw9OUmtxOvQQgHK5Ni/4/2WQWj7rxERh5AI6rhXs/hh3DNS5Z5mN6wO8z47SQuedbsMQ5hf6+9BbKhXD7WKeU+DtGyfa1ner5/ubz6BeVvuT98D4PrzHlqNSpe/7AirrA70QVO9kPoFSmGtBG6JjaqaCZBYbvF9InPRw==` (string, required)
+        + `signed_content_encoding`: base64 (string, required)
+
++ Response 200 (application/json)
+    + Attributes (`Response__Process_OK`)
+        + meta (Response__Meta)
+        + data (object)
+            + include `Medication_request_Public_Response_with_Medical_Program_min_for_Pharmacist_block_reason_required`
             + `rejected_at`: `2017-04-20T19:14:13Z` (string, required, nullable) - Reject date - ISO 8601 date and time in UTC timezone.
             + `rejected_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required, nullable) - Rejected user identifier
             + `reject_reason`: `Помилка призначення. Несумісні препарати.` (string, optional, nullable) - Medication request reject reason
@@ -3637,7 +3821,7 @@ For pharmacists please use [**Block Medication Request by Pharmacy User**](https
     + Attributes (`Response_OK`)
         + meta (Response__Meta)
         + data (object)
-            + include `Medication_request_Public_Response_with_Medical_Program_min`
+            + include `Medication_request_Public_Response_with_Medical_Program_min_block_reason_required`
 
 ### Unblock Medication Request [PATCH /api/medication_requests/{id}/actions/unblock]
 
@@ -3662,7 +3846,7 @@ Use this method to unblock previously blocked Medication request for dispense. I
     + Attributes (`Response_OK`)
         + meta (Response__Meta)
         + data (object)
-            + include `Medication_request_Public_Response_with_Medical_Program_min`
+            + include `Medication_request_Public_Response_with_Medical_Program_min_block_reason_required`
 
 ### Block Medication Request by Pharmacy User [PATCH /api/pharmacy/medication_requests/{id}/actions/block]
 
@@ -3689,7 +3873,7 @@ For employees with other types please use [**Block Medication Request**](https:/
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + meta (Response__Meta)
-        + data (`Medication_request_Public_Response_with_Medical_Program_min_for_Pharmacist`)
+        + data (`Medication_request_Public_Response_with_Medical_Program_min_for_Pharmacist_block_reason_required`)
 
 ## Medication Dispense [/api/medication_dispenses]
 
@@ -4616,6 +4800,9 @@ Using this API could be created both reimbursement and capitation contracts.
 
 This web service allows to initialize contract request creation by generating links for contract request documents upload.
 
++ Parameters
+    + `contract_type`: `reimbursement`(string, optional) - type of contract {DICTIONARY CONTRACT_TYPE}
+
 + Request (application/json)
 
     + Headers
@@ -5152,7 +5339,7 @@ Get Contract Request Details and Get Contract Request Printout Content and sign 
     + Attributes (`Response__Process_OK`)
         + data (object)
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract request identifier
-            + `printout_content`: `Contract request content` (string, required) - HTML document for contract request
+            + `printout_content`: `Contract request content` (string, required) - HTML document for contract request, is shown contract request in status 'PENDING_NHS_SIGN'
 
 
 
@@ -5535,12 +5722,14 @@ This web service returns forbidden group details filtered by ID with active code
 ## Group Public. Groups of Diagnoses
 There are public methods presented to work with Groups of Diagnoses data. 
 
-### Get Groups of Diagnoses list [GET /api/diagnoses_groups{?name,code,page,page_size}]
+### Get Groups of Diagnoses list [GET /api/diagnoses_groups{?diagnoses_group_name,diagnoses_group_code,diagnosis_name,diagnosis_code,page,page_size}]
 This web service returns a catalog of all active Groups of Diagnoses in eHealth.
 
 + Parameters
-    + `name`: `Some name` (string, optional) - Group of Diagnoses name
-    + `code`: `H00` (string, optional) - Group of Diagnoses code
+    + `diagnoses_group_name`: `Some name` (string, optional) - Group of Diagnoses name
+    + `diagnoses_group_code`: `H00` (string, optional) - Group of Diagnoses code
+    + `diagnosis_name`: `Some name` (string, optional) - Diagnosis name
+    + `diagnosis_code`: `G30.9` (string, optional) - Diagnosis code
     + `page`: 2 (number, optional) - Page number
     + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
@@ -6275,6 +6464,28 @@ This group of endpoints is implemented for NHS Admin to manipulate with reimburs
         + data (object)
             + include `Medication_request_Reject_Response`
 
+### Dummy Reject medication request by Pharmacy user [PATCH /dummy/pharmacy/medication_requests/{id}/actions/reject]
+
+
++ Parameters
+   + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+   
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            msp_drfo: 2534157686
+            
+    + Attributes (`Medication_request_Reject`, required)
+    
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + meta (Response__Meta)
+        + data (object)
+            + include `Medication_request_Public_Response_with_Medical_Program_min_for_Pharmacist_block_reason_required`
+
 ## Dummy for medication dispense [/dummy/medication_dispenses]
 
 ### Process medication dispense [PATCH /dummy/medication_dispenses/{id}/actions/process]
@@ -6332,7 +6543,7 @@ This group of endpoints is implemented for NHS Admin to manipulate with reimburs
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
 
     + Attributes (object)
-        + `employee_request` (Employee_Update_v2)
+        + `employee_request` (Employee_Create_v2)
 
 
 + Response 200 (application/json)
@@ -7205,7 +7416,7 @@ Only legal entity owner can request new client secret for his own legal entity
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
 + birth_date: 1991-08-19 (string, required)
-+ verification_status: NOT_VERIFIED (string, optional) - Search declarations by person verification status(according to `PERSON_VERIFICATION_STATUSES` dictionary)
++ `verification_status`: `NOT_VERIFIED` (string, required) - Search declarations by person verification status(according to `PERSON_VERIFICATION_STATUSES` dictionary)
 
 ### `Person_Minimal_Declaration_Request`
 + first_name: Петро (string, optional)
@@ -7247,7 +7458,7 @@ Only legal entity owner can request new client secret for his own legal entity
 + phones (array[`Phone`], optional)
 + birth_settlement: Вінниця (string, required)
 + birth_country: Україна (string, required) - країна народження
-+ verification_status: NOT_VERIFIED (string, optional)
++ `verification_status`: `NOT_VERIFIED` (string, required)
 + `emergency_contact` (Emergency_Contact, required)
 + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc
 
@@ -7380,6 +7591,23 @@ Only legal entity owner can request new client secret for his own legal entity
     - terminated
 + inserted_at: `2021-11-09T00:00:00.000Z` (string, required) - ISO Datetime.
 + updated_at: `2021-11-09T00:00:00.000Z` (string, required) - ISO Datetime.
+
+### `Person_Verification_Details`
++ `verification_status`: `NOT_VERIFIED` (string, required) - status of person verification according to `PERSON_VERIFICATION_STATUSES` dictionary
++ `details` (object)
+    + `drfo` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRFO verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current DRFO verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+        + `result`: `12` (string, optional) - result of person DRFO synchronization according to `DRFO_RESULT` dictionary
+    + `dracs_death` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRACS death verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current DRACS death verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+        + `verification_comment`: `Необхідно повторно підтвердити факт смерті у пацієнта` (string, optional) - DRACS death verification status description set by NHS or Doctor
+    + `nhs` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person manual NHS verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current manual NHS verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+        + `verification_comment`: `Бракує даних паспорту пацієнта та його ІПН` (string, optional) - verification status description set by NHS in case NOT_VERIFIED
+
 
 ## `Merge_Candidates`
 ### `Merge_Candidate`
@@ -7886,8 +8114,22 @@ status: `APPROVED` (string, required)
 + phones (array[`Phone`], optional)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
++ `verification_status`: `NOT_VERIFIED` (string, required) - status of party verification according to `PARTY_VERIFICATION_STATUSES` dictionary
 + declaration_limit: `0` (number) - TO BE DEPRECATED, always zero! maximum number of declaration with a doctor.
 + declaration_count: `0` (number) - TO BE DEPRECATED, always zero! current number of declaration with a doctor.
+
+### `Party_Create_v2`
++ include `Party_Short`
++ no_tax_id: false (boolean, optional)
++ tax_id: 3126509816 (string, required)
++ email: email@example.com (string, required)
++ birth_date: `1991-08-19` (string, required)
++ gender: MALE(string, required) - `Dictionary GENDER`
++ documents (array[`PartyDocument`], optional)
++ phones (array[`Phone`], optional)
++ working_experience: 10 (number, optional) - full years of working experience
++ about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
+
 
 ### `Party_Update`
 + include `Party_Short`
@@ -8024,7 +8266,7 @@ status: `APPROVED` (string, required)
 + `is_active`: `true` (boolean, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (`Party_Response_old`)
-+ doctor (DoctorNew, optional) - `Field's name depends of employee type name: Doctor -> doctor, Specialist -> specialist, Assistant -> assistant, Pharmacist -> pharmacist, MED_ADMIN -> med_admin. Otherwise, this field is absent`
++ doctor (DoctorNew, optional) - `Field's name depends on employee type name.
 
 ### `Employee_Update`
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
@@ -8037,11 +8279,20 @@ status: `APPROVED` (string, required)
 
 ### `Employee_Update_v2`
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
-+ position: лікар (string, required)
++ position: P164 (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + status: 'NEW' (string, required) 
 + party (Party_Update_v2)
++ doctor (DoctorNew, optional)
+
+### `Employee_Create_v2`
++ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
++ position: P164 (string, required)
++ start_date: `2017-03-02` (string, required)
++ status: NEW (string, required)
++ employee_type: DOCTOR (string, required),
++ party (Party_Create_v2)
 + doctor (DoctorNew, optional)
 
 ### `Employee_Request`
@@ -8082,6 +8333,7 @@ status: `APPROVED` (string, required)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + no_tax_id: true (boolean, optional) - true if employee doesn't have tax_id and false otherwise
     + include `Party_Short`
+    + `verification_status`: `NOT_VERIFIED` (string, required) - status of party verification according to `PARTY_VERIFICATION_STATUSES` dictionary
     + declaration_limit: `0` (number) - TO BE DEPRECATED, always zero! maximum number of declaration with a doctor.
     + declaration_count: `0` (number) - TO BE DEPRECATED, always zero! current number of declaration with a doctor.
 + division (`Division_Short`)
@@ -8101,6 +8353,19 @@ status: `APPROVED` (string, required)
 + division_id: `4cffa825-8b5b-4cba-9a38-fb57733e14b2` (string, optional) - division identifier
 + `legal_entity_id`: `be3a154c-3e07-496d-9680-f22c443f5d0c` (string, required) - legal entity identifier
 + doctor (DoctorNew)
+
+### `Party_Verification_Details`
++ `verification_status`: `NOT_VERIFIED` (string, required) - status of party verification according to `PARTY_VERIFICATION_STATUSES` dictionary
++ details (object)
+    + drfo (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of party DRFO verification according to `PARTY_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current DRFO verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
+        + `result`: `12` (string, optional) - result of party DRFO synchronization according to `DRFO_RESULT` dictionary
+    + dracs_death (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of party DRACS death verification according to `PARTY_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current DRACS death verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
+        + `verification_comment`: `Необхідно повторно підтвердити факт смерті у співробітника` (string, optional) - DRACS death verification status description set by OWNER in case NOT_VERIFIED
+
 
 ## `Legal_Entities`
 
@@ -8922,6 +9187,7 @@ status: `APPROVED` (string, required)
 + science_degree (ScienceDegree, optional)
 + working_experience: 10 (number, optional)
 + about_myself: `Закінчив всі можливі курси` (string, optional)
++ `verification_status`: `NOT_VERIFIED` (string, optional) - status of party verification according to `PARTY_VERIFICATION_STATUSES` dictionary
 
 
 ### EmployeeMap
@@ -9017,15 +9283,15 @@ status: `APPROVED` (string, required)
 + institution_name: Академія Богомольця (string, required)
 + diploma_number: DD123543 (string, required)
 + speciality: Педіатр (string, required)
-+ issued_date: 2017-02-28 (string, optional)
++ issued_date: `2017-02-28` (string, optional)
 
 ### Qualification
 + type: SPECIALIZATION (string, required) - `Dictionary QUALIFICATION_TYPE`
 + institution_name: Академія Богомольця (string, required)
 + speciality: Педіатр (string, required)
-+ issued_date: 2017-02-28 (string, required) - дата отримання сертифікату
-+ certificate_number: 2017-02-28 (string, required)
-+ valid_to: 2017-02-28 (string, optional) - дійсний до
++ issued_date: `2017-02-28` (string, required) - дата отримання сертифікату
++ certificate_number: `2017-02-28` (string, required)
++ valid_to: `2017-02-28` (string, optional) - дійсний до
 + additional_info: додаткова інофрмація (string, optional) - додаткова інформація
 
 ### Speciality
@@ -9043,8 +9309,8 @@ status: `APPROVED` (string, required)
 + level: FIRST (string, required) - `Dictionary SPECIALITY_LEVEL`
 + `qualification_type`: AWARDING (string, required) - `Dictionary SPEC_QUALIFICATION_TYPE`
 + attestation_name: Академія Богомольця (string, required) - орган що видав
-+ attestation_date: 2017-02-28 (string, required) - дата отримання
-+ valid_to_date: 2020-02-28 (string, required) - дата дії до
++ attestation_date: `2017-02-28` (string, required) - дата отримання
++ valid_to_date: `2020-02-28` (string, required) - дата дії до
 + certificate_number: AB/21331 (string, required)
 
 ### Affordance
@@ -9056,6 +9322,27 @@ status: `APPROVED` (string, required)
 + name: DOCUMENT_TYPE (string, required) - Unique dictionary name
 + values (object)
     + key: value (string, optional) - List of dictionary entries as Key:Value pairs
++ labels (array)
+    - SYSTEM
+    - EXTERNAL
++ is_active: true (boolean, required)
+
+### `Dictionary_value`
++ code: `b1142` (string, required) - code of the dictionary value
++ description: `Орієнтація в особі` (string, required) - description of the code
++ is_active: true (boolean, required) - status of the dictionary value
++ child_values(array) - subordinate values of the dictionary
+
+### `Dictionary_v2`
++ name: `eHealth/ICF/classifiers` (string, required) - Unique dictionary name
++ description: `Класифікатори МКФ` (string, required) - dictionary description for a user
++ values (array, required)
+    + (Dictionary_value)
+        + child_values (array)
+            + (object)
+                + include `Dictionary_value`
+                + code: `b11429` (string, required) - code of the dictionary value
+                + description: `Орієнтація в особі неуточнена` (string, required) - description of the code
 + labels (array)
     - SYSTEM
     - EXTERNAL
@@ -9552,9 +9839,24 @@ status: `APPROVED` (string, required)
 + `medication_qty`: 10.34 (number, required) - Medication quantity issued by the doctor
 
 ### `block_legal_entity_object`
++ `block_legal_entity` (object, required)
+    + `id`: `UUID` (string, required, nullable)
+    + `type`: `NHS` (string, required, nullable)
+
+### `reject_legal_entity_object`
++ `reject_legal_entity` (object, required)
+    + `id`: `UUID` (string, required, nullable)
+    + `type`: `PHARMACY` (string, required, nullable)
+
+### `block_legal_entity_object_not_required`
 + `block_legal_entity` (object, optional)
     + `id`: `UUID` (string, required, nullable)
     + `type`: `NHS` (string, required, nullable)
+
+### `reject_legal_entity_object_not_required`
++ `reject_legal_entity` (object, optional)
+    + `id`: `UUID` (string, required, nullable)
+    + `type`: `PHARMACY` (string, required, nullable)
 
 ### `MR_MRR_additional_fields`
 + priority: routine (enum, optional) - `Dictionary MEDICATION_REQUEST_PRIORITY`
@@ -9865,13 +10167,57 @@ status: `APPROVED` (string, required)
     + (Dosage_Instruction)
 + include `MR_MRR_additional_fields`
 
-### `Medication_request_Request_Public_Response`
+### `Medication_request_Request_Response`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request request identifier
 + `status`: `NEW` (string, required) - Medication Request status. Find available **statuses** on State Charts wiki page
 + `request_number` : `0000-243P-1X53-EH38` (string) - Public medication request human readable number
 + `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
 + `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
 + `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `dispense_valid_from`: `2017-08-17` (string) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
++ `legal_entity` (`Legal_Entity_Short`, required)
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `division` (`Division_Details`, required)
++ `employee` (`Employee_Minimal`, required)
++ `person` (`Person_Medication_Request`)
++ `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
++ `medical_program` (`Medical_Program_Response`, required)
++ intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT
+    - plan - The request represents an intention to ensure something occurs without providing an authorization for others to act.
+    - order - The request represents a request/demand and authorization for action.
++ category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
+    - community - Includes requests for medications to be administered or consumed by the patient in their home
++ based_on (array,optional, fixed-type)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `care_plan` (string)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `activity` (string)
++ `context`(Reference, required, fixed-type)
+    + identifier (Identifier)
+        + type (Codeable_Concept, required)
+            + coding (array, fixed-type, required)
+                + (Coding)
+                    + code: `encounter` (string, required)
++ `dosage_instruction` (array, required, fixed-type)
+    + (Dosage_Instruction)
++ include `MR_MRR_additional_fields`
+
+### `Medication_request_Request_Public_Response`
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request request identifier
++ `status`: `NEW` (string, required) - Medication Request status. Find available **statuses** on State Charts wiki page
++ `request_number` : `0000-243P-1X53-EH38` (string) - Public medication request human readable number
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period. Format *DATE '2017-10-07'*
 + `dispense_valid_from`: `2017-08-17` (string) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
 + `dispense_valid_to`: `2017-09-16` (string) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
 + `legal_entity` (`Legal_Entity_Short`, required)
@@ -10197,9 +10543,9 @@ status: `APPROVED` (string, required)
     - REJECTED
     - EXPIRED
 + `request_number` : `0000-243P-1X53-EH38` (string) - Public medication request human readable number
-+ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
-+ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
-+ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period. Format *DATE '2017-10-07'*
 + `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
 + `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
 + `legal_entity` (`Legal_Entity_Short`, required)
@@ -10245,6 +10591,118 @@ status: `APPROVED` (string, required)
 + include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 
+### `Medication_request_reject_Public_Response_with_Medical_Program_min`
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
++ `status`: `ACTIVE` (enum[string], required) - Medication Request status. Find available **statuses** on State Charts wiki page
+    - ACTIVE
+    - COMPLETED
+    - REJECTED
+    - EXPIRED
++ `request_number` : `0000-243P-1X53-EH38` (string) - Public medication request human readable number
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period. Format *DATE '2017-10-07'*
++ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
++ `legal_entity` (`Legal_Entity_Short`, required)
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `division` (`Division_Details`, required)
++ `employee` (`Employee_Minimal`, required)
++ `person` (`Person_Medication_Request`, required)
++ `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
++ `medical_program` (`Medical_Program_Response_min`, required)
++ intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT
+    - plan - The request represents an intention to ensure something occurs without providing an authorization for others to act.
+    - order - The request represents a request/demand and authorization for action.
++ category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
+    - community - Includes requests for medications to be administered or consumed by the patient in their home
++ based_on (array,optional, fixed-type)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `care_plan` (string)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `activity` (string)
++ `context`(Reference, required, fixed-type)
+    + identifier (Identifier)
+        + type (Codeable_Concept)
+            + coding (array, fixed-type)
+                + (Coding)
+                    + code: `encounter` (string)
++ `dosage_instruction` (array, required, fixed-type)
+    + (Dosage_Instruction)
++ `rejected_at`: `2022-01-28` (string, optional, nullable) - Reject date - ISO 8601 date and time in UTC timezone.
++ `rejected_by`: `e8e5a969-74d8-4620-8496-f5e41f2e8312` (string, optional, nullable) - Rejected user identifier
++ `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
++ `reject_reason_code`: `PATIENT_REJECT` (string, optional, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
++ is_blocked: false (boolean, required) - Whether medication request is blocked or not
++ `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
++ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ include `block_legal_entity_object_not_required`
++ include `MR_MRR_additional_fields`
+
+### `Medication_request_Public_Response_with_Medical_Program_min_block_reason_required`
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
++ `status`: `ACTIVE` (enum[string], required) - Medication Request status. Find available **statuses** on State Charts wiki page
+    - ACTIVE
+    - COMPLETED
+    - REJECTED
+    - EXPIRED
++ `request_number` : `0000-243P-1X53-EH38` (string) - Public medication request human readable number
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period. Format *DATE '2017-10-07'*
++ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
++ `legal_entity` (`Legal_Entity_Short`, required)
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `division` (`Division_Details`, required)
++ `employee` (`Employee_Minimal`, required)
++ `person` (`Person_Medication_Request`, required)
++ `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
++ `medical_program` (`Medical_Program_Response_min`, required)
++ intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT
+    - plan - The request represents an intention to ensure something occurs without providing an authorization for others to act.
+    - order - The request represents a request/demand and authorization for action.
++ category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
+    - community - Includes requests for medications to be administered or consumed by the patient in their home
++ based_on (array,optional, fixed-type)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `care_plan` (string)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `activity` (string)
++ `context`(Reference, required, fixed-type)
+    + identifier (Identifier)
+        + type (Codeable_Concept)
+            + coding (array, fixed-type)
+                + (Coding)
+                    + code: `encounter` (string)
++ `dosage_instruction` (array, required, fixed-type)
+    + (Dosage_Instruction)
++ `rejected_at`: `2022-01-28` (string, optional, nullable) - Reject date - ISO 8601 date and time in UTC timezone.
++ `rejected_by`: `e8e5a969-74d8-4620-8496-f5e41f2e8312` (string, optional, nullable) - Rejected user identifier
++ `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
++ `reject_reason_code`: `PATIENT_REJECT` (string, optional, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
++ is_blocked: false (boolean, required) - Whether medication request is blocked or not
++ `block_reason`: `Підозра на фрод` (string, required) - Block or unblock reason description
++ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ include `block_legal_entity_object`
++ include `MR_MRR_additional_fields`
+
 ### `Medication_request_Public_Response_with_Medical_Program_min_for_Pharmacist`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
 + `status`: `ACTIVE` (enum[string], required) - Medication Request status. Find available **statuses** on State Charts wiki page
@@ -10253,9 +10711,9 @@ status: `APPROVED` (string, required)
     - REJECTED
     - EXPIRED
 + `request_number` : `0000-243P-1X53-EH38` (string) - Public medication request human readable number
-+ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
-+ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
-+ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period. Format *DATE '2017-10-07'*
 + `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
 + `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
 + `person` (`Person_Medication_Request_for_Pharmacist`, required)
@@ -10292,6 +10750,56 @@ status: `APPROVED` (string, required)
 + is_blocked: false (boolean, required) - Whether medication request is blocked or not
 + `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ include `block_legal_entity_object`
++ include `MR_MRR_additional_fields`
+
+### `Medication_request_Public_Response_with_Medical_Program_min_for_Pharmacist_block_reason_required`
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
++ `status`: `ACTIVE` (enum[string], required) - Medication Request status. Find available **statuses** on State Charts wiki page
+    - ACTIVE
+    - COMPLETED
+    - REJECTED
+    - EXPIRED
++ `request_number` : `0000-243P-1X53-EH38` (string) - Public medication request human readable number
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period. Format *DATE '2017-10-07'*
++ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
++ `person` (`Person_Medication_Request_for_Pharmacist`, required)
++ `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
++ `medical_program` (`Medical_Program_Response_min`, required)
++ intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT
+    - plan - The request represents an intention to ensure something occurs without providing an authorization for others to act.
+    - order - The request represents a request/demand and authorization for action.
++ category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
+    - community - Includes requests for medications to be administered or consumed by the patient in their home
++ based_on (array,optional, fixed-type)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `care_plan` (string)
+    + (Reference)
+        + identifier (Identifier)
+            + type (Codeable_Concept)
+                + coding (array, fixed-type)
+                    + (Coding)
+                        + code: `activity` (string)
++ `context`(Reference, required, fixed-type)
+    + identifier (Identifier)
+        + type (Codeable_Concept)
+            + coding (array, fixed-type)
+                + (Coding)
+                    + code: `encounter` (string)
++ `dosage_instruction` (array, required, fixed-type)
+    + (Dosage_Instruction)
++ `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
++ `reject_reason_code`: `PATIENT_REJECT` (string, required, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
++ is_blocked: false (boolean, required) - Whether medication request is blocked or not
++ `block_reason`: `Підозра на фрод` (string, required) - Block or unblock reason description
++ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
 + include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 
@@ -10412,6 +10920,9 @@ status: `APPROVED` (string, required)
 + `rejected_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - Rejected user identifier
 
 ### `Medication_request_Reject`
++ `block_legal_entity` (object, optional)
+    + `id`: `UUID` (string, required, nullable)
+    + `type`: `NHS` (string, required, nullable)
 + category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
     - community - Includes requests for medications to be administered or consumed by the patient in their home
 + `created_at`: `2018-11-13` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
@@ -10450,7 +10961,6 @@ status: `APPROVED` (string, required)
 + `reject_reason`: `Помилка призначення. Несумісні препарати.` (string, optional) - Medication request reject reason
 + `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
-+ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 
 ### `Medication_request_Reject_Response`
@@ -10493,7 +11003,9 @@ status: `APPROVED` (string, required)
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
-+ include `block_legal_entity_object`
++ `block_legal_entity` (object, optional)
+    + `id`: `UUID` (string, required, nullable)
+    + `type`: `NHS` (string, required, nullable)
 + include `MR_MRR_additional_fields`
 
 ### `Medication_request_Public_Response_without_block_data`
@@ -11088,7 +11600,7 @@ status: `APPROVED` (string, required)
 + `parent_contract_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - parent contract id
 + `start_date`: `2017-04-20` (string, required) - contract start date
 + `end_date`: `2017-04-20` (string, required) - contract end date
-+ `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown only for requests in `APPROVED`, `PENDING_NHS_SIGN`, `NHS_SIGNED`, `SIGNED` statuses.
++ `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown for all statuses of contract request.
 + `previous_request_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - changed contract request id
 + `assignee_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - NHS employee which review contract request
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
@@ -11124,7 +11636,7 @@ status: `APPROVED` (string, required)
 + `parent_contract_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - parent contract id
 + `start_date`: `2017-04-20` (string, required) - contract start date
 + `end_date`: `2017-04-20` (string, required) - contract end date
-+ `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown only for requests in `APPROVED`, `PENDING_NHS_SIGN`, `NHS_SIGNED`, `SIGNED` statuses.
++ `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown for all statuses of contract request.
 + `previous_request_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - changed contract request id
 + `assignee_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - NHS employee which review contract request
 + `medical_programs` (array, required)
