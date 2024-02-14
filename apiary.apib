@@ -1,46 +1,23 @@
 FORMAT: 1A
-HOST: https://ehealth.edenlabllc.com/
+HOST: https://api.ehealth.gov.ua
 
-# eHealth API
+# eHealth MIS API
 
 Version: MA 9.5.2 v.2
 
 Environment: **PROD**
 
-> In order to get specification for PREPROD/PROD environment please proceed [here](https://ehealthmisapi1.docs.apiary.io/#)
-
-This is a API documentation for Ukrainian Health Services government institution back-end, that should provide:
+This is a **MIS-related consumers  part** of API documentation for Ukrainian Health Services government institution back-end, that should provide:
 
 * Master Patients Index (MPI)
 * Global Medical Institutions and Doctors Registries
 * Partnership Relation Management (PRM) module that describes business relations between this 3 entities.
 
-Project development is fully transparent, you can find it's source code on GitHub:
-
-* [eHealth API and issue tracker](https://github.com/edenlabllc/ehealth.api)
-* [Master Patient Index](https://github.com/edenlabllc/mpi.api)
-
-<!-- * [Reference Implementation of Hospital Information System UI](https://github.com/edenlabllc/prm.web) -->
-
 This API design in based on [Nebo #15 API Design Manifest](http://docs.apimanifest.apiary.io/).
-
-## Docs Structure
-
-This document contains both internal and public (usually `/api/..`) API specifications. If you plan to use it as outside API consumer - please refer only to sections that marked as `Public`.
-
-<!--
-## Pagination
-
-We apply cursor based pagination.
-
-## Autentification
-
-We use three-legged oAuth authentication, RFC.
--->
 
 ## Context Switching for end-users
 
-Since Doctor may have multiple work-placreates, you MUST fetch list of possible work-contexts and apply `legal_entity_id` filter on each request, where this parameter is available.
+Since Doctor may have multiple work-places, you MUST fetch list of possible work-contexts and apply `legal_entity_id` filter on each request, where this parameter is available.
 
 Thus you will make sure that end-user understand from which context entities are managed.
 
@@ -48,14 +25,15 @@ If our API returns only one work context, you are free to hide context picker.
 
 ## Submitting Issues
 
-To submit issues you should use [Issue Tracking Repo](https://github.com/edenlabllc/ehealth.api), issues in all other repositories are used to plan backlog and non-related issued will be closed.
+To submit issues you should use [Issue Tracking Repo](https://github.com/ehealth-ua/api-spec), issues in all other repositories are used to plan backlog and non-related issued will be closed.
 
 # Group Public. Medical Service Provider Integration Layer
 the below table reflects actual API endpoints for all the ehealth environments
 Env     | Host
 --------|-----
-DEV     | https://api.dev.edenlab.com.ua
-DEMO    | https://api.demo.edenlab.com.ua
+DEMO    | https://api-demo.ehealth.gov.ua
+PREPROD | https://api-preprod.ehealth.gov.ua
+PROD    | https://api.ehealth.gov.ua
 
 ##oAuth [/api/oauth]
 
@@ -96,7 +74,7 @@ Use following HOSTs for oAuth 2.0 Authentication
 
 Env     | Host
 --------|-----
-DEMO    | https://auth.demo.edenlab.com.ua
+DEMO    | https://auth.demo.ehealth.gov.ua
 PREPROD | https://auth-preprod.ehealth.gov.ua
 PROD    | https://auth.ehealth.gov.ua
 
