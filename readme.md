@@ -1,6 +1,4 @@
-# About
-This is the eHealth public API specification repo.
-TBD..
+# MIS API GENERAL
 
 # Support
 !All the support tickets related to the public API should be registered with the `kind/support` label.
