@@ -3,7 +3,7 @@ HOST: https://api.ehealth.gov.ua
 
 # GENERAL MIS API
 
-**Version: 9.8.8 v.1**
+**Version: 9.8.8 v.2**
 
 This is a **MIS-related consumers  part** of API documentation for Ukrainian Health Services government institution back-end, that should provide:
 
@@ -11,7 +11,7 @@ This is a **MIS-related consumers  part** of API documentation for Ukrainian Hea
 * Global Medical Institutions and Doctors Registries
 * Partnership Relation Management (PRM) module that describes business relations between this 3 entities.
 
-This API design in based on [Nebo #15 API Design Manifest](https://docs.apimanifest.apiary.io/).
+This API design in based on [Nebo #15 API Design Manifest](http://docs.apimanifest.apiary.io/).
 
 ## Context Switching for end-users
 
@@ -1380,15 +1380,17 @@ Method returns shortened data structure. Use [**Get Employee details**](https://
 **Scopes required:** `employee:read`
 
 + Parameters
-    + no_tax_id: true (boolean, optional) - filer employees with or w/o tax_id
+    + no_tax_id: true (boolean, optional) - filter employees with or w/o tax_id
     + tax_id: 3015492561 (string, optional)
     + party_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + edrpou: 38782323 (string, optional) - filter employees by legal_entity edrpou
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional) - filter employees by legal_entity id
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
-    + status: APPROVED (enum, optional) - filet employees by status
+    + status: APPROVED (enum, optional) - filter employees by status
         - APPROVED
-        - DISMISSED
+        - STOPPED
+        - ENTERED IN ERROR
+        - AUTODEACTIVATED
         - REORGANIZED
     + employee_type: DOCTOR (string, optional)
     + page: 2 (number, optional) - Page number.
@@ -1453,8 +1455,7 @@ Employee deactivation:
 
 2. Deactivate declarations
 
-3. Update employee parameters:
- - change status=DISMISSED and end_date=now
+3. Update employee parameters
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1465,6 +1466,10 @@ Employee deactivation:
 
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+   
+    + Attributes (object)
+        + `status`: `STOPPED` (string, required) - reasons for deactivation: STOPPED or ENTERED IN ERROR
+        + `end_date`: `2017-09-01` (string, optional) - the actual date of termination the employee in the specified position. Required for status = STOPPED
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
@@ -1472,6 +1477,7 @@ Employee deactivation:
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
             + division (Division_Short)
                 + `legal_entity` (`Legal_Entity_Short`)
+            + status: STOPPED, ENTERED IN ERROR (enum,required)
 
 ### Get Party verification details [GET /api/parties/{id}/verification]
 This method returns current party's verification status and another information about it.
@@ -1496,7 +1502,7 @@ This method returns current party's verification status and another information 
                     
 
 ### Update Party verification status [PATCH /api/parties/{id}/verification]
-Use this method to update party's verification status. Now updating of DRACS death verification status is allowed.
+Use this method to update party's verification status. Now updating of DRACS death and DRACS name change verification status is allowed.
 
 **Scopes required:** `party_verification:write`
 
@@ -1511,10 +1517,14 @@ Use this method to update party's verification status. Now updating of DRACS dea
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
 
     + Attributes (object)
-       + `dracs_death` (object)
+        + `dracs_death` (object)
            + `verification_status`: `VERIFIED` (string, required) - Party DRACS death verification status according to `PARTY_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
            + `verification_reason`: `MANUAL_COMFIRMED` (string, required) - Verification reason according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL_CONFIRMED` OR `MANUAL_NOT_CONFIRMED` are allowed.
            + `verification_comment`: `Смерть співробітника підтверджено` (string) - Verification comment
+        + `dracs_name_change` (object)
+           + `verification_status`: `VERIFIED` (string, required) - Party DRACS name change verification status according to `PARTY_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
+           + `verification_reason`: `MANUAL` (string, required) - Verification reason according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL` is allowed only.
+           + `verification_comment`: `Співробітник не замінював ПІБ` (string, required) - Verification comment
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
@@ -1698,13 +1708,14 @@ Block `merged_persons` will be deprecated from response and endpoint `Search Per
             + message: `This API method returns only exact match results, please retry with more specific search result` (string)
             
 
-### Search Person's merged persons [GET /api/persons/{id}/merged_persons]
+### Search Person's merged persons [GET /api/persons/{id}/merged_persons{?status}]
 
 This method allows to find all persons, which were merged with this person. Also this endpoint shows all the persons who enter the whole chain of merges to this person.
 This information was in response of Get `Search for a Person` before.
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + status: `MERGED` (string, optional)
 
 + Request (application/json)
 
@@ -1724,12 +1735,14 @@ This information was in response of Get `Search for a Person` before.
                 + merge_person_id: `bdadc2a7-7283-4f24-bc99-8d8d9808af80` (string, optional) - identifier of a person who is recognized as a duplicate and subsequently deactivated
                 + master_person_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - identifier of the person who as a result of the deduplication is recognized as true and subsequently left active
                 + updated_at: `2019-05-08T15:34:00Z` (string, optional)
+                + status: `MERGED` (string, optional)
             + (object)
                 + id: `a4181621-681f-4e46-b0ba-7fa4e59859ef` (string, optional) - identifier of the relation of persons who are compared during the deduplication process
                 + inserted_at: `2019-01-08T15:34:00Z` (string, optional)
                 + merge_person_id: `1a356e56-a991-4ceb-a475-3edfd9930265` (string, optional) - identifier of a person who is recognized as a duplicate and subsequently deactivated
                 + master_person_id: `bdadc2a7-7283-4f24-bc99-8d8d9808af80` (string, optional) - identifier of the person who as a result of the deduplication is recognized as true and subsequently left active
                 + updated_at: `2019-01-08T15:34:00Z` (string, optional)
+                + status: `DECLINED` (string, optional)
 
 
 + Response 404 (application/json)
@@ -2238,10 +2251,40 @@ Use this method to update person's verification status. Now updating of DRACS de
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
 
     + Attributes (object)
+        + `signed_content`: `ewogICJzdGF0dXMiOiAiQVBQUk9WRUQiLAogICJpZCI6ICJlZWViYjg2ZC01Y2JhLTQzYzktODg1Yi02NDgyZWNhZjgyNmIiLAogICJwZXJzb24iOiB7CiAgICAiaWQiOiAiMTMwMDFjNjAtNDVhMC00YjVhLWI0MjUtOTUwNWUxZGUxOGJkIiwKICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgImxhc3RfbmFtZSI6ICLQhtCy0LDQvdC+0LIiLAogICAgInNlY`
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + meta (Response__Meta)
+        + data (object)
+            + include `Person_Verification_Details`
+
+
+### Dummy Update Person verification status [PATCH /api/persons/{id}/verification]
+Use this method to update person's verification status. Now updating of DRACS death and DRACS name change verification status is allowed.
+
+**Scopes required:** `person_verification:write`
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person identifier
+    
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+    + Attributes (object)
        + `dracs_death` (object)
-           + `verification_status`: `VERIFICATION_NEEEDED` (string, required) - Person DRACS death verification status according to `PERSON_VERIFICATION_STATUSES` dictionary. `VERIFICATION_NEEEDED` only is allowed.
+           + `verification_status`: `VERIFIED` (string, required) - Person DRACS death verification status according to `PERSON_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
            + `verification_reason`: `MANUAL_COMFIRMED` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL_CONFIRMED` OR `MANUAL_NOT_CONFIRMED` are allowed.
            + `verification_comment`: `Смерть пацієнта підтверджено` (string, required) - Verification comment
+           + `death_date`: `2022-05-09` (string, optional) - Patient death_date
+        + `dracs_name_change` (object)
+           + `verification_status`: `VERIFIED` (string, required) - Person DRACS name change verification status according to `PERSON_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
+           + `verification_reason`: `MANUAL` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL` is allowed only.
+           + `verification_comment`: `Пацієнт не замінював ПІБ` (string, required) - Verification comment
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
@@ -3254,13 +3297,13 @@ Method to changes equipment status to `inactive` or `entered_in_error`
     
     + Attributes (object)
         + status: `entered_in_error` (string, required) - New equipment status `Dictionary: equipment_statuses`
-        + error_reason: `Out of service` (string, optional) - Error reason `Dictionary: equipment_status_reasons`
+        + `error_reason`: `Out of service` (string, optional) - Error reason `Dictionary: equipment_status_reasons`
 
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
         + data (`Equipment_response_v2`)
             - status: `entered_in_error` (string, required) - New equipment status `Dictionary: equipment_statuses`
-            - error_reason: `Out of service` (string, optional) - Error reason `Dictionary: equipment_status_reasons`
+            - `error_reason`: `Out of service` (string, optional) - Error reason `Dictionary: equipment_status_reasons`
 
 ### Change equipment availability status [PATCH /api/equipment/{id}/actions/change_availability_status]
 
@@ -3773,6 +3816,44 @@ The method contains is_primary parameter, which indicates whether the ingredient
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[`Drug_v2_Response`])
+
+### Get drugs list v3 [GET /api/v3/drugs{?innm_id,innm_name,innm_sctid,innm_dosage_form,innm_dosage_id,innm_dosage_name,medication_code_atc,medical_program_id,mr_blank_type,dosage_form_is_dosed,medication_request_allowed,care_plan_activity_allowed,page,page_size}]
+
+This method extends the functionality of the Get Drugs v2 method, allowing to display program participant parameters for INNM_DOSAGE. 
+Also, it returns INNM_DOSAGEs for which there are no registered BRANDs in the system
+
+
+**Scopes required:** `drugs:read`
+
++ Parameters
+    + `innm_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Innm identifier.
+    + `innm_name`: `Інсулін деглюдек` (string, optional) - Innm local name.
+    + `innm_sctid`: `52574003` (string, optional) - Innm CNOMED code.
+    + `innm_dosage_form`: `ML` (string, optional) - Innm_dosage form.
+    + `innm_dosage_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Innm_dosage identifier.
+    + `innm_dosage_name`: `Інсулін деглюдек 200мл шприц-ручка` (string, optional) - Innm_dosage name.
+    + `medication_code_atc`: `С01BD01` (string, optional) - Medication code ATC.
+    + `medical_program_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - medical program id.
+    + `mr_blank_type`: `F-1` (string, optional) - parameter of Likarska form, specifying of paper form for issuing of Medication request, example F-1 or F-3.
+    + `dosage_form_is_dosed`: TRUE (boolean, optional) - parameter of Likarska form, specifying of type of Likarska form - dosed, like `pills`, or not dosed, like `salve`.  
+    + `medication_request_allowed`: TRUE (boolean, optional) - flag whether medications are allowed to be dispensed by the program.
+    + `care_plan_activity_allowed`: TRUE (boolean, optional) - flag whether activities are allowed to be created with product as this medications.
+    + `page`: 2 (number, optional) - Page number.
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array[`Drug_v3_Response`])
 
 ### Get drugs list - Should be deprecated [GET /api/drugs{?innm_id,innm_name,innm_sctid,innm_dosage_form,innm_dosage_id,innm_dosage_name,medication_code_atc,medical_program_id,page,page_size}]
 
@@ -4441,10 +4522,9 @@ Use this method to unblock previously blocked Medication request for dispense. I
 
 ### Block Medication Request by Pharmacy User [PATCH /api/pharmacy/medication_requests/{id}/actions/block]
 
-Use this method to block Medication request for dispense. In order to block medication request `block_reason` and `block_reason_code` should be added in request.
+Use this method to block Medication request for dispense. In order to block medication request `block_reason_code` and `block_reason`(optional) should be added in request.
 
 This method must be used only by employees with type 'PHARMACIST'.
-For employees with other types please use [**Block Medication Request**](https://uaehealthapi.docs.apiary.io/#reference/public.-reimbursement/medication-request/block-medication-request).
 
 **Scopes required:** `medication_request:block_pharm`
 
@@ -4459,13 +4539,67 @@ For employees with other types please use [**Block Medication Request**](https:/
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
 
     + Attributes (object)
-       + `block_reason`: `перевищено норми відпуску` (string, required) - Block reason
+       + `block_reason`: `перевищено норми відпуску` (string, optional) - Block reason
        + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, required) - Block reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
+       + `blocked_to`: `2018-08-02T10:45:16.000Z` (string, optional) - Block expiration date
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + meta (Response__Meta)
         + data (`Medication_request_Public_Response_with_Medical_Program_min_for_Pharmacist_block_reason_required`)
+
+### Unblock Medication Request by Pharmacy User [PATCH /api/pharmacy/medication_requests/{id}/actions/unblock]
+
+Use this method to unblock Medication request for dispense. In order to unblock medication request `block_reason` should be added in request.
+
+This method must be used only by employees with type 'PHARMACIST'.
+
+**Scopes required:** `medication_request:unblock_pharm`
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+    + Attributes (object)
+       + `block_reason_code`: `MEDICATION_CANCEL` (string, required) - Block reason code `Dictionary MEDICATION_REQUEST_UNBLOCK_REASON`
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + meta (Response__Meta)
+        + data (`Medication_request_Public_Response_with_Medical_Program_min_for_Pharmacist_block_reason_required`)
+
+### Get Medication Request details in composition context [GET /api/persons/{person_id}/compositions/{composition_id}/medication_requests/{id}]
+
+Method returns Medication Request details in the context of Composition 
+User must have an approval on the composition from url.
+
++ Parameters
+    + `person_id`: `5e661b15-a39a-4713-b18e-ba03a4a48ecc` (string, required) - Patient identifier
+    + `composition_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Composition identifier
+    + id: `48416485-cc98-46c4-8bba-e321de9e1ecd` (string, required) - Medication Request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + meta (Response__Meta)
+        + data (object)
+            + include `Medication_request_Public_Response_with_Medical_Program_min`
+            + `medication_info` (object, required)
+                + include `Innm_Dosage_for_Medication_request_Responce`
+                + `medication_remaining_qty`: 10.23 (number, optional) - medication quantity allowed to dispense
+
 
 ## Medication Dispense [/api/medication_dispenses]
 
@@ -4630,6 +4764,27 @@ This method allows to get short information of the Medication Dispense for the M
     + Attributes (`Response_OK`)
         + data (object)
             + include `Medication_Dispense_Details_Response_for_MSP`
+
+### Get Medication Dispense details in Composition context [GET /api/persons/{person_id}/compositions/{composition_id}/medication_dispenses/{id}]
+
+Method returns Medication Dispense details in the context of Composition 
+User must have an approval on the composition from url.
+
++ Parameters
+    + `person_id`: `5e661b15-a39a-4713-b18e-ba03a4a48ecc` (string, required) - Patient identifier
+    + `composition_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Composition identifier
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (`Medication_Dispense_Response_for_Pharmacist`)
 
 ## Reimbursement Report [/api/reimbursement_report]
 
@@ -4796,7 +4951,7 @@ Division|`dls_verified`
 Employee|`status`
 EmployeeRequest|`status` and `employee_id`
 MedicationDispense|`status`
-MedicationRequest|`is_blocked` or `status`
+MedicationRequest|`status`
 LegalEntity|`status`
 Person|`verification_status` or `status`
 Preperson|`status`
@@ -5001,6 +5156,9 @@ This method in used to approve declaration request by patient via Cabinet
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
         + data (`Declaration_Details_Cabinet`)
+            + employee (`Employee_Declaration_Short`)
+                + status: APPROVED (enum, required)
+        
 
 ### Terminate declarations via Cabinet [PATCH /api/cabinet/declarations/{id}/actions/terminate]
 Patient can terminate active declaration using this method.
@@ -5020,6 +5178,8 @@ Patient can terminate active declaration using this method.
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
         + data (`Declaration_Details_Cabinet`)
+            + employee (`Employee_Declaration_Short`)
+                + status: APPROVED (enum, required)
 
 ### Get declaration details via Cabinet [GET /api/cabinet/declarations/{id}]
 
@@ -5301,8 +5461,8 @@ previous_request_id | false | опційне поле, яке вказує, що
 contractor_divisions|true| масив id відділень мед. закладу, що включаються в договір
 external_contractor_flag|false| наявність додатку 2 (підрядники, залучені до надання медичних послуг за Договором)
 external_contractors|false|масив об'єктів типу external_contractor objects - підрядники, залучені до надання медичних послуг за Договором
-start_date|false| пункт 9.2 - цей договір діє з (рік має бути поточний або настпуний)
-end_date|false| пункт 9.2 - цей договір діє по (рік має співпадати з роком у start_date або бути наступним за роком start_date за умови, що договір укладається строком на рік)
+start_date|true| пункт 9.2 - цей договір діє з
+end_date|true| пункт 9.2 - цей договір діє по
 id_form|true| словник `CONTRACT_TYPE`, поки що лише один вид Договір на ПМД
 contract_number|false| human-redable номер контракту
 statute_md5|true| хеш завантаженого документу (статуту)
@@ -5317,8 +5477,8 @@ contractor_owner_id|true| підписант, зі сторони мед. зак
 contractor_base|true| на якій підставі діє підписант: закон/домовленість
 contractor_payment_details|true| об'єкт, що містить дані по рахунку, на який будуть здійснюватися виплати
 previous_request_id | false | опційне поле, яке вказує, що поточний запит на контракт є новою версією вказаного запиту
-start_date|false| пункт 9.2 - цей договір діє з (рік має бути поточний або настпуний)
-end_date|false| пункт 9.2 - цей договір діє по (рік має співпадати з роком у start_date або бути наступним за роком start_date за умови, що договір укладається строком на рік)
+start_date|true| пункт 9.2 - цей договір діє з
+end_date|true| пункт 9.2 - цей договір діє по
 id_form|true| словник `REIMBURSEMENT_CONTRACT_TYPE`
 contract_number|false| human-redable номер контракту
 statute_md5|false| хеш завантаженого документу (статуту)o
@@ -8260,7 +8420,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
     + `drfo` (object)
         + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRFO verification according to `PERSON_VERIFICATION_STATUSES` dictionary
         + `verification_reason`: `AUTO` (string, required) - how current DRFO verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
-        + `result`: `12` (string, optional) - result of person DRFO synchronization according to `DRFO_RESULT` dictionary
+        + `result`: 12 (number, optional) - result of person DRFO synchronization according to `DRFO_RESULT` dictionary
     + `dracs_death` (object)
         + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRACS death verification according to `PERSON_VERIFICATION_STATUSES` dictionary
         + `verification_reason`: `AUTO` (string, required) - how current DRACS death verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
@@ -8269,7 +8429,29 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
         + `verification_status`: `NOT_VERIFIED` (string, required) - status of person manual NHS verification according to `PERSON_VERIFICATION_STATUSES` dictionary
         + `verification_reason`: `AUTO` (string, required) - how current manual NHS verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
         + `verification_comment`: `Бракує даних паспорту пацієнта та його ІПН` (string, optional) - verification status description set by NHS in case NOT_VERIFIED
-
+    + `unzr` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person UNZR verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current UNZR verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+        + `status`: 0 (number, optional) - status of the UNZR record in EIS MVS register for the person. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+    + `mvs_passport` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of MVS passport verification for the person according to `PERSON_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current MVS passport verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+        + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+    + `dms_passport` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of DMS passport verification for the person according to `PERSON_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current DMS passport verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+        + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+    + `dracs_birth` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRACS birth verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO_ONLINE` (string, required) - how current DRACS birth verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+        + `verification_comment`: `Необхідно повторно підтвердити дані свідоцтва про народження пацієнта` (string, optional) - DRACS birth verification status description set by NHS
+    + `dracs_name_change` (object)
+       + `verification_status`: `VERIFIED` (string, required) - Person DRACS name change verification status according to `PERSON_VERIFICATION_STATUSES` dictionary.
+       + `verification_reason`: `MANUAL_COMFIRMED` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary.
+       + `verification_comment`: `Пацієнт не замінював ПІБ` (string, optional) - Verification comment
+    + `legal_capacity` (object)
+       + `verification_status`: `VERIFICATION_NOT_NEEDED` (string, required) - Person Legal capacity verification status according to `PERSON_VERIFICATION_STATUSES` dictionary.
+       + `verification_reason`: `AUTO_DATA_ABSENT` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary.
 
 ## `Merge_Candidates`
 ### `Merge_Candidate`
@@ -9043,7 +9225,7 @@ status: `APPROVED` (string, required)
 + position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: APPROVED, DISMISSED, REORGANIZED (enum, required)
++ status: APPROVED, STOPPED, ENTERED IN ERROR, REORGANIZED, AUTODEACTIVATED (enum, required)
 + `is_active`: `true` (boolean, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (`Party_Response_old`)
@@ -9107,7 +9289,7 @@ status: `APPROVED` (string, required)
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
-+ status: APPROVED, DISMISSED, REORGANIZED (enum, required) - Employee status
++ status: APPROVED, STOPPED, ENTERED IN ERROR, AUTODEACTIVATED, REORGANIZED (enum, required) - Employee status
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
@@ -9125,7 +9307,7 @@ status: `APPROVED` (string, required)
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
-+ status: APPROVED, DISMISSED (enum, required) - Employee status
++ status: APPROVED, STOPPED, ENTERED IN ERROR, REORGANIZED, AUTODEACTIVATED (enum, required) - Employee status
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
@@ -9141,11 +9323,23 @@ status: `APPROVED` (string, required)
     + drfo (object)
         + `verification_status`: `NOT_VERIFIED` (string, required) - status of party DRFO verification according to `PARTY_VERIFICATION_STATUSES` dictionary
         + `verification_reason`: `AUTO` (string, required) - how current DRFO verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
-        + `result`: `12` (string, optional) - result of party DRFO synchronization according to `DRFO_RESULT` dictionary
+        + `result`: 12 (number, optional) - result of party DRFO synchronization according to `DRFO_RESULT` dictionary
     + dracs_death (object)
         + `verification_status`: `NOT_VERIFIED` (string, required) - status of party DRACS death verification according to `PARTY_VERIFICATION_STATUSES` dictionary
         + `verification_reason`: `AUTO` (string, required) - how current DRACS death verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
         + `verification_comment`: `Необхідно повторно підтвердити факт смерті у співробітника` (string, optional) - DRACS death verification status description set by OWNER in case NOT_VERIFIED
+    + `mvs_passport` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of MVS passport verification for the party according to `PARTY_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current MVS passport verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
+        + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+    + `dms_passport` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of DMS passport verification for the party according to `PARTY_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current DMS passport verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
+        + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+    + `dracs_name_change` (object)
+       + `verification_status`: `VERIFIED` (string, required) - Party DRACS name change verification status according to `PARTY_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
+       + `verification_reason`: `MANUAL` (string, required) - Verification reason according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL` is allowed only.
+       + `verification_comment`: `Співробітник не замінював ПІБ` (string, optional) - Verification comment
 
 
 ## `Legal_Entities`
@@ -9198,6 +9392,17 @@ status: `APPROVED` (string, required)
 + `medical_service_provider` (MSP, optional)
 
 ### `Legal_Entity_Short`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ name: Клініка Ноунейм (string, required)
++ short_name: Ноунейм (string, required)
++ public_name: Клініка Ноунейм (string, required)
++ type: MSP (string, required)
++ edrpou: 5432345432 (string, required)
++ status: ACTIVE (enum, required)
+    - ACTIVE
+    - CLOSED
+
+### `blocked_by_legal_entity_short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + name: Клініка Ноунейм (string, required)
 + short_name: Ноунейм (string, required)
@@ -9529,8 +9734,8 @@ status: `APPROVED` (string, required)
 + birth_date: `1991-08-19` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
 + email: `email@example.com` (string, required)
-+ documents (array[`PartyDocument`], optional)
-+ phones (array[`Phone`], optional)
++ documents (array[`PartyDocument`], required)
++ phones (array[`Phone`], required)
 + position (string, required): `P6`- `Dictionary POSITION`
 
 ## `Medical_Service_Providers`
@@ -10454,6 +10659,17 @@ status: `APPROVED` (string, required)
 + `ingredients` (array[`Ingredient_v2`], required)
 + `packages` (array [`Medication_package_DrugsV2`], required)
 
+### `Drug_v3_Response`
++ `id`: `ae9bf68e-3c98-4027-9211-535f7dad7a87` (string, required)
++ `name`: `Аміодарон 200мг таблетки` (string, required)
++ `mr_blank_type`: `F-1` (string, required) - `Dictionary MR_BLANK_TYPES`
++ `dosage_form_is_dosed`: FALSE (boolean, required) - `Without dictionary. True - Dosed, False - Not dosed`
++ `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `daily_dosage`: 50.14 (number, required) - Daily dosage
++ `ingredients` (array[`Ingredient_v2`], required)
++ `program_medications` (array [`Drugs_program_medication`], optional)
++ `packages` (array [`Medication_package_DrugsV2`], optional)
+
 ### `Ingredient_v2`
 + `id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
 + `name` : `Інсулін деглюдек` (string, required)
@@ -10482,7 +10698,8 @@ status: `APPROVED` (string, required)
 + `medication_request_allowed`: TRUE (boolean, optional) - flag whether medications are allowed to be dispensed by the program.
 + `care_plan_activity_allowed`: TRUE (boolean, optional) - flag whether activities are allowed to be created with product as this medications.
 + registry_number: `REG-1111` (string, optional) - Registry number
-+ `max_daily_dosage`: 200 (number, required) - Max daily dosage
++ `max_daily_dosage`: 200 (number, required) - Max daily dosage'
++ `package_qty_divisible`: TRUE (boolean, required) - package divisible flag
 
 ## Complex FHIR Types
 ### `Extension`
@@ -10728,7 +10945,7 @@ status: `APPROVED` (string, required)
   + `М01АЕ01` ([string])
   + `C01BD01` ([string])
 + `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
-+ `container` (`Dosage_container`, required)
++ `container` (`Dosage_container`, optional)
 + `package_qty`: 30 (number, optional)
 + `package_min_qty`: 10 (number, optional)
 + `certificate` : `UA/4514/01/01` (string, optional)
@@ -10747,7 +10964,7 @@ status: `APPROVED` (string, required)
   + `М01АЕ01` ([string])
   + `C01BD01` ([string])
 + `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
-+ `container` (`Dosage_container`, required)
++ `container` (`Dosage_container`, optional)
 + `package_qty`: 30 (number, optional)
 + `package_min_qty`: 10 (number, optional)
 + daily_dosage: 12 (string, optional) - Daily dose of medication, recommended by WHO
@@ -10773,7 +10990,7 @@ status: `APPROVED` (string, required)
 + `type`: `MEDICATION` (string, required)
 + `manufacturer` (`Manufacturer`, optional)
 + `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
-+ `container` (`Dosage_container`, required)
++ `container` (`Dosage_container`, optional)
 + `form_pharm`: `DISPERSIBLE_TABLET` (string, optional) - Pharmaceutical form of drugs. FORM_PHARM_LIST dictionary used for the values.
 + `drlz_sku_id`: `0404466792737630283703997321` (string, optional) - identifier of a product out of external DRLZ register
 
@@ -11160,13 +11377,14 @@ status: `APPROVED` (string, required)
 + consumer_price: 34.03 (number, optional) - Retail price for packaging, UAH
 + `reimbursement_daily_dosage`: 1.4438 (number, optional) - The amount of the compensation of the daily dose of the medical product, UAH
 + `estimated_payment_amount`: 5.15 (number, optional) - Amount of additional payment for packing, UAH
-+ `container_dosage` (`Dosage_container`, required)
++ `container_dosage` (`Dosage_container`, optional)
 + `package_min_qty`: 20 (number, optional) - indivisible part of medicine pacage
 + `package_qty`: 20 (number, optional) - quantity of medicine in a pacage
 + `start_date`: `2019-01-01` (string, optional) - Active from date
 + `end_date`: `2019-06-30` (string, optional) - Active to date
 + `registry_number`: `REG-1111` (string, optional) - Registry number
 + `drlz_sku_id`: `0404466792737630283703997321` (string, optional) - identifier of a product out of external DRLZ register 
++ `package_qty_divisible`: TRUE (boolean, required) - package divisible flag
 
 ### `Qualify_by_ID_Request_for_Medication_request_Responce`
 + include `Qualify_Medication_request_Request_Responce`
@@ -11297,12 +11515,13 @@ status: `APPROVED` (string, required)
 + `rejected_by`: `e8e5a969-74d8-4620-8496-f5e41f2e8312` (string, optional, nullable) - Rejected user identifier
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `reject_reason_code`: `PATIENT_REJECT` (string, optional, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
-+ is_blocked: false (boolean, required) - Whether medication request is blocked or not
 + `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
-+ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 + note: some additional info (string, optional) - Additional information
++ blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
++ `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 
 ### `Medication_request_Public_Response_for_Pharmacist`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
@@ -11348,12 +11567,13 @@ status: `APPROVED` (string, required)
     + (Dosage_Instruction)
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `reject_reason_code`: `PATIENT_REJECT` (string, optional, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
-+ is_blocked: false (boolean, required) - Whether medication request is blocked or not
 + `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
-+ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 + note: some additional info (string, optional) - Additional information
++ blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
++ `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 
 ### `Medication_request_Public_Response_with_Medical_Program_min`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
@@ -11405,12 +11625,14 @@ status: `APPROVED` (string, required)
 + `rejected_by`: `e8e5a969-74d8-4620-8496-f5e41f2e8312` (string, optional, nullable) - Rejected user identifier
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `reject_reason_code`: `PATIENT_REJECT` (string, optional, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
-+ is_blocked: false (boolean, required) - Whether medication request is blocked or not
 + `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
-+ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 + note: some additional info (string, optional) - Additional information
++ blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
++ `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
+
 
 ### `Medication_request_reject_Public_Response_with_Medical_Program_min`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
@@ -11462,12 +11684,13 @@ status: `APPROVED` (string, required)
 + `rejected_by`: `e8e5a969-74d8-4620-8496-f5e41f2e8312` (string, optional, nullable) - Rejected user identifier
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `reject_reason_code`: `PATIENT_REJECT` (string, optional, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
-+ is_blocked: false (boolean, required) - Whether medication request is blocked or not
 + `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
-+ include `block_legal_entity_object_not_required`
 + include `MR_MRR_additional_fields`
 + note: some additional info (string, optional) - Additional information
++ blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
++ `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 
 ### `Medication_request_Public_Response_with_Medical_Program_min_block_reason_required`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
@@ -11519,11 +11742,12 @@ status: `APPROVED` (string, required)
 + `rejected_by`: `e8e5a969-74d8-4620-8496-f5e41f2e8312` (string, optional, nullable) - Rejected user identifier
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `reject_reason_code`: `PATIENT_REJECT` (string, optional, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
-+ is_blocked: false (boolean, required) - Whether medication request is blocked or not
 + `block_reason`: `Підозра на фрод` (string, required) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
-+ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
++ blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
++ `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 
 ### `Medication_request_Public_Response_with_Medical_Program_min_for_Pharmacist`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
@@ -11569,12 +11793,13 @@ status: `APPROVED` (string, required)
     + (Dosage_Instruction)
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `reject_reason_code`: `PATIENT_REJECT` (string, required, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
-+ is_blocked: false (boolean, required) - Whether medication request is blocked or not
 + `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
-+ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 + note: some additional info (string, optional) - Additional information
++ blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
++ `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 
 ### `Medication_request_Public_Response_with_Medical_Program_min_for_Pharmacist_block_reason_required`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
@@ -11620,10 +11845,12 @@ status: `APPROVED` (string, required)
     + (Dosage_Instruction)
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `reject_reason_code`: `PATIENT_REJECT` (string, required, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
-+ is_blocked: false (boolean, required) - Whether medication request is blocked or not
 + `block_reason`: `Підозра на фрод` (string, required) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
 + include `MR_MRR_additional_fields`
++ blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
++ `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 
 ### `Medication_request_Private_Response`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
@@ -11675,12 +11902,13 @@ status: `APPROVED` (string, required)
 + `rejected_by`: `e8e5a969-74d8-4620-8496-f5e41f2e8312` (string, optional, nullable) - Rejected user identifier
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `reject_reason_code`: `PATIENT_REJECT` (string, optional, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
-+ is_blocked: false (boolean, required) - Whether medication request is blocked or not
 + `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
-+ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
 + note: some additional info (string, optional) - Additional information
++ blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
++ `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 
 ### `Medication_request_Private_Response_with_Medical_Program_min`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
@@ -11732,11 +11960,12 @@ status: `APPROVED` (string, required)
 + `rejected_by`: `e8e5a969-74d8-4620-8496-f5e41f2e8312` (string, optional, nullable) - Rejected user identifier
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `reject_reason_code`: `PATIENT_REJECT` (string, required, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
-+ is_blocked: false (boolean, required) - Whether medication request is blocked or not
 + `block_reason`: `Підозра на фрод` (string, required) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
-+ include `block_legal_entity_object`
 + include `MR_MRR_additional_fields`
++ blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
++ `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 
 ### `Medication_request_Reject_Public_Response`
 + `rejected_at`: `2017-04-20T19:14:13Z` (string, required) - Reject date - ISO 8601 date and time in UTC timezone.
@@ -11759,7 +11988,6 @@ status: `APPROVED` (string, required)
 + intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT
     - plan - The request represents an intention to ensure something occurs without providing an authorization for others to act. "medical_program" is absent
     - order - The request represents a request/demand and authorization for action. "medical_program" is required
-+ is_blocked: false (boolean, optional) - Whether medication request is blocked or not
 + `legal_entity` (`Legal_Entity_Short`, required)
     + `id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
     + licenses (array[`MSP_License`], required)
@@ -11800,7 +12028,6 @@ status: `APPROVED` (string, required)
 + intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT
     - plan - The request represents an intention to ensure something occurs without providing an authorization for others to act. "medical_program" is absent
     - order - The request represents a request/demand and authorization for action. "medical_program" is required
-+ is_blocked: false (boolean, required) - Whether medication request is blocked or not
 + `legal_entity` (`Legal_Entity_Short`, required)
     + `id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
     + licenses (array[`MSP_License`], required)
@@ -11894,6 +12121,7 @@ status: `APPROVED` (string, required)
         + include `Medication_Dispense_Detail_Request`
 + `payment_id`: 1239804 (string, optional) - receipt number for the paid medications. Should not be submitted if medical program requires digital sign, and it's optional if not requires 
 + `payment_amount`: 50 (number, optional) - receipt amount which was paid by patient (UAH). Should not be submitted if medical program requires digital sign, and should be if not requires and medical program has funding source NHS
++ note: `Some notes` (string, optional) - Some notes
 
 ### `Medication_Dispense_Response`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Dispense Response Identifier
@@ -11911,6 +12139,7 @@ status: `APPROVED` (string, required)
 + `payment_id`: 1239804 (string, optional) - receipt number for the paid medications
 + `payment_amount`: 50 (number, optional) - receipt amount which was paid by patient (UAH)
 + `status`: NEW (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
++ note: `Some notes` (string, optional) - Some notes
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
@@ -11932,6 +12161,7 @@ status: `APPROVED` (string, required)
 + `payment_id`: 1239804 (string, optional) - receipt number for the paid medications
 + `payment_amount`: 50 (number, optional) - receipt amount which was paid by patient (UAH)
 + `status`: NEW (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
++ note: `Some notes` (string, optional) - Some notes
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
@@ -11962,6 +12192,7 @@ status: `APPROVED` (string, required)
 + `payment_id`: 1239804 (string, optional) - receipt number for the paid medications
 + `payment_amount`: 50 (number, optional) - receipt amount which was paid by patient (UAH)
 + `status`: NEW (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
++ note: `Some notes` (string, optional) - Some notes
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
@@ -11983,6 +12214,7 @@ status: `APPROVED` (string, required)
 + `payment_id`: 1239804 (string, optional) - receipt number for the paid medications
 + `payment_amount`: 50 (number, optional) - receipt amount which was paid by patient (UAH)
 + `status`: NEW (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
++ note: `Some notes` (string, optional) - Some notes
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
@@ -12043,6 +12275,7 @@ status: `APPROVED` (string, required)
 + `payment_amount`: 50 (number, required) - receipt amount which was paid by patient (UAH)
 + `payment_id`: 1239804 (string, optional) - receipt number for the paid medications
 + `status`: NEW (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
++ note: `Some notes` (string, optional) - Some notes
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
@@ -12072,6 +12305,7 @@ status: `APPROVED` (string, required)
 + `payment_amount`: 50 (number, required) - receipt amount which was paid by patient (UAH)
 + `payment_id`: 1239804 (string, optional) - receipt number for the paid medications
 + `status`: NEW (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
++ note: `Some notes` (string, optional) - Some notes
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
@@ -12904,8 +13138,8 @@ status: `APPROVED` (string, required)
 + serial_number: `S/N234554` (string, optional) - Serial number
 + device_definition_id: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, optional) - Reference to device definition
 + names (array[`Equipment_name`], required) - Equipment names
-+ status: active (string, required) - Device status `Dictionary: equipment_statuses`
-+ availability_status: available (string, required) - Device availability status `Dictionary: equipment_status_reasons`
++ status: `active` (string, required) - Device status `Dictionary: equipment_statuses`
++ `availability_status`: `available` (string, required) - Device availability status `Dictionary: equipment_status_reasons`
 + manufacturer: `GlobalMed, Inc` (string, optional) - Manufacturer
 + manufacture_date: `1999-01-01` (string, optional) - Manufacturer date
 + model_number: `NSPX30` (string, optional) - Model number
@@ -12922,7 +13156,7 @@ status: `APPROVED` (string, required)
 + id: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, required) - Equipment identifier
 + include `Equipment_base_v2`
 + `legal_entity_id`: `483af06f-d4c6-4c9e-8d9b-680b5ef7270d` (string, required) - Reference to legal entity
-+ error_reason: `Out of service` (string, optional) - Error reason `Dictionary: equipment_status_reasons`
++ `error_reason`: `Out of service` (string, optional) - Error reason `Dictionary: equipment_status_reasons`
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
