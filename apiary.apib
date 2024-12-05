@@ -3,7 +3,7 @@ HOST: https://api.ehealth.gov.ua
 
 # GENERAL MIS API
 
-**Version: 9.8.8 v.2**
+**Version: 9.8.8 v.3**
 
 This is a **MIS-related consumers  part** of API documentation for Ukrainian Health Services government institution back-end, that should provide:
 
@@ -4688,6 +4688,19 @@ Look at [**Dummy Process Medication Dispense by Pharmacy User**](https://uaeheal
         + data (object)
             + include `Medication_Dispense_Response_for_Pharmacist`
 
+
+### Reject Medication Dispense by Pharmacy User [PATCH /api/pharmacy/medication_dispenses/{id}/actions/reject]
+
+This method is used to reject medication dispense.
+
+**Scopes required:** `medication_dispense:reject`
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (object)
+            + include `Medication_Dispense_Response_for_Pharmacist`
+
+
 ### Get Medication dispenses by search params by Pharmacy User [GET /api/pharmacy/medication_dispenses{?id,medication_request_id,legal_entity_id,division_id,status,dispensed_from,dispensed_to,care_plan_id,page,page_size}]
 
 This method intended to get all Medication dispenses for the PHARMACY users.
@@ -7805,17 +7818,7 @@ Please see a similar endpoint with role context ("Reject Medication Dispense by 
     + Attributes (`Response_OK`)
         + data (object)
             + include `Medication_Dispense_Response`
-            
-### Reject Medication Dispense by Pharmacy User [PATCH /api/pharmacy/medication_dispenses/{id}/actions/reject]
 
-This method is used to reject medication dispense.
-
-**Scopes required:** `medication_dispense:reject`
-
-+ Response 200 (application/json)
-    + Attributes (`Response_OK`)
-        + data (object)
-            + include `Medication_Dispense_Response_for_Pharmacist`
 
 
 
