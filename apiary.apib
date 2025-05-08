@@ -3,7 +3,9 @@ HOST: https://api.ehealth.gov.ua
 
 # GENERAL MIS API
 
-**Version: 9.8.8 v.3**
+**Version: 9.10.0 v.1**
+
+**Environment: PROD**
 
 This is a **MIS-related consumers  part** of API documentation for Ukrainian Health Services government institution back-end, that should provide:
 
@@ -11,7 +13,7 @@ This is a **MIS-related consumers  part** of API documentation for Ukrainian Hea
 * Global Medical Institutions and Doctors Registries
 * Partnership Relation Management (PRM) module that describes business relations between this 3 entities.
 
-This API design in based on [Nebo #15 API Design Manifest](https://docs.apimanifest.apiary.io/).
+This API design in based on [Nebo #15 API Design Manifest](http://docs.apimanifest.apiary.io/).
 
 ## Context Switching for end-users
 
@@ -381,7 +383,6 @@ In case number needs verification - generate and send OTP, in case phone does no
 ## Person Requests [/api/person_requests]
 [Person Request]() is a life-cycle entity that is used to create person WITHOUT [Declarations]().
 
-
 ### Create/Update Person Request [POST /api/person_requests]
 
 This method will be deprecated. Use **Create/Update Person Request v2**.
@@ -401,8 +402,6 @@ Actions   | person.id     | person.authentication_methods
 **Create**    |      -        | required    
 **Update**    | required      |     -       
 
-      
-
 There are three methods of authentication - OTP, OFFLINE and the THIRD_PERSON. A person > 14 years can have OTP or OFFLINE.
 A person < 14 years can only have authentication method = THIRD PERSON.
 
@@ -420,9 +419,9 @@ More detailed information - https://e-health-ua.atlassian.net/wiki/x/KoAfIw
         + person (required)
             + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
             + include (`Person_info_Public`, required)
-        + patient_signed: false (boolean, required) - Факт подписания заявки на збереження/створення персоны.
-        + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
-        + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
+        + patient_signed: false (boolean, required) - Person's evidence of sign the person request
+        + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
+        + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional) - identifier of person's auth method
 
 + Response 201 (application/json)
     + Attributes (`Response__Process_OK`)
@@ -439,8 +438,8 @@ More detailed information - https://e-health-ua.atlassian.net/wiki/x/KoAfIw
             + person (required)
                 + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
                 + include (`Person_info_Public`, required)
-            + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-            + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+            + patient_signed: false (boolean, required) - Person's evidence of sign the person request
+            + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
             + channel: `MIS` (enum, required) - channel that invoke person request create service
             + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
         + urgent (object, required)
@@ -476,8 +475,6 @@ Actions   | person.id     | person.authentication_methods| person.confidant_pers
 **Create**    |      -        | required    | optional
 **Update**    | required      |     -       |     -
 
-      
-
 There are three methods of authentication - OTP, OFFLINE and the THIRD_PERSON. A person > 14 years can have OTP or OFFLINE.
 A person < 14 years can only have authentication method = THIRD PERSON.
 
@@ -495,8 +492,8 @@ Link to THIRD PERSON (`authentication_methods.value`) must be equal to confidant
         + person (required)
             + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
             + include (`Person_info_Public_request_v2_with_new_confidant_data`, required)
-        + patient_signed: false (boolean, required) - Факт подписания заявки на збереження/створення персоны.
-        + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+        + patient_signed: false (boolean, required) - Person's evidence of sign the person request
+        + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
         + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
 
 + Response 201 (application/json)
@@ -514,8 +511,8 @@ Link to THIRD PERSON (`authentication_methods.value`) must be equal to confidant
             + person (required)
                 + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
                 + include (`Person_info_Public_response_v2_with_new_confidant_data_object`, required)
-            + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-            + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+            + patient_signed: false (boolean, required) - Person's evidence of sign the person request
+            + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
             + channel: `MIS` (enum, required) - channel that invoke person request create service
             + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
         + urgent (object, required)
@@ -530,7 +527,6 @@ Link to THIRD PERSON (`authentication_methods.value`) must be equal to confidant
         + error
             + type: unverified (string, required)
             + message: `Unverified phone number` (string, required)
-
 
 
 ### Approve Person Request [PATCH /api/person_requests/{id}/actions/approve]
@@ -582,9 +578,9 @@ More detailed information - https://e-health-ua.atlassian.net/wiki/x/QgAjIw
             + person (required)
                 + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
                 + include (`Person_info_Public`, required)
-            + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-            + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
-            + content: `Person content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + patient_signed: false (boolean, required) - Person's evidence of sign the person request
+            + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
+            + content: `Person content` (string, required) - HTML document that MUST be shown to a end-user and signed by his key.
             + channel: `MIS` (enum, required) - channel that invoke patient create service
             + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
 
@@ -642,9 +638,9 @@ Clients can use signed URL's to directly access [s3 storage](https://storage.ehe
             + person (required)
                 + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
                 + include (`Person_info_Public_response_v2_with_new_confidant_data_object`, required)
-            + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-            + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
-            + content: `Person content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + patient_signed: false (boolean, required) - Person's evidence of sign the person request
+            + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
+            + content: `Person content` (string, required) - HTML document that MUST be shown to a end-user and signed by his key.
             + channel: `MIS` (enum, required) - channel that invoke patient create service
             + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
 
@@ -690,11 +686,11 @@ More detailed information - https://e-health-ua.atlassian.net/wiki/x/MYDAIw
             + person (required)
                 + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
                 + include (`Person_info_Public`, required)
-            + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-            + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
-            + content: `Person content` (string, optional) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + patient_signed: false (boolean, required) - Person's evidence of sign the person request
+            + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
+            + content: `Person content` (string, optional) - HTML document that MUST be shown to a end-user and signed by his key.
             + channel: `MIS` (enum, required) - channel that invoke patient create service
-            + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
+            + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional) - identifier of person's auth method
 
 
 ### Reject Person Request v2 [PATCH /api/v2/person_requests/{id}/actions/reject]
@@ -727,9 +723,9 @@ Use this method to reject previously created Person Request.
             + person (required)
                 + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
                 + include (`Person_info_Public_response_v2_with_new_confidant_data_object`, required)
-            + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-            + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
-            + content: `Person content` (string, optional) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + patient_signed: false (boolean, required) - Person's evidence of sign the person request
+            + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
+            + content: `Person content` (string, optional) - HTML document that MUST be shown to a end-user and signed by his key.
             + channel: `MIS` (enum, required) - channel that invoke patient create service
             + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
 
@@ -837,9 +833,9 @@ This method will be depricated. Use **Get Person Request by ID v2** instead.
             + person (required)
                 + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
                 + include (`Person_info_Public`, required)
-            + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-            + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
-            + content: `Person content` (string, optional) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + patient_signed: false (boolean, required) - Person's evidence of sign the person request
+            + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
+            + content: `Person content` (string, optional) - HTML document that MUST be shown to a end-user and signed by his key.
             + channel: `MIS` (enum, required) - channel that invoke person request create service
                 - MIS
             + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
@@ -879,9 +875,9 @@ Use this method to obtain Person Request details.
             + person (required)
                 + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
                 + include (`Person_info_Public_response_v2_with_new_confidant_data_object`, required)
-            + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-            + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
-            + content: `Person content` (string, optional) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + patient_signed: false (boolean, required) - Person's evidence of sign the person request
+            + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
+            + content: `Person content` (string, optional) - HTML document that MUST be shown to a end-user and signed by his key.
             + channel: `MIS` (enum, required) - channel that invoke person request create service
                 - MIS
             + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
@@ -1388,9 +1384,7 @@ Method returns shortened data structure. Use [**Get Employee details**](https://
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + status: APPROVED (enum, optional) - filter employees by status
         - APPROVED
-        - STOPPED
-        - ENTERED IN ERROR
-        - AUTODEACTIVATED
+        - DISMISSED
         - REORGANIZED
     + employee_type: DOCTOR (string, optional)
     + page: 2 (number, optional) - Page number.
@@ -1455,7 +1449,8 @@ Employee deactivation:
 
 2. Deactivate declarations
 
-3. Update employee parameters
+3. Update employee parameters:
+ - change status=DISMISSED and end_date=now
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1466,10 +1461,6 @@ Employee deactivation:
 
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-   
-    + Attributes (object)
-        + `status`: `STOPPED` (string, required) - reasons for deactivation: STOPPED or ENTERED IN ERROR
-        + `end_date`: `2017-09-01` (string, optional) - the actual date of termination the employee in the specified position. Required for status = STOPPED
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
@@ -1477,7 +1468,34 @@ Employee deactivation:
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
             + division (Division_Short)
                 + `legal_entity` (`Legal_Entity_Short`)
-            + status: STOPPED, ENTERED IN ERROR (enum,required)
+
+### Get Party Verification Statuses List [GET /api/parties/verifications]
+This method returns a list of current party's verification statuses and additional related information.
+
+**Scopes required:** `party_verification:read`
+
++ Parameters
+    + verification_status: `VERIFIED` (string, required) - Filter by verification status. Possible values:
+        + `CHANGES_NEEDED`
+        + `VERIFIED`
+        + `VERIFICATION_NEEDED`
+        + `NOT_VERIFIED`
+    + division_id: `e2f4d6a7-8b9c-4c8a-93e2-5c617d832b71` (string, optional) - Identifier of the division.
+    + status: `active` (string, optional) - Filter by employee status. default: `APPROVED`
+    + page: `1` (integer, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer {access_token}
+            api-key: {your_api_key}
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (`Response__Process_OK`)
+         + data (array[`PartyVerification`])
 
 ### Get Party verification details [GET /api/parties/{id}/verification]
 This method returns current party's verification status and another information about it.
@@ -1517,14 +1535,15 @@ Use this method to update party's verification status. Now updating of DRACS dea
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
 
     + Attributes (object)
-        + `dracs_death` (object)
-           + `verification_status`: `VERIFIED` (string, required) - Party DRACS death verification status according to `PARTY_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
-           + `verification_reason`: `MANUAL_COMFIRMED` (string, required) - Verification reason according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL_CONFIRMED` OR `MANUAL_NOT_CONFIRMED` are allowed.
-           + `verification_comment`: `Смерть співробітника підтверджено` (string) - Verification comment
-        + `dracs_name_change` (object)
-           + `verification_status`: `VERIFIED` (string, required) - Party DRACS name change verification status according to `PARTY_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
-           + `verification_reason`: `MANUAL` (string, required) - Verification reason according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL` is allowed only.
-           + `verification_comment`: `Співробітник не замінював ПІБ` (string, required) - Verification comment
+       - One of
+           + `dracs_death` (object)
+               + `verification_status`: `VERIFIED` (string, required) - Party DRACS death verification status according to `PARTY_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
+               + `verification_reason`: `MANUAL_COMFIRMED` (string, required) - Verification reason according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL_CONFIRMED` OR `MANUAL_NOT_CONFIRMED` are allowed.
+               + `verification_comment`: `Смерть співробітника підтверджено` (string) - Verification comment
+           + `dracs_name_change` (object)
+               + `verification_status`: `VERIFIED` (string, required) - Party DRACS name change verification status according to `PARTY_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
+               + `verification_reason`: `MANUAL` (string, required) - Verification reason according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL` is allowed only.
+               + `verification_comment`: `Співробітник не замінював ПІБ` (string, required) - Verification comment
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
@@ -1708,7 +1727,7 @@ Block `merged_persons` will be deprecated from response and endpoint `Search Per
             + message: `This API method returns only exact match results, please retry with more specific search result` (string)
             
 
-### Search Person's merged persons [GET /api/persons/{id}/merged_persons{?status}]
+### Search Person's merged persons [GET /api/persons/{id}/merged_persons{?status,page,page_size}]
 
 This method allows to find all persons, which were merged with this person. Also this endpoint shows all the persons who enter the whole chain of merges to this person.
 This information was in response of Get `Search for a Person` before.
@@ -1716,6 +1735,8 @@ This information was in response of Get `Search for a Person` before.
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + status: `MERGED` (string, optional)
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -1727,7 +1748,7 @@ This information was in response of Get `Search for a Person` before.
 
 
 + Response 200 (application/json)
-    + Attributes (`Response__Process_OK`)
+    + Attributes (`Response_Collection_V2`)
         + data (array)
             + (object)
                 + id: `57e30ea3-16f1-4f8e-adcd-1a05e99e2d22` (string, optional) - identifier of the relation of persons who are compared during the deduplication process
@@ -1752,92 +1773,6 @@ This information was in response of Get `Search for a Person` before.
         + error (Response__Error, fixed-type)
             + type: `forbidden`
             + message: `Such person not found` (string)
- 
-
-### Create Person [POST /api/persons/create]
-**[Not implemented]** This WS is designed to create person in offline method by legal_entity employee. Employee need scope person:write to create person.
-Method receives signed message (pkcs7) including signed content, digital signature and signer public key. All signature fields will be validated (including signer certificate authority).
-
-Entity data:
-{
-    "first_name": "Петро",
-    "last_name": "Іванов",
-    "second_name": "Миколайович",
-    "birth_date": "1991-08-19",
-    "birth_country": "Україна",
-    "birth_settlement": "Вінниця",
-    "gender": "MALE",
-    "email": "email@example.com",
-    "tax_id": "3126509816",
-    "secret": "secret",
-    "documents": [
-      {
-        "type": "PASSPORT",
-        "number": "120518",
-        "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
-        "issued_at": "2017-02-28"
-      }
-    ],
-    "addresses": [
-      {
-        "type": "RESIDENCE",
-        "country": "UA",
-        "area": "Житомирська",
-        "region": "Бердичівський",
-        "settlement": "Київ",
-        "settlement_type": "CITY",
-        "settlement_id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-        "street_type": "STREET",
-        "street": "вул. Ніжинська",
-        "building": "15",
-        "apartment": "23",
-        "zip": "02090"
-      }
-    ],
-    "phones": [
-      {
-        "type": "MOBILE",
-        "number": "+380503410870"
-      }
-    ],
-    "authentication_methods": [
-      {
-        "type": "OTP",
-        "phone_number": "+380508887700"
-      }
-    ],
-    "preferred_way_communication": "email",
-    "emergency_contact": {
-      "first_name": "Петро",
-      "last_name": "Іванов",
-      "second_name": "Миколайович",
-      "phones": [
-        {
-          "type": "MOBILE",
-          "number": "+380503410870"
-        }
-      ]
-    },
-    "process_disclosure_data_consent": true
-  }
-}
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-
-    + Attributes (object)
-        + `signed_request`: `MIIUKAYJKoZIhvcNAQcCoIIUGTCCFBUCAQExDjAMBgoqhiQCAQEBAQIBMIIGRgYJKoZIhvcNAQcBoIIGNwSCBjN7CiAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICJsYXN0X25hbWUiOiAi0IbQstCw0L3QvtCyIiwKICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICJiaXJ0aF9kYXRlIjogIjE5OTEtMDgtMTkiLAogICAgImJpcnRoX2NvdW50cnkiOiAi0KPQutGA0LDRl9C90LAiLAogICAgImJpcnRoX3NldHRsZW1lbnQiOiAi0JLRltC90L3QuNGG0Y8iLAogICAgImdlbmRlciI6ICJNQUxFIiwKICAgICJlbWFpbCI6ICJlbWFpbEBleGFtcGxlLmNvbSIsCiAgICAidGF4X2lkIjogIjMxMjY1MDk4MTYiLAogICAgInNlY3JldCI6ICJzZWNyZXQiLAogICAgImRvY3VtZW50cyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlBBU1NQT1JUIiwKICAgICAgICAibnVtYmVyIjogIjEyMDUxOCIsCiAgICAgICAgImlzc3VlZF9ieSI6ICLQoNC+0LrQuNGC0L3Rj9C90YHRjNC60LjQvCDQoNCSINCT0KMg0JzQktChINCa0LjRl9Cy0YHRjNC60L7RlyDQvtCx0LvQsNGB0YLRliIsCiAgICAgICAgImlzc3VlZF9hdCI6ICIyMDE3LTAyLTI4IgogICAgICB9CiAgICBdLAogICAgImFkZHJlc3NlcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlJFU0lERU5DRSIsCiAgICAgICAgImNvdW50cnkiOiAiVUEiLAogICAgICAgICJhcmVhIjogItCW0LjRgtC+0LzQuNGA0YHRjNC60LAiLAogICAgICAgICJyZWdpb24iOiAi0JHQtdGA0LTQuNGH0ZbQstGB0YzQutC40LkiLAogICAgICAgICJzZXR0bGVtZW50IjogItCa0LjRl9CyIiwKICAgICAgICAic2V0dGxlbWVudF90eXBlIjogIkNJVFkiLAogICAgICAgICJzZXR0bGVtZW50X2lkIjogIjQzNDMyNDMyIiwKICAgICAgICAic3RyZWV0X3R5cGUiOiAiU1RSRUVUIiwKICAgICAgICAic3RyZWV0IjogItCy0YPQuy4g0J3RltC20LjQvdGB0YzQutCwIiwKICAgICAgICAiYnVpbGRpbmciOiAiMTUiLAogICAgICAgICJhcGFydG1lbnQiOiAiMjMiLAogICAgICAgICJ6aXAiOiAiMDIwOTAiCiAgICAgIH0KICAgIF0sCiAgICAicGhvbmVzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiTU9CSUxFIiwKICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgIH0KICAgIF0sCiAgICAiYXV0aGVudGljYXRpb25fbWV0aG9kcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIk9UUCIsCiAgICAgICAgInBob25lX251bWJlciI6ICIrMzgwNTA4ODg3NzAwIgogICAgICB9CiAgICBdLAogICAgInByZWZlcnJlZF93YXlfY29tbXVuaWNhdGlvbiI6ICJlbWFpbCIsCiAgICAiZW1lcmdlbmN5X2NvbnRhY3QiOiB7CiAgICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICAgInBob25lcyI6IFsKICAgICAgICB7CiAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICAgIH0KICAgICAgXQogICAgfSwKICAgICJwcm9jZXNzX2Rpc2Nsb3N1cmVfZGF0YV9jb25zZW50IjogdHJ1ZQogIH0KfQqgggW5MIIFtTCCBV2gAwIBAgIUDYTtobuTgegEAAAAXrQiAL+zdAAwDQYLKoYkAgEBAQEDAQEwggFCMXwwegYDVQQKDHPQn9Cj0JHQm9CG0KfQndCVINCQ0JrQptCG0J7QndCV0KDQndCVINCi0J7QktCQ0KDQmNCh0KLQktCeINCa0J7QnNCV0KDQptCG0JnQndCY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
-` (string, required)
-
-+ Response 201 (application/json)
-    + Attributes (`Response_OK`)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (`Person_Full`)
 
 ### Get Person Declaration [GET /api/persons/{id}/declaration]
 
@@ -2034,14 +1969,17 @@ This method is used when you need to re-send SMS to a person or third person
         + data (`OTP`)
         
 
-### Get Confidant Person relationships [GET /api/persons/{id}/confidant_person_relationships]
+### Get Confidant Person relationships [GET /api/persons/{id}/confidant_person_relationships{?is_expired,page,page_size}]
 
-This method allows to view list of active confidant person relationships.
+This method allows to view list of confidant person relationships of person.
 
 **Scopes required:** `confidant_person_relationship:read`
 
 + Parameters
-    + id: `030d5c41-a945-41ac-89d1-b7c6d1c226c7` (string, required)
+    + id: `030d5c41-a945-41ac-89d1-b7c6d1c226c7` (string, required) - identifier of the person
+    + is_expired: `false` (boolean, optional) - true if active to date-time less than now, false if active to date-time greater than now or null
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
 
@@ -2052,9 +1990,8 @@ This method allows to view list of active confidant person relationships.
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
 
 + Response 200 (application/json)
-    + Attributes (`Response_OK`)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`Confidant_Person_Masked`])
-        
 
 + Response 403 (application/json)
     + Attributes (`Response_Error`)
@@ -2212,6 +2149,34 @@ This method is used when you need to re-send SMS to Confidant
     + Attributes (`Response__Process_OK`)
         + data (`OTP`)
 
+### Get Persons Verification Statuses List [GET /api/persons/verifications]
+This method returns a list of persons with their verification statuses and additional related information.
+
+**Scopes required:** `person_verification:read`
+
+
++ Parameters
+    + employee_id: `a3d5e1c7-8a2f-43f3-bef5-912b6e27a7b9` (string, required) - Identifier of the employee.
+    + verification_status: `VERIFIED` (string, required) - Filter by verification status. Possible values:
+        + `CHANGES_NEEDED`
+        + `VERIFIED`
+        + `VERIFICATION_NEEDED`
+        + `NOT_VERIFIED`
+    + status: `active` (string, optional, default: `active`) - Filter by person status.
+    + page: `1` (number, optional) - Page number.
+    + page_size: `50` (number, optional)  - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (`Response__Process_OK`)
+         + data (array[`PersonVerification`])
 
 ### Get Person verification details [GET /api/persons/{id}/verification]
 This method returns current person's verification status and another information about it.
@@ -2236,9 +2201,11 @@ This method returns current person's verification status and another information
             
 
 ### Update Person verification status [PATCH /api/persons/{id}/verification]
-Use this method to update person's verification status. Now updating of DRACS death verification status is allowed.
+Use this method to update person's verification status. Now updating of DRACS death and DRACS name change verification status is allowed.
 
 **Scopes required:** `person_verification:write`
+
+Look at [**Dummy Update Person verification status**](#reference/dummy-methods/dummy-for-person-methods/dummy-update-person-verification-status) for more details.
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person identifier
@@ -2260,37 +2227,7 @@ Use this method to update person's verification status. Now updating of DRACS de
             + include `Person_Verification_Details`
 
 
-### Dummy Update Person verification status [PATCH /api/persons/{id}/verification]
-Use this method to update person's verification status. Now updating of DRACS death and DRACS name change verification status is allowed.
 
-**Scopes required:** `person_verification:write`
-
-+ Parameters
-    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person identifier
-    
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-
-    + Attributes (object)
-       + `dracs_death` (object)
-           + `verification_status`: `VERIFIED` (string, required) - Person DRACS death verification status according to `PERSON_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
-           + `verification_reason`: `MANUAL_COMFIRMED` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL_CONFIRMED` OR `MANUAL_NOT_CONFIRMED` are allowed.
-           + `verification_comment`: `Смерть пацієнта підтверджено` (string, required) - Verification comment
-           + `death_date`: `2022-05-09` (string, optional) - Patient death_date
-        + `dracs_name_change` (object)
-           + `verification_status`: `VERIFIED` (string, required) - Person DRACS name change verification status according to `PERSON_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
-           + `verification_reason`: `MANUAL` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL` is allowed only.
-           + `verification_comment`: `Пацієнт не замінював ПІБ` (string, required) - Verification comment
-
-+ Response 200 (application/json)
-    + Attributes (`Response_OK`)
-        + meta (Response__Meta)
-        + data (object)
-            + include `Person_Verification_Details`
 
 
 ### Get Person Emergency contact [GET  /api/patients/{patient_id}/{medical_event_type}/{medical_event_id}/emergency_contact]
@@ -3236,7 +3173,7 @@ This method allows to register equipment and bind it with division of legal enti
 
     + division_id: `8be63914-a278-470b-b868-1af5b9087332` (string, optional) - Division identifier
     + device_definition_id: `8be63914-a278-470b-b868-1af5b9087332` (string, optional) - Device definition identifier
-    + type: `03221` (string, optional) - `Code from dictionary EQUIPMENT_TYPE`
+    + type: `03221` (string, optional) - `Code from dictionary device_definition_classification_type`
     + status: ACTIVE (string, optional) - Entity status
     + model_number: PC122345 (string, optional) - Model number
     + manufacturer: `ФОП Виробник` (string, optional) - Manufacturer
@@ -4129,7 +4066,7 @@ This method is used to qualify (possibility to use Innm for the program) Medicat
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
         + meta (Response__Meta)
-        +  data (array[`Qualify_by_ID_Request_for_Medication_request_Responce`]))
+        +  data (array[`Qualify_by_ID_Request_for_Medication_request_Responce`])
 
 + Response 422 (application/json)
     + Attributes (`Response_Error`)
@@ -4485,7 +4422,7 @@ For pharmacists please use [**Block Medication Request by Pharmacy User**](https
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
 
     + Attributes (object)
-       + `block_reason`: `перевищено норми відпуску` (string, required) - Block reason
+       + `block_reason`: `перевищено норми відпуску` (string, optional) - Block reason
        + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, required) - Block reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
 
 + Response 200 (application/json)
@@ -4511,7 +4448,7 @@ Use this method to unblock previously blocked Medication request for dispense. I
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
     
     + Attributes (object)
-       + `block_reason`: `помилки відсутні` (string, required) - Unblock reason
+       + `block_reason`: `помилки відсутні` (string, optional) - Unblock reason
        + `block_reason_code`: `UNBLOCK_DEFAULT` (string, required) - Unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`       
 
 + Response 200 (application/json)
@@ -4566,8 +4503,8 @@ This method must be used only by employees with type 'PHARMACIST'.
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
 
-    + Attributes (object)
-       + `block_reason_code`: `MEDICATION_CANCEL` (string, required) - Block reason code `Dictionary MEDICATION_REQUEST_UNBLOCK_REASON`
+    + Attributes (object) 
+       + `block_reason_code`: `PRODUCTION_CANCEL` (string, required) - Block reason code `Dictionary MEDICATION_REQUEST_UNBLOCK_REASON`
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
@@ -4688,7 +4625,6 @@ Look at [**Dummy Process Medication Dispense by Pharmacy User**](https://uaeheal
         + data (object)
             + include `Medication_Dispense_Response_for_Pharmacist`
 
-
 ### Reject Medication Dispense by Pharmacy User [PATCH /api/pharmacy/medication_dispenses/{id}/actions/reject]
 
 This method is used to reject medication dispense.
@@ -4699,7 +4635,6 @@ This method is used to reject medication dispense.
     + Attributes (`Response_OK`)
         + data (object)
             + include `Medication_Dispense_Response_for_Pharmacist`
-
 
 ### Get Medication dispenses by search params by Pharmacy User [GET /api/pharmacy/medication_dispenses{?id,medication_request_id,legal_entity_id,division_id,status,dispensed_from,dispensed_to,care_plan_id,page,page_size}]
 
@@ -5169,9 +5104,6 @@ This method in used to approve declaration request by patient via Cabinet
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
         + data (`Declaration_Details_Cabinet`)
-            + employee (`Employee_Declaration_Short`)
-                + status: APPROVED (enum, required)
-        
 
 ### Terminate declarations via Cabinet [PATCH /api/cabinet/declarations/{id}/actions/terminate]
 Patient can terminate active declaration using this method.
@@ -5191,8 +5123,6 @@ Patient can terminate active declaration using this method.
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
         + data (`Declaration_Details_Cabinet`)
-            + employee (`Employee_Declaration_Short`)
-                + status: APPROVED (enum, required)
 
 ### Get declaration details via Cabinet [GET /api/cabinet/declarations/{id}]
 
@@ -6132,7 +6062,8 @@ This web service returns Group of Diagnoses details filtered by ID with active d
 Public method to operate with devices and related entites
 
 ### Get Device definitions [GET /api/device_definitions{?classification_type,model_number,name,name_type,medical_program_id,is_active,page,page_size}]
-Method to get or search all active device definitions in the system
+
+Will be deprecated. The method to get or search active device definitions in the system with old structure only. Use **Get Device definitions v2** instead.
 
 + Parameters
     + `classification_type`: `30221` (string, optional) - Classification type. Dictionary `device_definition_classification_type`
@@ -6156,9 +6087,61 @@ Method to get or search all active device definitions in the system
     + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 200 (number)
-        + data (array[`Device_Definition_Response`])
+        + data (array[`Device_Definition_Response_v1`])
+
+### Get Device definitions v2 [GET /api/v2/device_definitions{?classification_type_system,classification_type_code,model_number,name,name_type,medical_program_id,is_active,page,page_size}]
+
+The method to search all active device definitions in the system.
+
++ Parameters
+    + `classification_type_system`: `device_definition_classification_type` (string, optional) - The system of Classification type that corresponds to dictionary name
+    + `classification_type_code`: `30221` (string, optional) - The code of Classification type that corresponds to dictionary value
+    + `model_number`: `H00P53` (string, optional) - Model number for the device
+    + `name`: `Some name` (string, optional) - Device name
+    + `name_type`: `registered` (enum, optional) - Device name type. Dictionary `device_name_type`
+    + `medical_program_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - medical program id.    
+    + `is_active`: true (boolean, optional) - device definition status
+    + `page`: 2 (number, optional) - Page number
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array[`Device_Definition_Response_v2`])
 
 ### Get Device definition details [GET /api/device_definitions/{id}]
+
+Will be deprecated. This web service returns Device definition details filtered by ID with old structure only. Use **Get Device definition details v2** instead.
+
++ Parameters
+    + `id`: `88ecde40-c97f-4b36-bffd-0da9c60d697c` (string, required) - Device definition identifier    
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (`Device_Definition_Response_v1`)
+        
+
+### Get Device definition details v2 [GET /api/v2/device_definitions/{id}]
+
 This web service returns Device definition details filtered by ID.
 
 + Parameters
@@ -6176,7 +6159,8 @@ This web service returns Device definition details filtered by ID.
     + Attributes (`Response_OK`)
         + meta (Response__Meta)
             + code: 200 (number)
-        + data (`Device_Definition_Response`)
+        + data (`Device_Definition_Response_v2`)
+
 
 # Group Public. Portal and Reports
 
@@ -6532,9 +6516,9 @@ This service returns parties.declaration_count from report DB for get employees 
         + person (required)
             + id: `13001c60-45a0-4b5a-b425-9505e1de18bd`(string, optional) - MPI id of the person
             + include (`Person_info_Public`, required)
-        + patient_signed: true (boolean, required) - Факт подписания заявки на декларацию.
-        + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
-        + content: `<html><body><p>signed person data</p></body></html>` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by his key.
+        + patient_signed: true (boolean, required) - Person's evidence of sign the person request
+        + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
+        + content: `<html><body><p>signed person data</p></body></html>` (string, required) - HTML document that MUST be shown to a end-user and signed by his key.
         + channel: `MIS` (enum, required) - channel that invoke patient create service
         
 + Response 200 (application/json)
@@ -6713,7 +6697,7 @@ This service returns parties.declaration_count from report DB for get employees 
         + data (object)
             + include `Medication_Dispense_Response_for_Pharmacist`
             + status: PROCESSED
-            
+
 ## Dummy for employee request [/dummy/v2/employee_requests]
 
 ### Create Employee Request v2 [POST]
@@ -6738,184 +6722,37 @@ This service returns parties.declaration_count from report DB for get employees 
             + inserted_at: `2017-05-05T14:09:59.232112` (string, required)
             + updated_at: `2017-05-05T14:09:59.232112` (string, required)
 
-## Dummy for PIS methods [/dummy/pis]
+## Dummy for Person methods [/dummy/persons]
 
-### Dummy for sign-up validation [POST /dummy/pis/sign-up_validation]
+### Dummy Update Person verification status [PATCH /dummy/persons/{id}/verification]
 
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person identifier
+    
 + Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
     + Attributes (object)
-        + `person` (object, required)
-            + include (`Person_info_Public`, required)
-        + `patient_signed`: true (boolean, required)
-        + `process_disclosure_data_consent`: true (boolean, required)
-        + `jwt`: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4` (string, required)
+       - One of
+           + `dracs_death` (object)
+               + `verification_status`: `VERIFIED` (string, required) - Person DRACS death verification status according to `PERSON_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
+               + `verification_reason`: `MANUAL_COMFIRMED` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL_CONFIRMED` OR `MANUAL_NOT_CONFIRMED` are allowed.
+               + `verification_comment`: `Смерть пацієнта підтверджено` (string, required) - Verification comment
+               + `death_date`: `2022-05-09` (string, optional) - Patient death_date
+            + `dracs_name_change` (object)
+               + `verification_status`: `VERIFIED` (string, required) - Person DRACS name change verification status according to `PERSON_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
+               + `verification_reason`: `MANUAL` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL` is allowed only.
+               + `verification_comment`: `Пацієнт не замінював ПІБ` (string, required) - Verification comment
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + meta (Response__Meta)
-            + code: 200 (number)
-        + data (object, required)
-            + person (object, required)
-                + include `Person`
-                + emergency_contact (object, required)
-                    + include `Emergency_Contact`
-            + `token`: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4` (string, required)
-
-### Dummy for register patient [POST /dummy/pis/register]
-
-+ Request (application/json)
-    + Attributes (object)
-        + `person` (object, required)
-            + include `Person`
-            + emergency_contact (object, required)
-                + include `Emergency_Contact`
-        + `patient_signed`: true (boolean, required)
-        + `process_disclosure_data_consent`: true (boolean, required)
-
-+ Response 201 (application/json)
-    + Attributes (`Response_OK`)
-        + meta (`Response__Meta`)
-            + code: 201 (number)
-        + data (object, required)
-            + person (object, required)
-                + include `Person`
-                + emergency_contact (object, required)
-                    + include `Emergency_Contact`
-            + user (object, required)
-                + `id`: `7673eb5a-0cae-4fa8-9f81-e6da46aa2940` (string, optional)
-                + tax_id: 3000080053 (string, required)
-            + access_token: `my-oauth-token` (string, required) - access token
-
-### Dummy for sign-up via confidant validation [POST /dummy/pis/confidant/sign-up_validation]
-
-+ Request (application/json)
-    + Attributes (object)
-        + `person` (object, required)
-            + include (`Person_info_Public_PIS`, required)
-        + `patient_signed`: true (boolean, required)
-        + `process_disclosure_data_consent`: true (boolean, required)
-
-+ Response 200 (application/json)
-    + Attributes (`Response_OK`)
-        + meta (Response__Meta)
-            + code: 200 (number)
-        + data (object, required)
-            + person (object, required)
-                + include `Person`
-                + emergency_contact (object, required)
-                    + include `Emergency_Contact`
-            + `token`: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4` (string, required)
-
-### Dummy for register patient via confidant person [POST /dummy/pis/confidant/register]
-
-+ Request (application/json)
-    + Attributes (object)
-        + `person` (object, required)
-            + include `Person_info_Public_PIS`
-        + `patient_signed`: true (boolean, required)
-        + `process_disclosure_data_consent`: true (boolean, required)
-
-+ Response 201 (application/json)
-    + Attributes (`Response_OK`)
-        + meta (`Response__Meta`)
-            + code: 201 (number)
-        + data (object, required)
-            + person (object, required)
-                + include `Person`
-                + emergency_contact (object, required)
-                    + include `Emergency_Contact`
-            + user (object, required)
-                + `id`: `7673eb5a-0cae-4fa8-9f81-e6da46aa2940` (string, optional)
-                + tax_id: 3000080053 (string, required)
-            + access_token: `my-oauth-token` (string, required) - access token
-
-### Dummy for Trusted sign-up [POST /dummy/pis/sign-up]
-
-+ Request (application/json)
-    + Attributes (object)
-        + `person` (object, required)
-            + include `Person`
-            + emergency_contact (object, required)
-                + include `Emergency_Contact`
-        + `patient_signed`: true (boolean, required)
-        + `process_disclosure_data_consent`: true (boolean, required)
-        + `jwt`: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4` (string, required)
-
-+ Response 201 (application/json)
-    + Attributes (`Response_OK`)
-        + meta (`Response__Meta`)
-            + code: 201 (number)
-        + data (object, required)
-            + person (object, required)
-                + include `Person`
-                + emergency_contact (object, required)
-                    + include `Emergency_Contact`
-            + user (object, required)
-                + `id`: `7673eb5a-0cae-4fa8-9f81-e6da46aa2940` (string, optional)
-                + tax_id: 3000080053 (string, required)
-            + token (`Access_Token`)
-
-### Dummy for Trusted sign-in as confidant person [POST /dummy/pis/confidant/sign-in]
-
-+ Request (application/json)
-    + Attributes (object)
-        + `last_name`: `Петров` (string, required)
-        + `first_name`: `Петро Петрович` (string, required)
-        + `tax_id`: `2323232323` (string, optional)
-        + `document` (object, optional)
-            + `type`: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
-            + `number`: АА120518 (string, required) - document issue number
-
-+ Response 201 (application/json)
-    + Attributes (`Response_OK`)
-        + meta (`Response__Meta`)
-            + code: 201 (number)
-        + data (object, required)
-            + user (object, required)
-                + `id`: `7673eb5a-0cae-4fa8-9f81-e6da46aa2940` (string, optional)
-                + tax_id: 3000080053 (string, required)
-            + token (`Access_Token`)
-
-### Dummy for Trusted sign-up via confidant person [POST /dummy/pis/confidant/sign-up]
-
-+ Request (application/json)
-    + Attributes (object)
-        + `person` (object, required)
-            + include `Person_info_Public_PIS`
-        + `patient_signed`: true (boolean, required)
-        + `process_disclosure_data_consent`: true (boolean, required)
-
-+ Response 201 (application/json)
-    + Attributes (`Response_OK`)
-        + meta (`Response__Meta`)
-            + code: 201 (number)
-        + data (object, required)
-            + user (object, required)
-                + `id`: `7673eb5a-0cae-4fa8-9f81-e6da46aa2940` (string, optional)
-                + tax_id: 3000080053 (string, required)
-            + token (`Access_Token`)
-            
-
-### Dummy for Login in the system as confidant person [POST /dummy/pis/confidant/login]
-
-+ Request (application/json)
-    + Attributes (object)
-        + `last_name`: `Петров` (string, required)
-        + `first_name`: `Петро Петрович` (string, required)
-        + `tax_id`: `2323232323` (string, optional)
-        + `document` (object, optional)
-            + `type`: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
-            + `number`: АА120518 (string, required) - document issue number
-
-+ Response 201 (application/json)
-    + Attributes (`Response_OK`)
-        + meta (`Response__Meta`)
-            + code: 201 (number)
-        + data (object, required)
-            + user (object, required)
-                + `id`: `7673eb5a-0cae-4fa8-9f81-e6da46aa2940` (string, optional)
-                + tax_id: 3000080053 (string, required)
-            + access_token: `my-oauth-token` (string, required) - access token
+        + data (object)
+            + include `Person_Verification_Details`
 
 # Group Deprecated methods
 
@@ -6947,6 +6784,91 @@ This method allows to reset (set to **NA**) person authentication method.
         + error (Response__Error, fixed-type)
             + type: `forbidden`
             + message: `Not found active declaration with person for this legal entity!` (string)
+
+### Create Person [POST /api/persons/create]
+**[Not implemented]** This WS is designed to create person in offline method by legal_entity employee. Employee need scope person:write to create person.
+Method receives signed message (pkcs7) including signed content, digital signature and signer public key. All signature fields will be validated (including signer certificate authority).
+
+Entity data:
+{
+    "first_name": "Петро",
+    "last_name": "Іванов",
+    "second_name": "Миколайович",
+    "birth_date": "1991-08-19",
+    "birth_country": "Україна",
+    "birth_settlement": "Вінниця",
+    "gender": "MALE",
+    "email": "email@example.com",
+    "tax_id": "3126509816",
+    "secret": "secret",
+    "documents": [
+      {
+        "type": "PASSPORT",
+        "number": "120518",
+        "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
+        "issued_at": "2017-02-28"
+      }
+    ],
+    "addresses": [
+      {
+        "type": "RESIDENCE",
+        "country": "UA",
+        "area": "Житомирська",
+        "region": "Бердичівський",
+        "settlement": "Київ",
+        "settlement_type": "CITY",
+        "settlement_id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+        "street_type": "STREET",
+        "street": "вул. Ніжинська",
+        "building": "15",
+        "apartment": "23",
+        "zip": "02090"
+      }
+    ],
+    "phones": [
+      {
+        "type": "MOBILE",
+        "number": "+380503410870"
+      }
+    ],
+    "authentication_methods": [
+      {
+        "type": "OTP",
+        "phone_number": "+380508887700"
+      }
+    ],
+    "preferred_way_communication": "email",
+    "emergency_contact": {
+      "first_name": "Петро",
+      "last_name": "Іванов",
+      "second_name": "Миколайович",
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380503410870"
+        }
+      ]
+    },
+    "process_disclosure_data_consent": true
+  }
+}
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+    + Attributes (object)
+        + `signed_request`: `MIIUKAYJKoZIhvcNAQcCoIIUGTCCFBUCAQExDjAMBgoqhiQCAQEBAQIBMIIGRgYJKoZIhvcNAQcBoIIGNwSCBjN7CiAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICJsYXN0X25hbWUiOiAi0IbQstCw0L3QvtCyIiwKICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICJiaXJ0aF9kYXRlIjogIjE5OTEtMDgtMTkiLAogICAgImJpcnRoX2NvdW50cnkiOiAi0KPQutGA0LDRl9C90LAiLAogICAgImJpcnRoX3NldHRsZW1lbnQiOiAi0JLRltC90L3QuNGG0Y8iLAogICAgImdlbmRlciI6ICJNQUxFIiwKICAgICJlbWFpbCI6ICJlbWFpbEBleGFtcGxlLmNvbSIsCiAgICAidGF4X2lkIjogIjMxMjY1MDk4MTYiLAogICAgInNlY3JldCI6ICJzZWNyZXQiLAogICAgImRvY3VtZW50cyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlBBU1NQT1JUIiwKICAgICAgICAibnVtYmVyIjogIjEyMDUxOCIsCiAgICAgICAgImlzc3VlZF9ieSI6ICLQoNC+0LrQuNGC0L3Rj9C90YHRjNC60LjQvCDQoNCSINCT0KMg0JzQktChINCa0LjRl9Cy0YHRjNC60L7RlyDQvtCx0LvQsNGB0YLRliIsCiAgICAgICAgImlzc3VlZF9hdCI6ICIyMDE3LTAyLTI4IgogICAgICB9CiAgICBdLAogICAgImFkZHJlc3NlcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlJFU0lERU5DRSIsCiAgICAgICAgImNvdW50cnkiOiAiVUEiLAogICAgICAgICJhcmVhIjogItCW0LjRgtC+0LzQuNGA0YHRjNC60LAiLAogICAgICAgICJyZWdpb24iOiAi0JHQtdGA0LTQuNGH0ZbQstGB0YzQutC40LkiLAogICAgICAgICJzZXR0bGVtZW50IjogItCa0LjRl9CyIiwKICAgICAgICAic2V0dGxlbWVudF90eXBlIjogIkNJVFkiLAogICAgICAgICJzZXR0bGVtZW50X2lkIjogIjQzNDMyNDMyIiwKICAgICAgICAic3RyZWV0X3R5cGUiOiAiU1RSRUVUIiwKICAgICAgICAic3RyZWV0IjogItCy0YPQuy4g0J3RltC20LjQvdGB0YzQutCwIiwKICAgICAgICAiYnVpbGRpbmciOiAiMTUiLAogICAgICAgICJhcGFydG1lbnQiOiAiMjMiLAogICAgICAgICJ6aXAiOiAiMDIwOTAiCiAgICAgIH0KICAgIF0sCiAgICAicGhvbmVzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiTU9CSUxFIiwKICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgIH0KICAgIF0sCiAgICAiYXV0aGVudGljYXRpb25fbWV0aG9kcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIk9UUCIsCiAgICAgICAgInBob25lX251bWJlciI6ICIrMzgwNTA4ODg3NzAwIgogICAgICB9CiAgICBdLAogICAgInByZWZlcnJlZF93YXlfY29tbXVuaWNhdGlvbiI6ICJlbWFpbCIsCiAgICAiZW1lcmdlbmN5X2NvbnRhY3QiOiB7CiAgICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICAgInBob25lcyI6IFsKICAgICAgICB7CiAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICAgIH0KICAgICAgXQogICAgfSwKICAgICJwcm9jZXNzX2Rpc2Nsb3N1cmVfZGF0YV9jb25zZW50IjogdHJ1ZQogIH0KfQqgggW5MIIFtTCCBV2gAwIBAgIUDYTtobuTgegEAAAAXrQiAL+zdAAwDQYLKoYkAgEBAQEDAQEwggFCMXwwegYDVQQKDHPQn9Cj0JHQm9CG0KfQndCVINCQ0JrQptCG0J7QndCV0KDQndCVINCi0J7QktCQ0KDQmNCh0KLQktCeINCa0J7QnNCV0KDQptCG0JnQndCY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
+` (string, required)
+
++ Response 201 (application/json)
+    + Attributes (`Response_OK`)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (`Person_Full`)
 
 ## Declaration Requests [/api/declaration_requests]
 
@@ -7017,8 +6939,8 @@ Block `person` has optional `id`.
             + start_date: `2017-03-02` (string, required) - Should be defined on the client side.
             + end_date: `2017-03-02` (string, required) - Will be defined on eHealth side if it's not set.
             + person(`Person_Request`, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
-                + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-                + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+                + patient_signed: false (boolean, required) - Person's evidence of sign the declaration request
+                + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
                 + id: `53af47ba-d9eb-4a87-a2f7-4114adcf1fc4` (string, optional)
             + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
             + scope (enum, required)
@@ -7821,7 +7743,6 @@ Please see a similar endpoint with role context ("Reject Medication Dispense by 
 
 
 
-
 ### Process Medication Dispense - Deprecated [PATCH /api/medication_dispenses/{id}/actions/process]
 
 This method is used to process created dispense
@@ -8071,7 +7992,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
     - email
     - phone
 + documents_person (array[`Document`], required)
-+ documents_relationship (array[`RelationshipDocument`], required)
++ `documents_relationship` (array[RelationshipDocument_v1], required)
 + phones (array[`Phone`], optional)
 
 ### `Confidant_Person_v2`
@@ -8332,7 +8253,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + alias: `husband` (string, optional)
 + ended_at: `2020-01-10 18:23:34.217335` (string, optional) - ISO Datetime
 + started_at: `2020-01-01 18:23:34.217335` (string, optional) - ISO Datetime
-+ is_active: true (boolean, required)
++ is_active: true (boolean, optional)
 + person_id: `50320ee5-2bca-472c-a1a0-28e2e003ec2a` (string, optional)
 + confidant_person (object, optional)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - confidant person identifier
@@ -8345,10 +8266,8 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
         + (object)
             + type: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
             + number: ******18 (string, required) - confidant person document issue number, masked
-    + phones (array)
-        + (object)
-            + type: MOBILE (string, required) - `Dictionary PHONE_TYPE` type of phone Land Line or Mobile. At least one of type must be present. Each type can be represented only once.
-            + number: +38093*****85 (string, required) - confidant person phone number, masked
+    + phones (object, required)
+        + number: +38093*****85 (string, required) - confidant person phone number, masked
 + inserted_at: `2021-11-09T00:00:00.000Z` (string, required) - ISO Datetime
 + updated_at: `2021-11-09T00:00:00.000Z` (string, optional) - ISO Datetime
 + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
@@ -8362,7 +8281,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + phone_number: `+38093*****85` (string, optional) - it's required for type = OTP
 + ended_at: `2020-01-10 18:23:34.217335` (string, optional) - ISO Datetime
 + started_at: `2020-01-01 18:23:34.217335` (string, optional) - ISO Datetime
-+ is_active: true (boolean, required)
++ is_active: true (boolean, optional)
 + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
 + updated_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, optional)
 + person_id: `50320ee5-2bca-472c-a1a0-28e2e003ec2a` (string, optional)
@@ -8456,6 +8375,64 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
        + `verification_status`: `VERIFICATION_NOT_NEEDED` (string, required) - Person Legal capacity verification status according to `PERSON_VERIFICATION_STATUSES` dictionary.
        + `verification_reason`: `AUTO_DATA_ABSENT` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary.
 
+### `PersonVerification`
++ person_id: `5a4f839d-3c1d-40b6-93d2-4ad917f03d7e` (string, required) - Unique identifier of the person.
++ `verification_status`: `NOT_VERIFIED` (string, required) - status of person verification according to `PERSON_VERIFICATION_STATUSES` dictionary
++ `details` (object)
+    + `drfo` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRFO verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current DRFO verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+        + `result`: 12 (number, optional) - result of person DRFO synchronization according to `DRFO_RESULT` dictionary
+        + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person DRFO synchronization
+        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person DRFO unverified
+    + `dracs_death` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRACS death verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current DRACS death verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+        + `verification_comment`: `Необхідно повторно підтвердити факт смерті у пацієнта` (string, optional) - DRACS death verification status description set by NHS or Doctor
+        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person DRACS death unverified
+    + `nhs` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person manual NHS verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current manual NHS verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+        + `verification_comment`: `Бракує даних паспорту пацієнта та його ІПН` (string, optional) - verification status description set by NHS in case NOT_VERIFIED
+        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person NHS unverified
+    + `unzr` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person UNZR verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current UNZR verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+        + `status`: 0 (number, optional) - status of the UNZR record in EIS MVS register for the person. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+        + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person UNZR synchronization
+        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person UNZR unverified
+    + `mvs_passport` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of MVS passport verification for the person according to `PERSON_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current MVS passport verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+        + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+        + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person EIS MVS synchronization
+        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person EIS MVS unverified
+    + `dms_passport` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of DMS passport verification for the person according to `PERSON_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current DMS passport verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+        + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+        + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person DMS synchronization
+        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person DMS unverified
+    + `dracs_birth` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRACS birth verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO_ONLINE` (string, required) - how current DRACS birth verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+        + `verification_comment`: `Необхідно повторно підтвердити дані свідоцтва про народження пацієнта` (string, optional) - DRACS birth verification status description set by NHS
+        + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person DRACS birth synchronization
+        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person DRACS birth unverified
+    + `dracs_name_change` (object)
+       + `verification_status`: `VERIFIED` (string, required) - Person DRACS name change verification status according to `PERSON_VERIFICATION_STATUSES` dictionary.
+       + `verification_reason`: `MANUAL_COMFIRMED` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary.
+       + `verification_comment`: `Пацієнт не замінював ПІБ` (string, optional) - Verification comment
+    + `legal_capacity` (object)
+       + `verification_status`: `VERIFICATION_NOT_NEEDED` (string, required) - Person Legal capacity verification status according to `PERSON_VERIFICATION_STATUSES` dictionary.
+       + `verification_reason`: `AUTO_DATA_ABSENT` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary.
+       + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person Legal capacity birth unverified
++ person_status: `active` (string) - Person's status (default: `active`)
++ person_updated_at: `2024-12-01T12:34:56Z` (string, required) - Date and time when the person was last updated.
++ declaration_number: `0000-12H4-245D` (string, required) - Declaration number associated with the person.
++ declaration_status: `active` (string) - Declaration status (default: `active`).
+
+
 ## `Merge_Candidates`
 ### `Merge_Candidate`
 + id: `8aa4d353-a58f-45f6-b5ce-a89a9cc39391` (string, optional) - Unique record identifier
@@ -8520,8 +8497,8 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 ### `Declaration_Request_Public`
 + person(`Person_Request`, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
     + person_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person id, that should be changed.
-    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+    + patient_signed: false (boolean, required) - Person's evidence of sign the declaration request
+    + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
 + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
 + scope (enum, required)
@@ -8559,8 +8536,8 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
     + emergency_contact (object, required)
         + include `Emergency_Contact`
     + `confidant_person` (array[`Confidant_Person_v2`], optional) - Should be set if this Person is disabled, underage, etc.
-    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+    + patient_signed: false (boolean, required) - Person's evidence of sign the declaration request
+    + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
 + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
 + scope (enum, required)
@@ -8571,8 +8548,8 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + start_date: `2017-03-02` (string, required) - Should be defined on the client side.
 + end_date: `2017-03-02` (string, required) - Will be defined on eHealth side if it's not set.
 + person(`Person_Request`, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
-    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+    + patient_signed: false (boolean, required) - Person's evidence of sign the declaration request
+    + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
 + scope (enum, required)
     - family doctor
 + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
@@ -8588,8 +8565,8 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
     + emergency_contact (object, required)
         + include `Emergency_Contact`
     + `confidant_person` (array[`Confidant_Person_v2`], optional) - Should be set if this Person is disabled, underage, etc.
-    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+    + patient_signed: false (boolean, required) - Person's evidence of sign the declaration request
+    + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
 + scope (enum, required)
     - family doctor
 + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
@@ -8599,8 +8576,8 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + start_date: `2017-03-02` (string, required)
 + end_date: `2017-03-02` (string, required)
 + person(`Person_Request`, required)
-    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+    + patient_signed: false (boolean, required) - Person's evidence of sign the declaration request
+    + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
 + employee (`Employee_Minimal`)
 + `legal_entity` (`Medical_Service_Provider`)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -8729,7 +8706,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + person (`Person_Short`)
     + unzr: `19910819-00011` (string, optional) - the record number in the demographic register
     + `emergency_contact` (`Emergency_Contact`, required)
-    + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
+    + `confidant_person` (array[`Confidant_Person_v2`], optional) - Should be set if this Person is disabled, underage, etc.
 + employee (`Employee_Declaration_Short`)
 + division (`Division_Details_Cabinet`)
 + `legal_entity` (MSP_Details)
@@ -8753,7 +8730,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + person_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + person(`Person`)
     + `emergency_contact` (`Emergency_Contact`, required)
-    + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
+    + `confidant_person` (array[`Confidant_Person_v2`], optional) - Should be set if this Person is disabled, underage, etc.
 + employee (Employee_Declaration_Short)
 + `legal_entity` (`MSP_Details`)
 + division (`Division_Details_Cabinet`)
@@ -8802,8 +8779,8 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + end_date: `2017-03-02` (string, required)
 + person(`Person_Request`, required)
     + id: `5fb57a5d-1457-430e-9678-c81cec72779f` (string)
-    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+    + patient_signed: false (boolean, required) - Person's evidence of sign the declaration request
+    + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
     + `legal_entity` (`Medical_Service_Provider`)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + division (`Division_Details`)
@@ -8823,8 +8800,8 @@ status: `APPROVED` (string, required)
 + person (object, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
     + id: `5fb57a5d-1457-430e-9678-c81cec72779f` (string,required )
     + include `Person_info_Public_DRv3`
-    + patient_signed: false (boolean, required) - Факт подписания заявки на декларацию.
-    + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
+    + patient_signed: false (boolean, required) - Person's evidence of sign the declaration request
+    + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
 + employee (`Employee_Minimal`, required)
 + `legal_entity` (`Medical_Service_Provider`, required)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -8860,7 +8837,7 @@ status: `APPROVED` (string, required)
 + unzr: `20090705-00011` (string, optional) - the record number in the demographic register
 + emergency_contact (object, required)
     + include `Emergency_Contact`
-+ `confidant_person` (array[`Confidant_Person_v2`], optional) - Should be set if this Person is disabled, underage, etc.
++ `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
 
 
 ### `Person_info_Public_request_v2_with_new_confidant_data`
@@ -9228,7 +9205,7 @@ status: `APPROVED` (string, required)
 + position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: APPROVED, STOPPED, ENTERED IN ERROR, REORGANIZED, AUTODEACTIVATED (enum, required)
++ status: APPROVED, DISMISSED, REORGANIZED (enum, required)
 + `is_active`: `true` (boolean, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (`Party_Response_old`)
@@ -9292,7 +9269,7 @@ status: `APPROVED` (string, required)
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
-+ status: APPROVED, STOPPED, ENTERED IN ERROR, AUTODEACTIVATED, REORGANIZED (enum, required) - Employee status
++ status: APPROVED, DISMISSED, REORGANIZED (enum, required) - Employee status
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
@@ -9310,7 +9287,7 @@ status: `APPROVED` (string, required)
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
-+ status: APPROVED, STOPPED, ENTERED IN ERROR, REORGANIZED, AUTODEACTIVATED (enum, required) - Employee status
++ status: APPROVED, DISMISSED (enum, required) - Employee status
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
@@ -9319,6 +9296,41 @@ status: `APPROVED` (string, required)
 + division_id: `4cffa825-8b5b-4cba-9a38-fb57733e14b2` (string, optional) - division identifier
 + `legal_entity_id`: `be3a154c-3e07-496d-9680-f22c443f5d0c` (string, required) - legal entity identifier
 + doctor (DoctorNew)
+
+### PartyVerification
++ employee_id: `7c5f839d-3a1b-4c9d-92d2-4ad917f03e8c` (string, required) - Unique identifier of the employee.
++ `verification_status`: `VERIFIED` (string, required) - Current verification status according to `PARTY_VERIFICATION_STATUSES` dictionary
++ details (object)
+    + drfo (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of party DRFO verification according to `PARTY_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current DRFO verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
+        + `result`: 12 (number, optional) - result of party DRFO synchronization according to `DRFO_RESULT` dictionary
+        + `synced_at`: `2024-09-03 09:41:00` (number, optional) - date of party DRFO synchronization
+        + `unverified_at`: `2024-09-03 09:41:00` (number, optional) - date of party DRFO unferified
+    + dracs_death (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of party DRACS death verification according to `PARTY_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current DRACS death verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
+        + `verification_comment`: `Необхідно повторно підтвердити факт смерті у співробітника` (string, optional) - DRACS death verification status description set by OWNER in case NOT_VERIFIED
+        + `unverified_at`: `2024-09-03 09:41:00` (number, optional) - date of party DRACS death unferified
+    + `mvs_passport` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of MVS passport verification for the party according to `PARTY_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current MVS passport verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
+        + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+        + `synced_at`: `2024-09-03 09:41:00` (number, optional) - date of party MVS synchronization
+        + `unverified_at`: `2024-09-03 09:41:00` (number, optional) - date of party MVS unferified
+    + `dms_passport` (object)
+        + `verification_status`: `NOT_VERIFIED` (string, required) - status of DMS passport verification for the party according to `PARTY_VERIFICATION_STATUSES` dictionary
+        + `verification_reason`: `AUTO` (string, required) - how current DMS passport verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
+        + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+        + `synced_at`: `2024-09-03 09:41:00` (number, optional) - date of party DMS synchronization
+        + `unverified_at`: `2024-09-03 09:41:00` (number, optional) - date of party DMS unferified
+    + `dracs_name_change` (object)
+       + `verification_status`: `VERIFIED` (string, required) - Party DRACS name change verification status according to `PARTY_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
+       + `verification_reason`: `MANUAL` (string, required) - Verification reason according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL` is allowed only.
+       + `verification_comment`: `Співробітник не замінював ПІБ` (string, optional) - Verification comment
+
++ division_id: `e2f4d6a7-8b9c-4c8a-93e2-5c617d832b71` (string, optional) - Identifier of the division.
++ party_updated_at: `2024-12-01T12:34:56Z` (string) - Date and time when the party was last updated.
 
 ### `Party_Verification_Details`
 + `verification_status`: `NOT_VERIFIED` (string, required) - status of party verification according to `PARTY_VERIFICATION_STATUSES` dictionary
@@ -9885,12 +9897,19 @@ status: `APPROVED` (string, required)
 + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, optional) - authority which issued the document
 + issued_at: `2017-02-28` (string, optional) - the date when document was issued
 
-### RelationshipDocument
+### `RelationshipDocument_v1`
 + type: BIRTH_CERTIFICATE (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
 + number: АА120518 (string, required) - document issue number
 + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, optional) - authority which issued the document
 + issued_at: `2017-02-28` (string, optional) - the date when document was issued
 + active_to: `2025-08-19` (string, optional) - the date then period of document validity ends.
+
+### RelationshipDocument
+ + type: BIRTH_CERTIFICATE (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
+ + number: АА120518 (string, required) - document issue number
+ + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+ + issued_at: `2017-02-28` (string, required) - the date when document was issued
+ + active_to: `2025-08-19` (string, optional) - the date then period of document validity ends.
 
 ### `Medical_Certificate`
 + name: Диплом доктора медицини (string, required)
@@ -11120,7 +11139,7 @@ status: `APPROVED` (string, required)
 + `person_id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person identifier
 + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee identifier with `type=DOCTOR` who issued Medication Request.
 + `division_id`: `881d6dee-dd3d-43f3-8983-922354c0e6ce` (string, required) - Division identifier where issued Medication Request.
-+ `authorize_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
++ `inform_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
 + `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
 + `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
 + `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
@@ -11160,7 +11179,7 @@ status: `APPROVED` (string, required)
 + `person_id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person identifier
 + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee identifier with `type=DOCTOR` who issued Medication Request.
 + `division_id`: `881d6dee-dd3d-43f3-8983-922354c0e6ce` (string, required) - Division identifier where issued Medication Request.
-+ `authorize_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
++ `inform_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
 + `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
 + `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
 + `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
@@ -11208,7 +11227,7 @@ status: `APPROVED` (string, required)
 + `division` (`Division_Details`, required)
 + `employee` (`Employee_Minimal`, required)
 + `person` (`Person_Medication_Request`)
-+ `authorize_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
++ `inform_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
 + `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response_without_settings`, required)
 + intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT
@@ -11254,7 +11273,7 @@ status: `APPROVED` (string, required)
 + `division` (`Division_Details`, required)
 + `employee` (`Employee_Minimal`, required)
 + `person` (`Person_Medication_Request`)
-+ `authorize_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
++ `inform_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
 + `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response_without_settings`, required)
 + intent: plan (enum, required) - Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT
@@ -11285,6 +11304,7 @@ status: `APPROVED` (string, required)
     + (Dosage_Instruction)
 + include `MR_MRR_additional_fields`
 + note: some additional info (string, optional) - Additional information
++ `inform_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
 
 ### `Medication_request_Request_Sign`
 + `category`: `community` (enum, required)
@@ -11312,7 +11332,7 @@ status: `APPROVED` (string, required)
     + `id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
 + `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
 + `person` (`Person_Medication_Request_Sign`, required)
-+ `authorize_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
++ `inform_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
 + `request_number` : `0000-K8K5-5MTE-352H` (string, required) - Public medication request human readable number
 + `started_at`: `2018-11-13` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
 + `status`: `NEW` (string, required) - Medication Request status. Find available **statuses** on State Charts wiki page
@@ -11635,6 +11655,7 @@ status: `APPROVED` (string, required)
 + blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
 + `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
++ `inform_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
 
 
 ### `Medication_request_reject_Public_Response_with_Medical_Program_min`
@@ -11745,12 +11766,13 @@ status: `APPROVED` (string, required)
 + `rejected_by`: `e8e5a969-74d8-4620-8496-f5e41f2e8312` (string, optional, nullable) - Rejected user identifier
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `reject_reason_code`: `PATIENT_REJECT` (string, optional, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
-+ `block_reason`: `Підозра на фрод` (string, required) - Block or unblock reason description
++ `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
 + include `MR_MRR_additional_fields`
 + blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
 + `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
++ `inform_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
 
 ### `Medication_request_Public_Response_with_Medical_Program_min_for_Pharmacist`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
@@ -11803,6 +11825,7 @@ status: `APPROVED` (string, required)
 + blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
 + `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
++ `inform_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
 
 ### `Medication_request_Public_Response_with_Medical_Program_min_for_Pharmacist_block_reason_required`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
@@ -11847,13 +11870,14 @@ status: `APPROVED` (string, required)
 + `dosage_instruction` (array, required, fixed-type)
     + (Dosage_Instruction)
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
-+ `reject_reason_code`: `PATIENT_REJECT` (string, required, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
-+ `block_reason`: `Підозра на фрод` (string, required) - Block or unblock reason description
++ `reject_reason_code`: `PATIENT_REJECT` (string, required) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
++ `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
-+ include `MR_MRR_additional_fields`
 + blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
 + `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
++ include `MR_MRR_additional_fields`
++ `inform_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
 
 ### `Medication_request_Private_Response`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
@@ -11963,7 +11987,7 @@ status: `APPROVED` (string, required)
 + `rejected_by`: `e8e5a969-74d8-4620-8496-f5e41f2e8312` (string, optional, nullable) - Rejected user identifier
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `reject_reason_code`: `PATIENT_REJECT` (string, required, nullable, nullable) - `Dictionary MEDICATION_REQUEST_REJECT_REASON`
-+ `block_reason`: `Підозра на фрод` (string, required) - Block or unblock reason description
++ `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, required) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
 + include `MR_MRR_additional_fields`
 + blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
@@ -12011,9 +12035,13 @@ status: `APPROVED` (string, required)
     - WRONG_SIGNATURE
 + `reject_reason`: `Помилка призначення. Несумісні препарати.` (string, optional) - Medication request reject reason
 + `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
-+ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
++ `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`+ blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
++ `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
++ blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
 + include `MR_MRR_additional_fields`
 + note: some additional info (string, optional) - Additional information
++ `inform_with`: `ce74e177-9c3b-4426-aeec-294674f2d65a` (string, optional) - Identifier of person's auth method.
 
 ### `Medication_request_Reject_Response`
 + category: community (enum, required) - Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY
@@ -12054,11 +12082,11 @@ status: `APPROVED` (string, required)
 + `reject_reason`: `Incompatible drugs` (string, optional, nullable) - Medication request reject reason
 + `block_reason`: `Підозра на фрод` (string, optional) - Block or unblock reason description
 + `block_reason_code`: `BLOCK_WRONG_QTY_DRUG` (string, optional) - Block or unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
-+ `block_legal_entity` (object, optional)
-    + `id`: `UUID` (string, required, nullable)
-    + `type`: `NHS` (string, required, nullable)
 + include `MR_MRR_additional_fields`
 + note: some additional info (string, optional) - Additional information
++ blocked_to: `2021-12-18T14:40:16Z` (string, optional, nullable) - Blocked to date - ISO 8601 date and time in UTC timezone.
++ `blocked_by_legal_entity` (`blocked_by_legal_entity_short`, optional) - Legal entity identifier who blocked MR
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 
 ### `Medication_request_Public_Response_without_block_data`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
@@ -13343,14 +13371,12 @@ status: `APPROVED` (string, required)
 + id: `3e34da3d-9b8c-4aaf-be8e-24a161279b6a` (string, required) - Unique identifier of Device definition
 + external_id: `0012351` (string, optional) - Device identifier in external registry
 + `device_names` (array [`device_name`], required)
-+ `classification_type`: `30221` (string, required) - Classification type. Dictionary `device_definition_classification_type`
 + description: `Для визначення рівня глюкози в крові за допомогою глюкоментра Accu-Chek Active` (string, optional) - Device description
 + `manufacturer` (`Manufacturer`, optional)
 + model_number: `M23N76` (string, optional) - Model number
 + part_number: `P00234` (string, optional) - Part number
 + note: `Для визначення рівня глюкози в крові за допомогою глюкоментра Accu-Chek Active` (string, optional) - Notes and comments for device
 + `packaging` (`Device_definition_package`, required)
-+ `properties` (array[`Equipment_property`], optional) - Device definition properties
 + `parent_id`: `3bc7a920-53a5-46a6-a88e-b5f298c7b898` (string, optional) - Reference to parent device definition
 + `program_devices` (array [`Program_device`], optional) - returns if `medical_program_id` search parameter was set
 + `is_active`: true (boolean, required) - device definition status
@@ -13358,6 +13384,30 @@ status: `APPROVED` (string, required)
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Device_Definition_Response_v1`
++ include `Device_Definition_Response`
++ `classification_type`: `30221` (string, required) - Classification type. Dictionary `device_definition_classification_type`
++ `properties` (array[`Equipment_property`], optional) - Device definition properties
+
+### `Device_Definition_Response_v2`
++ include `Device_Definition_Response`
++ `classification_types` (array, required) - Classification type. Dictionary and its value
+    + (Coding)
+        + system: `device_definition_classification_type` (string, required)
+        + code: `30221` (string, required)
++ `properties` (array, optional) - Device definition properties
+    + (object)
+        + `type` (Coding, required) - Property type. Dictionary and its value
+            + system: `device_properties` (string, required)
+            + code: `default` (string, required)
+        - One of
+            + `value_integer`: 10 (number, required)
+            + `value_decimal`: 15.543 (number, required)
+            + `value_boolean`: true (boolean, required)
+            + `value_string`: `blue` (string, required)
+            + `value_codeable_concept` (Codeable_Concept, required)
+
 
 ### `device_name`
 + `name`: `Тест-смужки Accu-Chek Active для глюкометра` (string, required) - Device name
