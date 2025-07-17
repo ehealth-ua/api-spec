@@ -3,9 +3,9 @@ HOST: https://api.ehealth.gov.ua
 
 # GENERAL MIS API
 
-**Version: 9.10.0 v.1**
+**Version: 9.10.0 v2**
 
-**Environment: PROD**
+Environment: **PROD**
 
 This is a **MIS-related consumers  part** of API documentation for Ukrainian Health Services government institution back-end, that should provide:
 
@@ -4856,11 +4856,10 @@ Declaration|`status`
 Division|`dls_verified`
 Employee|`status`
 EmployeeRequest|`status` and `employee_id`
-Party|`verification_status` <br> `drfo_verification_status` <br> `dracs_death_verification_status` <br> `mvs_passport_verification_status` <br> `dms_passport_verification_status` <br> `dracs_name_change_verification_status`
 MedicationDispense|`status`
 MedicationRequest|`status`
 LegalEntity|`status`
-Person|`verification_status` or `status` <br> `drfo_verification_status` <br> `dracs_death_verification_status` <br> `nhs_verification_status` <br> `dracs_birth_verification_status` <br> `unzr_verification_status` <br> `mvs_passport_verification_status` <br> `dms_passport_verification_status` <br> `dracs_name_change_verification_status` <br> `legal_capacity_verification_status`
+Person|`verification_status` or `status`
 Preperson|`status`
 ServiceRequest|`program_processing_status` or `status`
 DeviceRequest |`status`
@@ -4899,11 +4898,10 @@ Declaration|`status`
 Division|`dls_verified`
 Employee|`status`
 EmployeeRequest|`status` and `employee_id`
-Party|`verification_status` <br> `drfo_verification_status` <br> `dracs_death_verification_status` <br> `mvs_passport_verification_status` <br> `dms_passport_verification_status` <br> `dracs_name_change_verification_status`
 MedicationDispense|`status`
 MedicationRequest|`status`
 LegalEntity|`status`
-Person|`verification_status` or `status`  <br> `drfo_verification_status` <br> `dracs_death_verification_status` <br> `nhs_verification_status` <br> `dracs_birth_verification_status` <br> `unzr_verification_status` <br> `mvs_passport_verification_status` <br> `dms_passport_verification_status` <br> `dracs_name_change_verification_status` <br> `legal_capacity_verification_status`
+Person|`verification_status` or `status`
 Preperson|`status`
 ServiceRequest|`program_processing_status` or `status`
 DeviceRequest |`status`
@@ -6727,6 +6725,9 @@ This service returns parties.declaration_count from report DB for get employees 
 ## Dummy for Person methods [/dummy/persons]
 
 ### Dummy Update Person verification status [PATCH /dummy/persons/{id}/verification]
+Use this method to update person's verification status. Now updating of DRACS death verification status is allowed.
+
+**Scopes required:** `person_verification:write`
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person identifier
@@ -8349,6 +8350,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
         + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRACS death verification according to `PERSON_VERIFICATION_STATUSES` dictionary
         + `verification_reason`: `AUTO` (string, required) - how current DRACS death verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
         + `verification_comment`: `Необхідно повторно підтвердити факт смерті у пацієнта` (string, optional) - DRACS death verification status description set by NHS or Doctor
+        + `death_date`: `2022-05-09` (string, optional) - Patient death_date
     + `nhs` (object)
         + `verification_status`: `NOT_VERIFIED` (string, required) - status of person manual NHS verification according to `PERSON_VERIFICATION_STATUSES` dictionary
         + `verification_reason`: `AUTO` (string, required) - how current manual NHS verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
