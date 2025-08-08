@@ -3,7 +3,7 @@ HOST: https://api.ehealth.gov.ua
 
 # GENERAL MIS API
 
-**Version: 9.10.0 v2**
+**Version: 9.10.0 v3**
 
 Environment: **PROD**
 
@@ -25,6 +25,7 @@ If our API returns only one work context, you are free to hide context picker.
 
 # Group Public. Medical Service Provider Integration Layer
 the below table reflects actual API endpoints for all the ehealth environments
+
 Env     | Host
 --------|-----
 DEMO    | https://api-demo.ehealth.gov.ua
@@ -1481,7 +1482,7 @@ This method returns a list of current party's verification statuses and addition
         + `VERIFICATION_NEEDED`
         + `NOT_VERIFIED`
     + division_id: `e2f4d6a7-8b9c-4c8a-93e2-5c617d832b71` (string, optional) - Identifier of the division.
-    + status: `active` (string, optional) - Filter by employee status. default: `APPROVED`
+    + status: `APPROVED` (string, optional) - Filter by employee status.
     + page: `1` (integer, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
@@ -5133,7 +5134,7 @@ Current WS allows to see details of declaration knowing its' id.
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
-        + data (`Declaration_Details_Cabinet`)
+        + data (`Declaration_Details_Cabinet_Short`)
 
 ### Get declaration list via Cabinet [GET /api/cabinet/declarations{?status,start_year,page,page_size}]
 
@@ -8725,6 +8726,30 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
+### `Declaration_Details_Cabinet_Short`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
++ person (required)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ employee (required)
+    + id: `36f8c5cf-4067-46e2-9a7c-47cfdc5536bb` (string, required)
++ division (required)
+    + id: `1da95ca8-5aa3-4526-96f0-14eb2404afbb` (string, required)
++ `legal_entity` (required)
+    + id: `393c544b-a58d-432e-a956-b25b5cb91a22` (string, required)
++ status (enum, required)
+    - active
+    - pending_verification
+    - terminated
++ scope (enum, required)
+    - family_doctor
++ `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
++ content: `Declaration content` (string, required) - HTML document that MUST be shown to a end-user and signed by hes key. - Should be defined on the client side.
++ inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
+
 ### `Declaration_Request_Details_Cabinet`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
@@ -8759,10 +8784,14 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
     - active
     - pending_verification
     - terminated
-+ person (Person_Minimal)
-+ employee (`Employee_Minimal_cabinet`)
-+ `legal_entity` (`MSP_Short`)
-+ division (`Division_Short_List`)
++ person (required)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ employee (required)
+    + id: `36f8c5cf-4067-46e2-9a7c-47cfdc5536bb` (string, required)
++ division (required)
+    + id: `1da95ca8-5aa3-4526-96f0-14eb2404afbb` (string, required)
++ `legal_entity` (required)
+    + id: `393c544b-a58d-432e-a956-b25b5cb91a22` (string, required)
 
 ### `Declaration_requests_list_cabinet`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - unique id of declaration request
