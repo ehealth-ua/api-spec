@@ -5165,7 +5165,7 @@ Current WS allows to see details of declaration request knowing its' id.
             + include `Declaration_Request_Public_Response`
             + status: `NEW` (string, required)
             + employee (`Employee_Minimal`, required)
-                + speciality: `FAMILY_DOCTOR` (string, required) - інформація про спеціальність лікаря
+                + speciality: `FAMILY_DOCTOR` (string, required) - Information about the doctor's specialisation
             + `legal_entity` (`Medical_Service_Provider`, required)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + division (`Division_Declaration`, required)
@@ -8158,7 +8158,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + tax_id: 3126509816 (string, optional)
 + phones (array[`Phone`], optional)
 + birth_settlement: Вінниця (string, required)
-+ birth_country: Україна (string, required) - країна народження
++ birth_country: Україна (string, required) - Country of birth
 
 ### `Person_Short_Declaration`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -8327,7 +8327,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + consumer(object, required)
     + client_id: `b94893f5-b66b-4431-b023-d5b5c037cae1` (string, required) - identifier of the client which consumed patient's data
     + client_name: `Національна служба здоров'я України` (string, required) - client's name
-+ reason: `Просмотр медичних даних пацієнта Олександрова Олександра Володимировича 12.12.2012 р.н згідно судового рішення №АБ-23234234-434` (string, required) - reason why patient's data has been monitored by consumer
++ reason: `Перегляд медичних даних пацієнта Олександрова Олександра Володимировича 12.12.2012 р.н згідно судового рішення №АБ-23234234-434` (string, required) - reason why patient's data has been monitored by consumer
 + `reason_type`(Codeable_Concept,required)
     + coding (array, fixed-type)
         + (Coding)
@@ -8959,7 +8959,7 @@ status: `APPROVED` (string, required)
         + include `Confidant_Person_PIS`
 
 ### `Patient_short`
-+ person_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Id створеної персони
++ person_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Id of the added person
 + updated_at: `2017-03-02T00:00:00.000Z` (string, required)
 + status: SIGNED (string, optional)
 + id: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required) - request id
@@ -9062,9 +9062,9 @@ status: `APPROVED` (string, required)
 + email: email@example.com (string, optional)
 + documents (array[`PartyDocument`], optional)
 + phones (array[`Phone`], optional)
-+ educations (array[`Education`], optional)  - освіта
-+ qualifications (array[`Qualification`], optional) - підвищення кваліфікації
-+ specialities (array[`Speciality_party`], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
++ educations (array[`Education`], optional)  - education
++ qualifications (array[`Qualification`], optional) - qualification enhancement
++ specialities (array[`Speciality_party`], optional)  - information block on obtaining a specialist certificate and passing assessments
 + science_degree (ScienceDegree, optional)
 
 ### `Party_Request_old`
@@ -9118,9 +9118,9 @@ status: `APPROVED` (string, required)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
 + declaration_limit: `2000` (number) - maximum number of declaration with a doctor.
-+ educations (array[`Education`], optional)  - освіта
-+ qualifications (array[`Qualification`], optional) - підвищення кваліфікації
-+ specialities (array[`Speciality_party`], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
++ educations (array[`Education`], optional)  - education
++ qualifications (array[`Qualification`], optional) - qualification enhancement
++ specialities (array[`Speciality_party`], optional)  - information block on obtaining a specialist certificate and passing assessments
 + science_degree (ScienceDegree, optional)
 
 ### `Party_Update_v2`
@@ -9133,9 +9133,9 @@ status: `APPROVED` (string, required)
 + phones (array[`Phone`], optional)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
-+ educations (array[`Education`], optional)  - освіта
-+ qualifications (array[`Qualification`], optional) - підвищення кваліфікації
-+ specialities (array[`Speciality_party`], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
++ educations (array[`Education`], optional)  - education
++ qualifications (array[`Qualification`], optional) - qualification enhancement
++ specialities (array[`Speciality_party`], optional)  - information block on obtaining a specialist certificate and passing assessments
 + science_degree (ScienceDegree, optional)
 
 ### `crud_party`
@@ -9150,9 +9150,9 @@ status: `APPROVED` (string, required)
 + phones (array[`Phone`], optional)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
-+ educations (array[`Education`], optional)  - освіта
-+ qualifications (array[`Qualification`], optional) - підвищення кваліфікації
-+ specialities (array[`Speciality_party`], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
++ educations (array[`Education`], optional)  - education
++ qualifications (array[`Qualification`], optional) - qualification enhancement
++ specialities (array[`Speciality_party`], optional)  - information block on obtaining a specialist certificate and passing assessments
 + science_degree (ScienceDegree, optional)
 
 ### `crud_party_post`
@@ -9186,7 +9186,7 @@ status: `APPROVED` (string, required)
 + start_date: 2017-02-28 (string, required)
 + end_date: 2017-02-28 (string, optional)
 + status: NEW, APPROVED (enum, required)
-+ speciality (`Speciality`, optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
++ speciality (`Speciality`, optional)  - information block on obtaining a specialist certificate and passing assessments
 + `status_reason`: `new_employee` (string, optional)
 
 ### `crud_employee_get`
@@ -9517,7 +9517,7 @@ status: `APPROVED` (string, required)
         + expiry_date: `2017-02-28` (string, optional)
         + `active_from_date`: `2017-02-28` (string, required)
         + what_licensed: реалізація наркотичних засобів (string, optional)
-        + order_no: ВА43234 (string, required) - номер наказу
+        + order_no: ВА43234 (string, required) - order's number
     + license (object, required)
         + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `archive`(array[`Archive`], optional)
@@ -9553,7 +9553,7 @@ status: `APPROVED` (string, required)
             + expiry_date: `2017-02-28` (string, optional)
             + `active_from_date`: `2017-02-28` (string, required)
             + what_licensed: реалізація наркотичних засобів (string, optional)
-            + order_no: ВА43234 (string, required) - номер наказу
+            + order_no: ВА43234 (string, required) - order's number
     + accreditation (MSP_Accreditation, optional)
 + `archive`(array[`Archive`], optional)
 + security (object, fixed-type)
@@ -9582,7 +9582,7 @@ status: `APPROVED` (string, required)
     + expiry_date: `2017-02-28` (string)
     + `active_from_date`: `2017-02-28` (string)
     + what_licensed: реалізація наркотичних засобів (string, optional)
-    + order_no: ВА43234 (string) - номер наказу
+    + order_no: ВА43234 (string) - order's number
 + `archive`(array[`Archive`], optional)
 + public_offer(object, fixed-type, required)
     + `consent_text`: `Consent text` (string, required)
