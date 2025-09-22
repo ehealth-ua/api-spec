@@ -100,55 +100,6 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
     + Headers
 
-### Logout [POST /auth/logout]
-
-This endpoint is used to terminate users authenticated session based on a valid access token.
-
-Refresh token from authenticated session will also be expired.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-
-
-+ Response 200 (application/json)
-    + Attributes (`Response_OK`)
-
-### Get Nonce [GET /oauth/nonce]
-This WS allows to get nonce (one time JWT) for active client of the system.
-Field `client_secret` must be passed if client type = TRUSTED_PIS.
-Nonce payload example:
-```
-{
-  "aud": "mithril-login",
-  "exp": 1523439201,
-  "iat": 1523438301,
-  "iss": "EHealth",
-  "jti": "efe1f08e-d4b4-4cef-a02c-78ea4a1dda25",
-  "nbf": 1523438300,
-  "nonce": 123,
-  "sub": 123,
-  "typ": "access"
-}
-```
-+ Request (application/json)
-    + Headers
-
-            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-
-    + Attributes (object)
-        + `client_id`: `30074b6e-fbab-4dc1-9d37-88c21dab1847` (string, required)
-        + `client_secret`: `c2778f3064753ea70de870a53795f5c9` (string, optional)
-
-
-+ Response 200 (application/json)
-    + Attributes (`Response_OK`)
-        + data (object)
-           + token: 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJtaXRocmlsLWxvZ2luIiwiZXhwIjoxNTIzNDM5MjAxLCJpYXQiOjE1MjM0MzgzMDEsImlzcyI6IkVIZWFsdGgiLCJqdGkiOiJlZmUxZjA4ZS1kNGI0LTRjZWYtYTAyYy03OGVhNGExZGRhMjUiLCJuYmYiOjE1MjM0MzgzMDAsIm5vbmNlIjoxMjMsInN1YiI6MTIzLCJ0eXAiOiJhY2Nlc3MifQ.UZ6S92h3nAG-GKY_XUE1Rc6uR_BuqR8ufUJfMhhKtNmt7DkkQlU49qPXjL0LFddVz1E2DXi2a-BQ0FG-DHsTHA' (string, required)
-
 ### Authorize an Approval [POST /oauth/apps/authorize]
 This endpoint should be reachable only by the eHealth authorization front-end application.
 It will update or create Approval. It's idempotent.
