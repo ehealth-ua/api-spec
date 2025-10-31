@@ -3,7 +3,7 @@ HOST: https://api.ehealth.gov.ua
 
 # GENERAL MIS API
 
-**Version: 9.10.0 v3**
+**Version: 9.11.0 v.1**
 
 Environment: **PROD**
 
@@ -25,7 +25,6 @@ If our API returns only one work context, you are free to hide context picker.
 
 # Group Public. Medical Service Provider Integration Layer
 the below table reflects actual API endpoints for all the ehealth environments
-
 Env     | Host
 --------|-----
 DEMO    | https://api-demo.ehealth.gov.ua
@@ -99,6 +98,55 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 + Response 200 (text/html; charset=UTF-8)
 
     + Headers
+
+### Logout [POST /auth/logout]
+
+This endpoint is used to terminate users authenticated session based on a valid access token.
+
+Refresh token from authenticated session will also be expired.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+
+### Get Nonce [GET /oauth/nonce]
+This WS allows to get nonce (one time JWT) for active client of the system.
+Field `client_secret` must be passed if client type = TRUSTED_PIS.
+Nonce payload example:
+```
+{
+  "aud": "mithril-login",
+  "exp": 1523439201,
+  "iat": 1523438301,
+  "iss": "EHealth",
+  "jti": "efe1f08e-d4b4-4cef-a02c-78ea4a1dda25",
+  "nbf": 1523438300,
+  "nonce": 123,
+  "sub": 123,
+  "typ": "access"
+}
+```
++ Request (application/json)
+    + Headers
+
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+    + Attributes (object)
+        + `client_id`: `30074b6e-fbab-4dc1-9d37-88c21dab1847` (string, required)
+        + `client_secret`: `c2778f3064753ea70de870a53795f5c9` (string, optional)
+
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (object)
+           + token: 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJtaXRocmlsLWxvZ2luIiwiZXhwIjoxNTIzNDM5MjAxLCJpYXQiOjE1MjM0MzgzMDEsImlzcyI6IkVIZWFsdGgiLCJqdGkiOiJlZmUxZjA4ZS1kNGI0LTRjZWYtYTAyYy03OGVhNGExZGRhMjUiLCJuYmYiOjE1MjM0MzgzMDAsIm5vbmNlIjoxMjMsInN1YiI6MTIzLCJ0eXAiOiJhY2Nlc3MifQ.UZ6S92h3nAG-GKY_XUE1Rc6uR_BuqR8ufUJfMhhKtNmt7DkkQlU49qPXjL0LFddVz1E2DXi2a-BQ0FG-DHsTHA' (string, required)
 
 ### Authorize an Approval [POST /oauth/apps/authorize]
 This endpoint should be reachable only by the eHealth authorization front-end application.
@@ -247,6 +295,156 @@ Each dictionary is an object that contains not only a code and description of a 
                     + (Dictionary_value)
                         + code: `D88` (string, required) - code of the dictionary value
                         + description: `Апендицит` (string, required) - description of the code
+
+## Configurations [/api/configurations]
+
+Methods is used to retreive eHealth configurations from PRM
+
+### Get Configurations metadata [GET /api/configurations/metadata]
+
+This resource should be used to get the last updated_at (the latest `updated_at` date of any configuration within a single array of configurations dates) from the tables with configurations:
+- composition_configurations
+- device_parameters_configurations
+- dictionaries_configurations
+- observation_configurations
+- devices_configurations
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            api-key: aFBLVTZ6Z2dON1V
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (array[`Configurations_Metadata_Response`])
+
+### Get Composition Configurations by search params [GET /api/composition_configurations{?type,category,is_active,page,page_size}]
+
++ Parameters
+    + type: `DRIVERS` (string, optional) - type of the Composition
+    + category: `DRIVERS_GROUP1` (string, optional) - category of Composition
+    + `is_active`: `true` (boolean, optional) - Is configuration active or not.
+    + `inserted_at_from`: `2024-10-31` (date, optional) - Inserted_at filter period start date
+    + `inserted_at_to`: `2024-10-31` (date, optional) - Inserted_at filter period end date
+    + `updated_at_from`: `2024-10-31` (date, optional) - Updated_at filter period start date
+    + `updated_at_to`: `2024-10-31` (date, optional) - Updated_at filter period end date
+    + page: 2 (number, optional) - Page number
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 500. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            api-key: aFBLVTZ6Z2dON1V
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Composition_Configurations_Response`])
+        
+
+### Get Devices Configurations by search params [GET /api/devices_configurations{?device_code,is_active,page,page_size}]
+
++ Parameters
+    + `code`: `04_48_15` (string, optional) - code of the Device
+    + `system`: `eHealth/assistive_devices` (string, optional)
+    + `is_active`: `true` (boolean, optional) - Is configuration active or not.
+    + `inserted_at_from`: `2024-10-31` (date, optional) - Inserted_at filter period start date
+    + `inserted_at_to`: `2024-10-31` (date, optional) - Inserted_at filter period end date
+    + `updated_at_from`: `2024-10-31` (date, optional) - Updated_at filter period start date
+    + `updated_at_to`: `2024-10-31` (date, optional) - Updated_at filter period end date    
+    + page: 2 (number, optional) - Page number
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 500. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            api-key: aFBLVTZ6Z2dON1V
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Device_Configurations_Response`])
+
+### Get Device Parameters Configurations by search params [GET /api/device_parameters_configurations{?device_code,is_active,page,page_size}]
+
++ Parameters
+    + `code`: `presence_of_a_hygienic_hole` (string, optional) - code of the Device parameter
+    + `system`: `device_request_code_parameter`  (string, optional)
+    + `is_active`: `true` (boolean, optional) - Is configuration active or not.
+    + `inserted_at_from`: `2024-10-31` (date, optional) - Inserted_at filter period start date
+    + `inserted_at_to`: `2024-10-31` (date, optional) - Inserted_at filter period end date
+    + `updated_at_from`: `2024-10-31` (date, optional) - Updated_at filter period start date
+    + `updated_at_to`: `2024-10-31` (date, optional) - Updated_at filter period end date    
+    + page: 2 (number, optional) - Page number
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 500. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            api-key: aFBLVTZ6Z2dON1V
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Device_Parameters_Configurations_Response`])
+
+### Get Dictionaries Configurations by search params [GET /api/dictionaries_configurations{?name,is_active,page,page_size}]
+
++ Parameters
+    + `name`: `assistive_devices` (string, optional) - name of the Dictionary configuration
+    + `is_active`: `true` (boolean, optional) - Is configuration active or not.
+    + `inserted_at_from`: `2024-10-31` (date, optional) - Inserted_at filter period start date
+    + `inserted_at_to`: `2024-10-31` (date, optional) - Inserted_at filter period end date
+    + `updated_at_from`: `2024-10-31` (date, optional) - Updated_at filter period start date
+    + `updated_at_to`: `2024-10-31` (date, optional) - Updated_at filter period end date    
+    + page: 2 (number, optional) - Page number
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 500. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            api-key: aFBLVTZ6Z2dON1V
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Dictionaries_Configurations_Response`])
+
+### Get Observation Configurations by search params [GET /api/observation_configurations{?code,is_active,page,page_size}]
+
++ Parameters
+    + `code`: `_WHODAS_2.0` (string, optional) - code of the Observation configuration
+    + `system`: `eHealth/LOINC/observation_codes` (string, optional)
+    + `is_active`: `true` (boolean, optional) - Is configuration active or not.
+    + `inserted_at_from`: `2024-10-31` (date, optional) - Inserted_at filter period start date
+    + `inserted_at_to`: `2024-10-31` (date, optional) - Inserted_at filter period end date
+    + `updated_at_from`: `2024-10-31` (date, optional) - Updated_at filter period start date
+    + `updated_at_to`: `2024-10-31` (date, optional) - Updated_at filter period end date    
+    + page: 2 (number, optional) - Page number
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 500. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            api-key: aFBLVTZ6Z2dON1V
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Observation_Configurations_Response`])
 
 ## OTP Verification [/api/verifications]
 
@@ -1422,32 +1620,32 @@ Employee deactivation:
                 + `legal_entity` (`Legal_Entity_Short`)
 
 ### Get Party Verification Statuses List [GET /api/parties/verifications]
-This method returns a list of current party's verification statuses and additional related information.
-
-**Scopes required:** `party_verification:read`
-
-+ Parameters
-    + verification_status: `VERIFIED` (string, required) - Filter by verification status. Possible values:
-        + `CHANGES_NEEDED`
-        + `VERIFIED`
-        + `VERIFICATION_NEEDED`
-        + `NOT_VERIFIED`
-    + division_id: `e2f4d6a7-8b9c-4c8a-93e2-5c617d832b71` (string, optional) - Identifier of the division.
-    + status: `APPROVED` (string, optional) - Filter by employee status.
-    + page: `1` (integer, optional) - Page number.
-    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer {access_token}
-            api-key: {your_api_key}
-            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-
-+ Response 200 (application/json)
-    + Attributes (`Response__Process_OK`)
-         + data (array[`PartyVerification`])
+ This method returns a list of current party's verification statuses and additional related information.
+ 
+ **Scopes required:** `party_verification:read`
+ 
+ + Parameters
+     + verification_status: `VERIFIED` (string, required) - Filter by verification status. Possible values:
+         + `CHANGES_NEEDED`
+         + `VERIFIED`
+         + `VERIFICATION_NEEDED`
+         + `NOT_VERIFIED`
+     + division_id: `e2f4d6a7-8b9c-4c8a-93e2-5c617d832b71` (string, optional) - Identifier of the division.
+     + status: `APPROVED` (string, optional) - Filter by employee status.
+     + page: `1` (integer, optional) - Page number.
+     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+ 
+ + Request (application/json)
+ 
+     + Headers
+ 
+             Authorization: Bearer {access_token}
+             api-key: {your_api_key}
+             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+ 
+ + Response 200 (application/json)
+     + Attributes (`Response__Process_OK`)
+          + data (array[`PartyVerification`])
 
 ### Get Party verification details [GET /api/parties/{id}/verification]
 This method returns current party's verification status and another information about it.
@@ -1678,6 +1876,39 @@ Block `merged_persons` will be deprecated from response and endpoint `Search Per
             + type: `too_many_results`
             + message: `This API method returns only exact match results, please retry with more specific search result` (string)
             
+### Get personal data [GET /api/persons/{id}/personal_data]
+
+This method is used to obtain full information about person by Id. 
+This method is applicable only if there is an active approval of type 'person'.
+
+**Scopes required:** `personal_data:read`
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (`Response__Process_OK`)
+        + data (array)
+            + (object)
+                + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
+                + include (`Personal_data`)
+
++ Response 403 (application/json)
+    + Attributes (`Response_Error`)
+        + meta (Response__Meta, fixed-type)
+            + code: 403 (number)
+        + error (Response__Error, fixed-type)
+            + type: `forbidden`
+            + message: `Access denied` (string)
+          
 
 ### Search Person's merged persons [GET /api/persons/{id}/merged_persons{?status,page,page_size}]
 
@@ -1982,6 +2213,23 @@ This method allows add Confidant Person relationship.
             + status: `NEW` (enum, optional) - current verification status on relationship request.
             + action: `INSERT` (enum, optional) - action that initiates by request creation.
             + channel: `MIS` (enum, required) - channel that invokes the adding or updating of relationship request.
+            + confidant_person_id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, required) - identifier of person who will become confidant
+            + documents_relationship (array, required)
+                + (object)
+                    + type: DEPRIVATION_OF_PARENTAL_RIGHTS (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
+                    + number: АА120518 (string, required) - document issue number
+                    + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+                    + issued_at: `2017-02-28` (string, required) - the date when document was issued
+                    + active_to: `2025-08-19` (string, optional) - the date then period of document validity ends.
+            + confidant_person_relationship (object, optional, nullable)
+                + id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, required) - identifier of person relationship that will be deactivated
+                + documents_relationship (array, required)
+                    + (object)
+                        + type: DEPRIVATION_OF_PARENTAL_RIGHTS (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
+                        + number: АА120518 (string, required) - document issue number
+                        + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+                        + issued_at: `2017-02-28` (string, required) - the date when document was issued
+            + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional, nullable) - identifier of person's auth method
         + urgent (object, required)
             + `authentication_method_current` (`Authentication_Method_for_request`, required) - if the person doesn't have active auth methods, then this block will be nill
             + documents (array[`media_content`], required)
@@ -2024,6 +2272,23 @@ This method allows to deactivate Confidant Person relationship.
             + status: `NEW` (enum, optional) - current verification status on relationship request.
             + action: `DEACTIVATE` (enum, optional) - action that initiates by request creation.
             + channel: `MIS` (enum, required) - channel that invokes the adding or updating of relationship request.
+            + confidant_person_id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, optional, nullable) - identifier of person who will become confidant
+            + documents_relationship (array, optional, nullable)
+                + (object)
+                    + type: DEPRIVATION_OF_PARENTAL_RIGHTS (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
+                    + number: АА120518 (string, required) - document issue number
+                    + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+                    + issued_at: `2017-02-28` (string, required) - the date when document was issued
+                    + active_to: `2025-08-19` (string, optional) - the date then period of document validity ends.
+            + confidant_person_relationship (object, required)
+                + id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, required) - identifier of person relationship that will be deactivated
+                + documents_relationship (array, required)
+                    + (object)
+                        + type: DEPRIVATION_OF_PARENTAL_RIGHTS (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
+                        + number: АА120518 (string, required) - document issue number
+                        + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+                        + issued_at: `2017-02-28` (string, required) - the date when document was issued
+            + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional) - identifier of person's auth method
         + urgent (object, required)
             + `authentication_method_current` (`Authentication_Method_for_request`, required) - if the person doesn't have active auth methods, then this block will be nill
             + documents (array[`media_content`], required)
@@ -2036,9 +2301,80 @@ This method allows to deactivate Confidant Person relationship.
             + type: request_malformed (string, required)
             + message: `This patient has X confidants and can not have more` (string, required)
 
+### Get Confidant Person relationship requests list [GET /api/persons/{id}/confidant_person_relationship_requests]
+
+Use this method to get list of previously created Confidant Person relationship requests
+
+**Scopes required:** `confidant_person_relationship_request:read`
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
+    + status: NEW (string, optional) - Confidant Person relationship request status
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array)
+            + (object)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+                + status: `NEW` (enum, optional) - current verification status on relationship request.
+                + action: `DEACTIVATE` (enum, optional) - action that initiates by request creation.
+                + channel: `MIS` (enum, required) - channel that invokes the adding or updating of relationship request.
+
+### Get Confidant Person relationship request by ID [GET /api/persons/{id}/confidant_person_relationship_requests/{confidant_person_relationship_request_id}]
+
+Use this method to get details of previously created Confidant Person relationship request
+
+**Scopes required:** `confidant_person_relationship_request:read`
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
+    + confidant_person_relationship_request_id: `1096f147-7f93-3fc6-bddc-9d71b198fb7f` (string, required) - Confidant Person relationship request identifier
+
++ Response 200 (application/json)
+    + Attributes (`Response__Process_OK`)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + status: `NEW` (enum, optional) - current verification status on relationship request.
+            + action: `DEACTIVATE` (enum, optional) - action that initiates by request creation.
+            + channel: `MIS` (enum, required) - channel that invokes the adding or updating of relationship request.
+            + confidant_person_id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, optional, nullable) - identifier of person who will become confidant
+            + documents_relationship (array, optional, nullable)
+                + (object)
+                    + type: DEPRIVATION_OF_PARENTAL_RIGHTS (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
+                    + number: АА120518 (string, required) - document issue number
+                    + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+                    + issued_at: `2017-02-28` (string, required) - the date when document was issued
+                    + active_to: `2025-08-19` (string, optional) - the date then period of document validity ends.
+            + confidant_person_relationship (object, optional, nullable)
+                + id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, required) - identifier of person relationship that will be deactivated
+                + documents_relationship (array, required)
+                    + (object)
+                        + type: DEPRIVATION_OF_PARENTAL_RIGHTS (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
+                        + number: АА120518 (string, required) - document issue number
+                        + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+                        + issued_at: `2017-02-28` (string, required) - the date when document was issued
+            + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional, nullable) - identifier of person's auth method
+        + urgent (object, required)
+            + `authentication_method_current` (`Authentication_Method_for_request`, required) - if the person doesn't have active auth methods, then this block will be nill
+            + documents (array[`media_content`], required)
+
 ### Approve Confidant Person relationship request [PATCH /api/persons/{id}/confidant_person_relationship_requests/{confidant_person_relationship_request_id}/actions/approve]
 
 Use this method to approve previously created Confidant Person relationship request (creation or deactivation).
+
+In case if authentication_method is OTP or THIRD_PERSON, request example:
+```
+{
+  "verification_code": 6598
+}
+```
+
+In case if authentication_method is OFFLINE or N/A, request body should be empty.
+Before approve related scanned documents should be uploaded to the ([Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program)).
+All links are generated for one one-page document in jpeg format. Document should be no more than 10MB.
+Clients can use signed URL's to directly access [s3 storage](https://storage.ehealth.gov.ua/) and upload files via API.
 
 **Scopes required:** `confidant_person_relationship_request:write`
 
@@ -2058,16 +2394,30 @@ Use this method to approve previously created Confidant Person relationship requ
     + Attributes (object)
         + `verification_code`: 7489 (number, optional)
 
-+ Response 201 (application/json)
++ Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
-        + meta (Response__Meta)
-            + code: 201 (number)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + status: `COMPLETED` (enum, optional) - current verification status on relationship request.
-            + action: `INSERT` (enum, optional) - action that initiates by request creation.
+            + status: `NEW` (enum, optional) - current verification status on relationship request.
+            + action: `DEACTIVATE` (enum, optional) - action that initiates by request creation.
             + channel: `MIS` (enum, required) - channel that invokes the adding or updating of relationship request.
-
+            + confidant_person_id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, optional, nullable) - identifier of person who will become confidant
+            + documents_relationship (array, optional, nullable)
+                + (object)
+                    + type: DEPRIVATION_OF_PARENTAL_RIGHTS (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
+                    + number: АА120518 (string, required) - document issue number
+                    + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+                    + issued_at: `2017-02-28` (string, required) - the date when document was issued
+                    + active_to: `2025-08-19` (string, optional) - the date then period of document validity ends.
+            + confidant_person_relationship (object, optional, nullable)
+                + id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, required) - identifier of person relationship that will be deactivated
+                + documents_relationship (array, required)
+                    + (object)
+                        + type: DEPRIVATION_OF_PARENTAL_RIGHTS (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
+                        + number: АА120518 (string, required) - document issue number
+                        + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+                        + issued_at: `2017-02-28` (string, required) - the date when document was issued
+            + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional, nullable) - identifier of person's auth method
 
 + Response 422 (application/json)
     + Attributes (`Response_Error`)
@@ -2076,6 +2426,60 @@ Use this method to approve previously created Confidant Person relationship requ
         + error
             + type: request_malformed (string, required)
             + message: `This patient has X confidants and can not have more` (string, required)
+
+### Sign Confidant Person relationship request [PATCH /api/persons/{id}/confidant_person_relationship_requests/{confidant_person_relationship_request_id}/actions/sign]
+
+Use this method to sign previously approved Confidant Person relationship request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property.
+All signature fields will be validated (including signer certificate authority).
+
+This service will store signed copy of Confidant Person relationship Request in Media Content Storage, create new or deactivate existing confidant person relationship if all checks are passed
+
+Object that need to be signed is returned by `Get Confidant Person relationship request by ID` or `Approve Confidant Person relationship request` response, `JSON.Path: $.data`.
+
+Look at [**Dummy Sign Confidant Person relationship request**](https://uaehealthapi.docs.apiary.io/#reference/dummy-methods/dummy-for-person-methods/sign-confidant-person-relationship-request) for more details.
+
+**Scopes required:** `confidant_person_relationship_request:write`
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
+    + confidant_person_relationship_request_id: `1096f147-7f93-3fc6-bddc-9d71b198fb7f` (string, required) - Confidant Person relationship request identifier
+
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+    + Attributes (object)
+        + `signed_content`: `ewogICJzdGF0dXMiOiAiQVBQUk9WRUQiLAogICJpZCI6ICJlZWViYjg2ZC01Y2JhLTQzYzktODg1Yi02NDgyZWNhZjgyNmIiLAogICJwZXJzb24iOiB7CiAgICAiaWQiOiAiMTMwMDFjNjAtNDVhMC00YjVhLWI0MjUtOTUwNWUxZGUxOGJkIiwKICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgImxhc3RfbmFtZSI6ICLQhtCy0LDQvdC+0LIiLAogICAgInNlY29uZF9uYW1lIjogItCc0LjQutC+0LvQsNC50L7QstC40YciLAogICAgImJpcnRoX2RhdGUiOiAiMjAwOS0wNy0wNSIsCiAgICAiYmlydGhfY291bnRyeSI6ICLQo9C60YDQsNGX0L3QsCIsCiAgICAiYmlydGhfc2V0dGxlbWVudCI6ICLQktGW0L3QvdC40YbRjyIsCiAgICAiZ2VuZGVyIjogIk1BTEUiLAogICAgImVtYWlsIjogImVtYWlsQGV4YW1wbGUuY29tIiwKICAgICJub190YXhfaWQiOiBmYWxzZSwKICAgICJ0YXhfaWQiOiAiMzk5OTg2OTM5NCIsCiAgICAic2VjcmV0IjogInNlY3JldCIsCiAgICAiZG9jdW1lbnRzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiQklSVEhfQ0VSVElGSUNBVEUiLAogICAgICAgICJudW1iZXIiOiAi0JDQkDEyMDUxOCIsCiAgICAgICAgImlzc3VlZF9ieSI6ICLQoNC+0LrQuNGC0L3Rj9C90YHRjNC60LjQvCDQoNCSINCT0KMg0JzQktChINCa0LjRl9Cy0YHRjNC60L7RlyDQvtCx0LvQsNGB0YLRliIsCiAgICAgICAgImlzc3VlZF9hdCI6ICIyMDE3LTAyLTI4IiwKICAgICAgICAiZXhwaXJhdGlvbl9kYXRlIjogIjIwMjctMDItMjgiCiAgICAgIH0KICAgIF0sCiAgICAiYWRkcmVzc2VzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiUkVTSURFTkNFIiwKICAgICAgICAiY291bnRyeSI6ICJVQSIsCiAgICAgICAgImFyZWEiOiAi0JbQuNGC0L7QvNC40YDRgdGM0LrQsCIsCiAgICAgICAgInJlZ2lvbiI6ICLQkdC10YDQtNC40YfRltCy0YHRjNC60LjQuSIsCiAgICAgICAgInNldHRsZW1lbnQiOiAi0JrQuNGX0LIiLAogICAgICAgICJzZXR0bGVtZW50X3R5cGUiOiAiQ0lUWSIsCiAgICAgICAgInNldHRsZW1lbnRfaWQiOiAiYjA3NWYxNDgiLAogICAgICAgICJzdHJlZXRfdHlwZSI6ICJTVFJFRVQiLAogICAgICAgICJzdHJlZXQiOiAi0LLRg9C7LiDQndGW0LbQuNC90YHRjNC60LAiLAogICAgICAgICJidWlsZGluZyI6ICIxNSIsCiAgICAgICAgImFwYXJ0bWVudCI6ICIyMyIsCiAgICAgICAgInppcCI6ICIwMjA5MCIKICAgICAgfQogICAgXSwKICAgICJwaG9uZXMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICJudW1iZXIiOiAiKzM4MDUwMzQxMDg3MCIKICAgICAgfQogICAgXSwKICAgICJhdXRoZW50aWNhdGlvbl9tZXRob2RzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiVEhJUkRfUEVSU09OIiwKICAgICAgICAidmFsdWUiOiAiKzM4MDUwODg4NzcwMCIsCiAgICAgICAgImFsaWFzIjogImh1c2JhbmQiCiAgICAgIH0KICAgIF0sCiAgICAidW56ciI6ICIyMDA5MDcwNS0wMDAxMSIsCiAgICAiZW1lcmdlbmN5X2NvbnRhY3QiOiB7CiAgICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICAgInBob25lcyI6IFsKICAgICAgICB7CiAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICAgIH0KICAgICAgXQogICAgfSwKICAgICJjb25maWRhbnRfcGVyc29uIjogWwogICAgICB7CiAgICAgICAgInJlbGF0aW9uX3R5cGUiOiAiUFJJTUFSWSIsCiAgICAgICAgImZpcnN0X25hbWUiOiAi0J/QtdGC0YDQviIsCiAgICAgICAgImxhc3RfbmFtZSI6ICLQhtCy0LDQvdC+0LIiLAogICAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICAgICAiYmlydGhfZGF0ZSI6ICIxOTcyLTEwLTI2IiwKICAgICAgICAiYmlydGhfY291bnRyeSI6ICLQo9C60YDQsNGX0L3QsCIsCiAgICAgICAgImJpcnRoX3NldHRsZW1lbnQiOiAi0JLRltC90L3QuNGG0Y8iLAogICAgICAgICJnZW5kZXIiOiAiTUFMRSIsCiAgICAgICAgInRheF9pZCI6ICIyNjU5NzE5MzUwIiwKICAgICAgICAic2VjcmV0IjogInNlY3JldCIsCiAgICAgICAgImRvY3VtZW50c19wZXJzb24iOiBbCiAgICAgICAgICB7CiAgICAgICAgICAgICJ0eXBlIjogIlBBU1NQT1JUIiwKICAgICAgICAgICAgIm51bWJlciI6ICLQkNCQMTIwNTE4IiwKICAgICAgICAgICAgImlzc3VlZF9ieSI6ICLQoNC+0LrQuNGC0L3Rj9C90YHRjNC60LjQvCDQoNCSINCT0KMg0JzQktChINCa0LjRl9Cy0YHRjNC60L7RlyDQvtCx0LvQsNGB0YLRliIsCiAgICAgICAgICAgICJpc3N1ZWRfYXQiOiAiMjAxNy0wMi0yOCIKICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJkb2N1bWVudHNfcmVsYXRpb25zaGlwIjogWwogICAgICAgICAgewogICAgICAgICAgICAidHlwZSI6ICJQQVNTUE9SVCIsCiAgICAgICAgICAgICJudW1iZXIiOiAi0JDQkDEyMDUxOCIsCiAgICAgICAgICAgICJpc3N1ZWRfYnkiOiAi0KDQvtC60LjRgtC90Y/QvdGB0YzQutC40Lwg0KDQkiDQk9CjINCc0JLQoSDQmtC40ZfQstGB0YzQutC+0Zcg0L7QsdC70LDRgdGC0ZYiLAogICAgICAgICAgICAiaXNzdWVkX2F0IjogIjIwMTctMDItMjgiCiAgICAgICAgICB9CiAgICAgICAgXSwKICAgICAgICAicGhvbmVzIjogWwogICAgICAgICAgewogICAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgICAgICB9CiAgICAgICAgXSwKICAgICAgICAiZW1haWwiOiAiZW1haWxsQGV4YW1wbGUuY29tIgogICAgICB9CiAgICBdLAogICAgInByZWZlcnJlZF93YXlfY29tbXVuaWNhdGlvbiI6ICJlbWFpbCIKICB9LAogICJwYXRpZW50X3NpZ25lZCI6IHRydWUsCiAgInByb2Nlc3NfZGlzY2xvc3VyZV9kYXRhX2NvbnNlbnQiOiB0cnVlLAogICJjb250ZW50IjogIjxodG1sPjxib2R5PjxwPnNpZ25lZCBwZXJzb24gZGF0YTwvcD48L2JvZHk+PC9odG1sPiIsCiAgImNoYW5uZWwiOiAiTUlTIgp9` (string, required)
+
++ Response 200 (application/json)
+    + Attributes (`Response__Process_OK`)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + status: `COMPLETED` (enum, optional) - current verification status on relationship request.
+            + action: `DEACTIVATE` (enum, optional) - action that initiates by request creation.
+            + channel: `MIS` (enum, required) - channel that invokes the adding or updating of relationship request.
+            + confidant_person_id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, optional, nullable) - identifier of person who will become confidant
+            + documents_relationship (array, optional, nullable)
+                + (object)
+                    + type: DEPRIVATION_OF_PARENTAL_RIGHTS (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
+                    + number: АА120518 (string, required) - document issue number
+                    + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+                    + issued_at: `2017-02-28` (string, required) - the date when document was issued
+                    + active_to: `2025-08-19` (string, optional) - the date then period of document validity ends.
+            + confidant_person_relationship (object, optional, nullable)
+                + id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, required) - identifier of person relationship that will be deactivated
+                + documents_relationship (array, required)
+                    + (object)
+                        + type: DEPRIVATION_OF_PARENTAL_RIGHTS (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
+                        + number: АА120518 (string, required) - document issue number
+                        + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+                        + issued_at: `2017-02-28` (string, required) - the date when document was issued
+            + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional, nullable) - identifier of person's auth method
 
 ### Resend Authorization OTP on Confidant Person relationship [POST /api/persons/{id}/confidant_person_relationship_requests/{confidant_person_relationship_request_id}/actions/resend_otp ]
 
@@ -2101,34 +2505,35 @@ This method is used when you need to re-send SMS to Confidant
     + Attributes (`Response__Process_OK`)
         + data (`OTP`)
 
+
 ### Get Persons Verification Statuses List [GET /api/persons/verifications]
-This method returns a list of persons with their verification statuses and additional related information.
-
-**Scopes required:** `person_verification:read`
-
-
-+ Parameters
-    + employee_id: `a3d5e1c7-8a2f-43f3-bef5-912b6e27a7b9` (string, required) - Identifier of the employee.
-    + verification_status: `VERIFIED` (string, required) - Filter by verification status. Possible values:
-        + `CHANGES_NEEDED`
-        + `VERIFIED`
-        + `VERIFICATION_NEEDED`
-        + `NOT_VERIFIED`
-    + status: `active` (string, optional, default: `active`) - Filter by person status.
-    + page: `1` (number, optional) - Page number.
-    + page_size: `50` (number, optional)  - A limit on the number of objects to be returned, between 1 and 300. Default: 50
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
-            api-key: uXhEczJ56adsfh3Ri9SUkc4en
-            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-
-+ Response 200 (application/json)
-    + Attributes (`Response__Process_OK`)
-         + data (array[`PersonVerification`])
+ This method returns a list of persons with their verification statuses and additional related information.
+ 
+ **Scopes required:** `person_verification:read`
+ 
+ 
+ + Parameters
+     + employee_id: `a3d5e1c7-8a2f-43f3-bef5-912b6e27a7b9` (string, required) - Identifier of the employee.
+     + verification_status: `VERIFIED` (string, required) - Filter by verification status. Possible values:
+         + `CHANGES_NEEDED`
+         + `VERIFIED`
+         + `VERIFICATION_NEEDED`
+         + `NOT_VERIFIED`
+     + status: `active` (string, optional, default: `active`) - Filter by person status.
+     + page: `1` (number, optional) - Page number.
+     + page_size: `50` (number, optional)  - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+ 
+ + Request (application/json)
+ 
+     + Headers
+ 
+             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+             api-key: uXhEczJ56adsfh3Ri9SUkc4en
+             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+ 
+ + Response 200 (application/json)
+     + Attributes (`Response__Process_OK`)
+          + data (array[`PersonVerification`])
 
 ### Get Person verification details [GET /api/persons/{id}/verification]
 This method returns current person's verification status and another information about it.
@@ -5116,7 +5521,7 @@ Current WS allows to see details of declaration request knowing its' id.
             + include `Declaration_Request_Public_Response`
             + status: `NEW` (string, required)
             + employee (`Employee_Minimal`, required)
-                + speciality: `FAMILY_DOCTOR` (string, required) - Information about the doctor's specialisation
+                + speciality: `FAMILY_DOCTOR` (string, required) - інформація про спеціальність лікаря
             + `legal_entity` (`Medical_Service_Provider`, required)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + division (`Division_Declaration`, required)
@@ -6677,9 +7082,6 @@ This service returns parties.declaration_count from report DB for get employees 
 ## Dummy for Person methods [/dummy/persons]
 
 ### Dummy Update Person verification status [PATCH /dummy/persons/{id}/verification]
-Use this method to update person's verification status. Now updating of DRACS death verification status is allowed.
-
-**Scopes required:** `person_verification:write`
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person identifier
@@ -6708,6 +7110,58 @@ Use this method to update person's verification status. Now updating of DRACS de
         + meta (Response__Meta)
         + data (object)
             + include `Person_Verification_Details`
+
+### Sign Confidant Person relationship request [PATCH /dummy/persons/{id}/confidant_person_relationship_requests/{confidant_person_relationship_request_id}/actions/sign]
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
+    + confidant_person_relationship_request_id: `1096f147-7f93-3fc6-bddc-9d71b198fb7f` (string, required) - Confidant Person relationship request identifier
+
+
++ Request Action INSERT (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+    + Attributes (object)
+        + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+        + status: `APPROVED` (enum, optional) - current verification status on relationship request.
+        + action: `INSERT` (enum, optional) - action that initiates by request creation.
+        + channel: `MIS` (enum, required) - channel that invokes the adding or updating of relationship request.
+        + confidant_person_id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, required) - identifier of person who will become confidant
+        + documents_relationship (array, required)
+            + (object)
+                + type: DEPRIVATION_OF_PARENTAL_RIGHTS (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
+                + number: АА120518 (string, required) - document issue number
+                + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+                + issued_at: `2017-02-28` (string, required) - the date when document was issued
+                + active_to: `2025-08-19` (string, optional) - the date then period of document validity ends.
+
++ Request Action DEACTIVATE (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+    + Attributes (object)
+        + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+        + status: `APPROVED` (enum, optional) - current verification status on relationship request.
+        + action: `INSERT` (enum, optional) - action that initiates by request creation.
+        + channel: `MIS` (enum, required) - channel that invokes the adding or updating of relationship request.
+        + confidant_person_relationship (object, required)
+                + id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, required) - identifier of person relationship that will be deactivated
+                + documents_relationship (array, required)
+                    + (object)
+                        + type: DEPRIVATION_OF_PARENTAL_RIGHTS (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
+                        + number: АА120518 (string, required) - document issue number
+                        + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+                        + issued_at: `2017-02-28` (string, required) - the date when document was issued
+        + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional) - identifier of person's auth method
 
 # Group Deprecated methods
 
@@ -8109,7 +8563,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + tax_id: 3126509816 (string, optional)
 + phones (array[`Phone`], optional)
 + birth_settlement: Вінниця (string, required)
-+ birth_country: Україна (string, required) - Country of birth
++ birth_country: Україна (string, required) - країна народження
 
 ### `Person_Short_Declaration`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -8278,7 +8732,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + consumer(object, required)
     + client_id: `b94893f5-b66b-4431-b023-d5b5c037cae1` (string, required) - identifier of the client which consumed patient's data
     + client_name: `Національна служба здоров'я України` (string, required) - client's name
-+ reason: `Перегляд медичних даних пацієнта Олександрова Олександра Володимировича 12.12.2012 р.н згідно судового рішення №АБ-23234234-434` (string, required) - reason why patient's data has been monitored by consumer
++ reason: `Просмотр медичних даних пацієнта Олександрова Олександра Володимировича 12.12.2012 р.н згідно судового рішення №АБ-23234234-434` (string, required) - reason why patient's data has been monitored by consumer
 + `reason_type`(Codeable_Concept,required)
     + coding (array, fixed-type)
         + (Coding)
@@ -8302,7 +8756,6 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
         + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRACS death verification according to `PERSON_VERIFICATION_STATUSES` dictionary
         + `verification_reason`: `AUTO` (string, required) - how current DRACS death verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
         + `verification_comment`: `Необхідно повторно підтвердити факт смерті у пацієнта` (string, optional) - DRACS death verification status description set by NHS or Doctor
-        + `death_date`: `2022-05-09` (string, optional) - Patient death_date
     + `nhs` (object)
         + `verification_status`: `NOT_VERIFIED` (string, required) - status of person manual NHS verification according to `PERSON_VERIFICATION_STATUSES` dictionary
         + `verification_reason`: `AUTO` (string, required) - how current manual NHS verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
@@ -8332,62 +8785,61 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
        + `verification_reason`: `AUTO_DATA_ABSENT` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary.
 
 ### `PersonVerification`
-+ person_id: `5a4f839d-3c1d-40b6-93d2-4ad917f03d7e` (string, required) - Unique identifier of the person.
-+ `verification_status`: `NOT_VERIFIED` (string, required) - status of person verification according to `PERSON_VERIFICATION_STATUSES` dictionary
-+ `details` (object)
-    + `drfo` (object)
-        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRFO verification according to `PERSON_VERIFICATION_STATUSES` dictionary
-        + `verification_reason`: `AUTO` (string, required) - how current DRFO verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
-        + `result`: 12 (number, optional) - result of person DRFO synchronization according to `DRFO_RESULT` dictionary
-        + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person DRFO synchronization
-        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person DRFO unverified
-    + `dracs_death` (object)
-        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRACS death verification according to `PERSON_VERIFICATION_STATUSES` dictionary
-        + `verification_reason`: `AUTO` (string, required) - how current DRACS death verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
-        + `verification_comment`: `Необхідно повторно підтвердити факт смерті у пацієнта` (string, optional) - DRACS death verification status description set by NHS or Doctor
-        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person DRACS death unverified
-    + `nhs` (object)
-        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person manual NHS verification according to `PERSON_VERIFICATION_STATUSES` dictionary
-        + `verification_reason`: `AUTO` (string, required) - how current manual NHS verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
-        + `verification_comment`: `Бракує даних паспорту пацієнта та його ІПН` (string, optional) - verification status description set by NHS in case NOT_VERIFIED
-        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person NHS unverified
-    + `unzr` (object)
-        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person UNZR verification according to `PERSON_VERIFICATION_STATUSES` dictionary
-        + `verification_reason`: `AUTO` (string, required) - how current UNZR verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
-        + `status`: 0 (number, optional) - status of the UNZR record in EIS MVS register for the person. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
-        + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person UNZR synchronization
-        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person UNZR unverified
-    + `mvs_passport` (object)
-        + `verification_status`: `NOT_VERIFIED` (string, required) - status of MVS passport verification for the person according to `PERSON_VERIFICATION_STATUSES` dictionary
-        + `verification_reason`: `AUTO` (string, required) - how current MVS passport verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
-        + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
-        + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person EIS MVS synchronization
-        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person EIS MVS unverified
-    + `dms_passport` (object)
-        + `verification_status`: `NOT_VERIFIED` (string, required) - status of DMS passport verification for the person according to `PERSON_VERIFICATION_STATUSES` dictionary
-        + `verification_reason`: `AUTO` (string, required) - how current DMS passport verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
-        + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
-        + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person DMS synchronization
-        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person DMS unverified
-    + `dracs_birth` (object)
-        + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRACS birth verification according to `PERSON_VERIFICATION_STATUSES` dictionary
-        + `verification_reason`: `AUTO_ONLINE` (string, required) - how current DRACS birth verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
-        + `verification_comment`: `Необхідно повторно підтвердити дані свідоцтва про народження пацієнта` (string, optional) - DRACS birth verification status description set by NHS
-        + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person DRACS birth synchronization
-        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person DRACS birth unverified
-    + `dracs_name_change` (object)
-       + `verification_status`: `VERIFIED` (string, required) - Person DRACS name change verification status according to `PERSON_VERIFICATION_STATUSES` dictionary.
-       + `verification_reason`: `MANUAL_COMFIRMED` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary.
-       + `verification_comment`: `Пацієнт не замінював ПІБ` (string, optional) - Verification comment
-    + `legal_capacity` (object)
-       + `verification_status`: `VERIFICATION_NOT_NEEDED` (string, required) - Person Legal capacity verification status according to `PERSON_VERIFICATION_STATUSES` dictionary.
-       + `verification_reason`: `AUTO_DATA_ABSENT` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary.
-       + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person Legal capacity birth unverified
-+ person_status: `active` (string) - Person's status (default: `active`)
-+ person_updated_at: `2024-12-01T12:34:56Z` (string, required) - Date and time when the person was last updated.
-+ declaration_number: `0000-12H4-245D` (string, required) - Declaration number associated with the person.
-+ declaration_status: `active` (string) - Declaration status (default: `active`).
-
+ + person_id: `5a4f839d-3c1d-40b6-93d2-4ad917f03d7e` (string, required) - Unique identifier of the person.
+ + `verification_status`: `NOT_VERIFIED` (string, required) - status of person verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+ + `details` (object)
+     + `drfo` (object)
+         + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRFO verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+         + `verification_reason`: `AUTO` (string, required) - how current DRFO verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+         + `result`: 12 (number, optional) - result of person DRFO synchronization according to `DRFO_RESULT` dictionary
+         + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person DRFO synchronization
+         + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person DRFO unverified
+     + `dracs_death` (object)
+         + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRACS death verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+         + `verification_reason`: `AUTO` (string, required) - how current DRACS death verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+         + `verification_comment`: `Необхідно повторно підтвердити факт смерті у пацієнта` (string, optional) - DRACS death verification status description set by NHS or Doctor
+         + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person DRACS death unverified
+     + `nhs` (object)
+         + `verification_status`: `NOT_VERIFIED` (string, required) - status of person manual NHS verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+         + `verification_reason`: `AUTO` (string, required) - how current manual NHS verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+         + `verification_comment`: `Бракує даних паспорту пацієнта та його ІПН` (string, optional) - verification status description set by NHS in case NOT_VERIFIED
+         + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person NHS unverified
+     + `unzr` (object)
+         + `verification_status`: `NOT_VERIFIED` (string, required) - status of person UNZR verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+         + `verification_reason`: `AUTO` (string, required) - how current UNZR verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+         + `status`: 0 (number, optional) - status of the UNZR record in EIS MVS register for the person. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+         + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person UNZR synchronization
+         + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person UNZR unverified
+     + `mvs_passport` (object)
+         + `verification_status`: `NOT_VERIFIED` (string, required) - status of MVS passport verification for the person according to `PERSON_VERIFICATION_STATUSES` dictionary
+         + `verification_reason`: `AUTO` (string, required) - how current MVS passport verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+         + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+         + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person EIS MVS synchronization
+         + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person EIS MVS unverified
+     + `dms_passport` (object)
+         + `verification_status`: `NOT_VERIFIED` (string, required) - status of DMS passport verification for the person according to `PERSON_VERIFICATION_STATUSES` dictionary
+         + `verification_reason`: `AUTO` (string, required) - how current DMS passport verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+         + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+         + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person DMS synchronization
+         + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person DMS unverified
+     + `dracs_birth` (object)
+         + `verification_status`: `NOT_VERIFIED` (string, required) - status of person DRACS birth verification according to `PERSON_VERIFICATION_STATUSES` dictionary
+         + `verification_reason`: `AUTO_ONLINE` (string, required) - how current DRACS birth verification status has been set according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary
+         + `verification_comment`: `Необхідно повторно підтвердити дані свідоцтва про народження пацієнта` (string, optional) - DRACS birth verification status description set by NHS
+         + `synced_at`: `2025-11-11 11:11:11` (string, required) - date of person DRACS birth synchronization
+         + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person DRACS birth unverified
+     + `dracs_name_change` (object)
+        + `verification_status`: `VERIFIED` (string, required) - Person DRACS name change verification status according to `PERSON_VERIFICATION_STATUSES` dictionary.
+        + `verification_reason`: `MANUAL_COMFIRMED` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary.
+        + `verification_comment`: `Пацієнт не замінював ПІБ` (string, optional) - Verification comment
+     + `legal_capacity` (object)
+        + `verification_status`: `VERIFICATION_NOT_NEEDED` (string, required) - Person Legal capacity verification status according to `PERSON_VERIFICATION_STATUSES` dictionary.
+        + `verification_reason`: `AUTO_DATA_ABSENT` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary.
+        + `unverified_at`: `2024-05-17 02:03:34` (string, required) - date of person Legal capacity birth unverified
+ + person_status: `active` (string) - Person's status (default: `active`)
+ + person_updated_at: `2024-12-01T12:34:56Z` (string, required) - Date and time when the person was last updated.
+ + declaration_number: `0000-12H4-245D` (string, required) - Declaration number associated with the person.
+ + declaration_status: `active` (string) - Declaration status (default: `active`).
 
 ## `Merge_Candidates`
 ### `Merge_Candidate`
@@ -8910,7 +9362,7 @@ status: `APPROVED` (string, required)
         + include `Confidant_Person_PIS`
 
 ### `Patient_short`
-+ person_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Id of the added person
++ person_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Id створеної персони
 + updated_at: `2017-03-02T00:00:00.000Z` (string, required)
 + status: SIGNED (string, optional)
 + id: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required) - request id
@@ -8997,6 +9449,32 @@ status: `APPROVED` (string, required)
     - email
     - phone
 
+### `Personal_data`
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ birth_date: `2009-07-05` (string, required)
++ birth_country: `Україна` (string, required)
++ birth_settlement: `Вінниця` (string, required)
++ gender: MALE, FEMALE (enum[string], required)
++ email: email@example.com (string, optional)
++ no_tax_id: false (boolean, required)
++ tax_id: 3999869394 (string, optional)
++ secret: secret (string, required)
++ death_date: `2019-07-05` (string, optional)
++ `verification_status`: `VERIFICATION_NEEDED` (string, required)
++ documents (array, required)
+    + (object)
+        + type: BIRTH_CERTIFICATE (string, required) - `Dictionary DOCUMENT_TYPE`
+        + number: АА120518 (string, required) - document issue number
+        + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
+        + issued_at: `2017-02-28` (string, required) - the date when document was issued
+        + expiration_date: `2027-02-28` (string, optional) - the date when document expired, is necessery for those documents which has this date, ex, Temporary certificate, etc.
++ addresses (array[`Address`], required)
++ phones (array[`Phone`], optional)
++ emergency_contact (object, required)
+    + include `Emergency_Contact`
++ `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
   
 ## Party
 ### `Party_Short`
@@ -9013,9 +9491,9 @@ status: `APPROVED` (string, required)
 + email: email@example.com (string, optional)
 + documents (array[`PartyDocument`], optional)
 + phones (array[`Phone`], optional)
-+ educations (array[`Education`], optional)  - education
-+ qualifications (array[`Qualification`], optional) - qualification enhancement
-+ specialities (array[`Speciality_party`], optional)  - information block on obtaining a specialist certificate and passing assessments
++ educations (array[`Education`], optional)  - освіта
++ qualifications (array[`Qualification`], optional) - підвищення кваліфікації
++ specialities (array[`Speciality_party`], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
 + science_degree (ScienceDegree, optional)
 
 ### `Party_Request_old`
@@ -9069,9 +9547,9 @@ status: `APPROVED` (string, required)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
 + declaration_limit: `2000` (number) - maximum number of declaration with a doctor.
-+ educations (array[`Education`], optional)  - education
-+ qualifications (array[`Qualification`], optional) - qualification enhancement
-+ specialities (array[`Speciality_party`], optional)  - information block on obtaining a specialist certificate and passing assessments
++ educations (array[`Education`], optional)  - освіта
++ qualifications (array[`Qualification`], optional) - підвищення кваліфікації
++ specialities (array[`Speciality_party`], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
 + science_degree (ScienceDegree, optional)
 
 ### `Party_Update_v2`
@@ -9084,9 +9562,9 @@ status: `APPROVED` (string, required)
 + phones (array[`Phone`], optional)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
-+ educations (array[`Education`], optional)  - education
-+ qualifications (array[`Qualification`], optional) - qualification enhancement
-+ specialities (array[`Speciality_party`], optional)  - information block on obtaining a specialist certificate and passing assessments
++ educations (array[`Education`], optional)  - освіта
++ qualifications (array[`Qualification`], optional) - підвищення кваліфікації
++ specialities (array[`Speciality_party`], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
 + science_degree (ScienceDegree, optional)
 
 ### `crud_party`
@@ -9101,9 +9579,9 @@ status: `APPROVED` (string, required)
 + phones (array[`Phone`], optional)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
-+ educations (array[`Education`], optional)  - education
-+ qualifications (array[`Qualification`], optional) - qualification enhancement
-+ specialities (array[`Speciality_party`], optional)  - information block on obtaining a specialist certificate and passing assessments
++ educations (array[`Education`], optional)  - освіта
++ qualifications (array[`Qualification`], optional) - підвищення кваліфікації
++ specialities (array[`Speciality_party`], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
 + science_degree (ScienceDegree, optional)
 
 ### `crud_party_post`
@@ -9137,7 +9615,7 @@ status: `APPROVED` (string, required)
 + start_date: 2017-02-28 (string, required)
 + end_date: 2017-02-28 (string, optional)
 + status: NEW, APPROVED (enum, required)
-+ speciality (`Speciality`, optional)  - information block on obtaining a specialist certificate and passing assessments
++ speciality (`Speciality`, optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
 + `status_reason`: `new_employee` (string, optional)
 
 ### `crud_employee_get`
@@ -9282,39 +9760,39 @@ status: `APPROVED` (string, required)
 + doctor (DoctorNew)
 
 ### PartyVerification
-+ employee_id: `7c5f839d-3a1b-4c9d-92d2-4ad917f03e8c` (string, required) - Unique identifier of the employee.
-+ `verification_status`: `VERIFIED` (string, required) - Current verification status according to `PARTY_VERIFICATION_STATUSES` dictionary
-+ details (object)
-    + drfo (object)
-        + `verification_status`: `NOT_VERIFIED` (string, required) - status of party DRFO verification according to `PARTY_VERIFICATION_STATUSES` dictionary
-        + `verification_reason`: `AUTO` (string, required) - how current DRFO verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
-        + `result`: 12 (number, optional) - result of party DRFO synchronization according to `DRFO_RESULT` dictionary
-        + `synced_at`: `2024-09-03 09:41:00` (number, optional) - date of party DRFO synchronization
-        + `unverified_at`: `2024-09-03 09:41:00` (number, optional) - date of party DRFO unferified
-    + dracs_death (object)
-        + `verification_status`: `NOT_VERIFIED` (string, required) - status of party DRACS death verification according to `PARTY_VERIFICATION_STATUSES` dictionary
-        + `verification_reason`: `AUTO` (string, required) - how current DRACS death verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
-        + `verification_comment`: `Необхідно повторно підтвердити факт смерті у співробітника` (string, optional) - DRACS death verification status description set by OWNER in case NOT_VERIFIED
-        + `unverified_at`: `2024-09-03 09:41:00` (number, optional) - date of party DRACS death unferified
-    + `mvs_passport` (object)
-        + `verification_status`: `NOT_VERIFIED` (string, required) - status of MVS passport verification for the party according to `PARTY_VERIFICATION_STATUSES` dictionary
-        + `verification_reason`: `AUTO` (string, required) - how current MVS passport verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
-        + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
-        + `synced_at`: `2024-09-03 09:41:00` (number, optional) - date of party MVS synchronization
-        + `unverified_at`: `2024-09-03 09:41:00` (number, optional) - date of party MVS unferified
-    + `dms_passport` (object)
-        + `verification_status`: `NOT_VERIFIED` (string, required) - status of DMS passport verification for the party according to `PARTY_VERIFICATION_STATUSES` dictionary
-        + `verification_reason`: `AUTO` (string, required) - how current DMS passport verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
-        + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
-        + `synced_at`: `2024-09-03 09:41:00` (number, optional) - date of party DMS synchronization
-        + `unverified_at`: `2024-09-03 09:41:00` (number, optional) - date of party DMS unferified
-    + `dracs_name_change` (object)
-       + `verification_status`: `VERIFIED` (string, required) - Party DRACS name change verification status according to `PARTY_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
-       + `verification_reason`: `MANUAL` (string, required) - Verification reason according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL` is allowed only.
-       + `verification_comment`: `Співробітник не замінював ПІБ` (string, optional) - Verification comment
-
-+ division_id: `e2f4d6a7-8b9c-4c8a-93e2-5c617d832b71` (string, optional) - Identifier of the division.
-+ party_updated_at: `2024-12-01T12:34:56Z` (string) - Date and time when the party was last updated.
+ + employee_id: `7c5f839d-3a1b-4c9d-92d2-4ad917f03e8c` (string, required) - Unique identifier of the employee.
+ + `verification_status`: `VERIFIED` (string, required) - Current verification status according to `PARTY_VERIFICATION_STATUSES` dictionary
+ + details (object)
+     + drfo (object)
+         + `verification_status`: `NOT_VERIFIED` (string, required) - status of party DRFO verification according to `PARTY_VERIFICATION_STATUSES` dictionary
+         + `verification_reason`: `AUTO` (string, required) - how current DRFO verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
+         + `result`: 12 (number, optional) - result of party DRFO synchronization according to `DRFO_RESULT` dictionary
+         + `synced_at`: `2024-09-03 09:41:00` (number, optional) - date of party DRFO synchronization
+         + `unverified_at`: `2024-09-03 09:41:00` (number, optional) - date of party DRFO unferified
+     + dracs_death (object)
+         + `verification_status`: `NOT_VERIFIED` (string, required) - status of party DRACS death verification according to `PARTY_VERIFICATION_STATUSES` dictionary
+         + `verification_reason`: `AUTO` (string, required) - how current DRACS death verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
+         + `verification_comment`: `Необхідно повторно підтвердити факт смерті у співробітника` (string, optional) - DRACS death verification status description set by OWNER in case NOT_VERIFIED
+         + `unverified_at`: `2024-09-03 09:41:00` (number, optional) - date of party DRACS death unferified
+     + `mvs_passport` (object)
+         + `verification_status`: `NOT_VERIFIED` (string, required) - status of MVS passport verification for the party according to `PARTY_VERIFICATION_STATUSES` dictionary
+         + `verification_reason`: `AUTO` (string, required) - how current MVS passport verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
+         + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+         + `synced_at`: `2024-09-03 09:41:00` (number, optional) - date of party MVS synchronization
+         + `unverified_at`: `2024-09-03 09:41:00` (number, optional) - date of party MVS unferified
+     + `dms_passport` (object)
+         + `verification_status`: `NOT_VERIFIED` (string, required) - status of DMS passport verification for the party according to `PARTY_VERIFICATION_STATUSES` dictionary
+         + `verification_reason`: `AUTO` (string, required) - how current DMS passport verification status has been set according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary
+         + `status`: 1 (number, optional) - status of the record in EIS MVS register for the passport document. It is set by synchronization according to `EIS_MVS_STATUS` dictionary
+         + `synced_at`: `2024-09-03 09:41:00` (number, optional) - date of party DMS synchronization
+         + `unverified_at`: `2024-09-03 09:41:00` (number, optional) - date of party DMS unferified
+     + `dracs_name_change` (object)
+        + `verification_status`: `VERIFIED` (string, required) - Party DRACS name change verification status according to `PARTY_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
+        + `verification_reason`: `MANUAL` (string, required) - Verification reason according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL` is allowed only.
+        + `verification_comment`: `Співробітник не замінював ПІБ` (string, optional) - Verification comment
+ 
+ + division_id: `e2f4d6a7-8b9c-4c8a-93e2-5c617d832b71` (string, optional) - Identifier of the division.
+ + party_updated_at: `2024-12-01T12:34:56Z` (string) - Date and time when the party was last updated.
 
 ### `Party_Verification_Details`
 + `verification_status`: `NOT_VERIFIED` (string, required) - status of party verification according to `PARTY_VERIFICATION_STATUSES` dictionary
@@ -9468,7 +9946,7 @@ status: `APPROVED` (string, required)
         + expiry_date: `2017-02-28` (string, optional)
         + `active_from_date`: `2017-02-28` (string, required)
         + what_licensed: реалізація наркотичних засобів (string, optional)
-        + order_no: ВА43234 (string, required) - order's number
+        + order_no: ВА43234 (string, required) - номер наказу
     + license (object, required)
         + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `archive`(array[`Archive`], optional)
@@ -9504,7 +9982,7 @@ status: `APPROVED` (string, required)
             + expiry_date: `2017-02-28` (string, optional)
             + `active_from_date`: `2017-02-28` (string, required)
             + what_licensed: реалізація наркотичних засобів (string, optional)
-            + order_no: ВА43234 (string, required) - order's number
+            + order_no: ВА43234 (string, required) - номер наказу
     + accreditation (MSP_Accreditation, optional)
 + `archive`(array[`Archive`], optional)
 + security (object, fixed-type)
@@ -9533,7 +10011,7 @@ status: `APPROVED` (string, required)
     + expiry_date: `2017-02-28` (string)
     + `active_from_date`: `2017-02-28` (string)
     + what_licensed: реалізація наркотичних засобів (string, optional)
-    + order_no: ВА43234 (string) - order's number
+    + order_no: ВА43234 (string) - номер наказу
 + `archive`(array[`Archive`], optional)
 + public_offer(object, fixed-type, required)
     + `consent_text`: `Consent text` (string, required)
@@ -13413,3 +13891,69 @@ status: `APPROVED` (string, required)
 + `care_plan_activity_allowed`: TRUE (boolean, optional) - flag whether it is allowed to create care plan activity for this device definition.
 + registry_number: `REG-1111` (string, optional) - Registry number
 + `max_daily_count`: 200 (number, required) - Max daily count
+
+### `Configurations_Metadata_Response`
++ `resource`: `composition_configuration` (string, required)
++ `updated_at`: `2018-08-02T10:45:16.000Z` (string, required)
+
+### `Composition_Configurations_Response`
++ `id`: `e477a845-972b-47a1-8ca3-1c71e4fd00c2` (string, required)
++ `type`: (object, required, fixed-type)
+    + coding (array, fixed-type)
+        + (Coding)
+            + code: `DRIVERS` (string)
+            + system: `COMPOSITION_TYPES` (string)
++ `category`: (object, required, fixed-type)
+    + coding (array, fixed-type)
+        + (Coding)
+            + code: `DRIVERS_GROUP1` (string)
+            + system: `COMPOSITION_CATEGORIES` (string)
++ `is_active`: true (boolean, required)
++ `settings`: `{ "COMPOSITION_PERSON_GENDER": { "check": [ "female", "male" ] }, "COMPOSITION_SECTION_EMPTY_REASON": { "check": ["NILKNOWN", "NOTASKED", "WITHHELD", "UNAVAILABLE", "CLOSED"] }, "COMPOSITION_SECTION_NESTING_LEVEL": { "check": 5 }, "COMPOSITION_SECTION_COUNT_LIMIT": { "check": 100 }, "COMPOSITION_SECTION_ORDERBY": { "check": [ "USER", "SYSTEM", "EVENT-DATE", "ALPHABETIC", "CATEGORY" ] }, "COMPOSITION_DRIVER_RELATED_CODES": [ { "condition": { "code": "01.", "system": "eHealth/composition_additional_condition_admission" }, "check": ["a", "b", "c", "d", "e", "f", "g"] }, { "condition": { "code": "01.01.", "system": "eHealth/composition_additional_condition_admission" }, "check": ["a", "b", "c", "d", "e", "f", "g"] }, { "condition": { "code": "01.02.", "system": "eHealth/composition_additional_condition_admission" }, "check": ["a", "b", "c", "d", "e", "f", "g"] }]}`(string,required)
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2018-08-02T10:45:16.000Z` (string, required)
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Device_Configurations_Response`
++ `id`: `e477a845-972b-47a1-8ca3-1c71e4fd00c2` (string, required)
++ `device_code`: `12_18_06` (string, required)
++ `device_code_system`: `device_code_system` (string, required)
++ `is_active`: true (boolean, required)
++ `config`: `{"DEVICE_REQUIRED_PARAMETERS": [{"check": [{"code": "presence_of_brakes", "system": "device_request_code_parameter"}]}]}` (string,required)
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2018-08-02T10:45:16.000Z` (string, required)
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Device_Parameters_Configurations_Response`
++ `id`: `e477a845-972b-47a1-8ca3-1c71e4fd00c2` (string, required)
++ `parameter_code`: `presence_of_a_hygienic_hole` (string, required)
++ `parameter_system`: `device_request_code_parameter` (string, required)
++ `is_active`: true (boolean, required)
++ `config`: `{"DEVICE_PARAMETER_DATA_TYPE": {"check": "codeable_concept"}, "DEVICE_PARAMETER_DICTIONARY": {"check": "device_properties"}}` (string,required)
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2018-08-02T10:45:16.000Z` (string, required)
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Dictionaries_Configurations_Response`
++ `id`: `e477a845-972b-47a1-8ca3-1c71e4fd00c2` (string, required)
++ `name`: `assistive_devices` (string, required)
++ `is_active`: true (boolean, required)
++ `content`: `[{"codes": ["18_03_06", "12_22_06", "06_03_15", "18_12_10", "09_33_07", "06_06_15", "22_27_12", "09_12_15", "09_12_12", "06_24_09", "12_06_06", "12_22_18", "12_36_12", "09_12_03", "06_18_18", "04_48_15", "12_03_12", "12_06_12", "09_33_05", "09_06_24", "06_18_03", "06_18_06", "04_33_03", "09_06_15", "18_18_06", "06_06_13", "06_18_15", "18_09_03", "18_18_03", "12_22_09", "18_03_15", "06_12_19", "09_12_09", "06_12_17", "06_12_16", "06_06_21", "06_03_12", "06_03_18", "12_03_16", "06_24_03", "12_18_06", "18_12_07", "06_24_06", "06_12_13", "12_06_03", "12_23_06", "06_24_18", "09_03_24", "06_24_40", "12_06_09", "12_07_05", "12_23_03", "09_12_25", "12_03_09", "06_03_06", "06_06_24", "06_24_15", "06_12_09", "15_03_03", "06_24_12", "06_06_06", "06_12_18", "06_06_20", "09_06_18", "04_33_06", "04_48_07", "18_09_39", "18_09_21", "12_27_15", "06_18_21", "06_06_30", "05_36_03", "06_18_12", "18_12_18", "06_18_45", "12_39_03", "09_06_12", "06_30_18", "05_36_06", "06_06_12", "06_06_19", "06_03_03", "06_12_12", "04_06_06", "06_06_03", "06_18_09", "06_12_03", "12_03_06", "22_24_06", "12_22_03", "18_30_21", "22_27_04", "06_03_09", "12_24_24", "12_36_03", "22_18_03", "12_18_09", "12_03_03", "12_31_18", "06_12_15", "06_12_06"], "system": "eHealth/assistive_devices"}]` (string,required)
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2018-08-02T10:45:16.000Z` (string, required)
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Observation_Configurations_Response`
++ `id`: `e477a845-972b-47a1-8ca3-1c71e4fd00c2` (string, required)
++ `code`: `_WHODAS_2.0` (string, required)
++ `system`: `eHealth/LOINC/observation_codes` (string, required)
++ `is_active`: true (boolean, required)
++ `settings`: `{"CATEGORY": {"check": [{"code": "survey", "system": "eHealth/observation_categories"}]}, "RESULT_TYPE": {"check": "codeable_concept"}, "RESULT_BINDING": {"check": ["eHealth/LOINC/LL5900-7"]}, "COMPONENTS_UNIQUE": {"check": true}, "COMPONENTS_REQUIRED": {"check": [{"code": "SPINE_LEVEL", "system": "eHealth/custom/observation_components"}]}}` (string, required) 
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2018-08-02T10:45:16.000Z` (string, required)
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
