@@ -3,7 +3,7 @@ HOST: https://api.ehealth.gov.ua
 
 # GENERAL MIS API
 
-**Version: 9.11.0 v.1**
+**Version: 9.11.0 v.2**
 
 Environment: **PROD**
 
@@ -2356,9 +2356,6 @@ Use this method to get details of previously created Confidant Person relationsh
                         + issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
                         + issued_at: `2017-02-28` (string, required) - the date when document was issued
             + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional, nullable) - identifier of person's auth method
-        + urgent (object, required)
-            + `authentication_method_current` (`Authentication_Method_for_request`, required) - if the person doesn't have active auth methods, then this block will be nill
-            + documents (array[`media_content`], required)
 
 ### Approve Confidant Person relationship request [PATCH /api/persons/{id}/confidant_person_relationship_requests/{confidant_person_relationship_request_id}/actions/approve]
 
