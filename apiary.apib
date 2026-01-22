@@ -3,7 +3,7 @@ HOST: https://api.ehealth.gov.ua
 
 # GENERAL MIS API
 
-**Version: 9.11.0 v.2**
+**Version: 9.11.0.5 v.1**
 
 Environment: **PROD**
 
@@ -11909,6 +11909,12 @@ status: `APPROVED` (string, required)
 + `speciality_types_allowed` (array, optional) - posibility to create medication request or care plan activity for particular specialities of employees
     + `ENDOCRINOLOGY` (string, required)
     + `PEDIATRIC_NEUROLOGY` (string, required)
++ `speciality_types_request_allowed` (array, optional) - posibility to create medication request or device request for particular specialities of employees
+    + `ENDOCRINOLOGY` (string, required)
+    + `FAMILY_DOCTOR` (string, required)
++ `speciality_types_care_plan_activity_allowed` (array, optional) - posibility to create care plan activity for particular specialities of employees
+    + `ENDOCRINOLOGY` (string, required)
+    + `NEUROLOGY` (string, required)
 + `conditions_icd10_am_allowed` (array, optional) - posibility to create medication request or care plan activity for particular conditions from ICD10_AM
     + `A00.0` (string, required)
     + `A00.1` (string, required)
