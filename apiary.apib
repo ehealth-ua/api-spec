@@ -3,7 +3,7 @@ HOST: https://api.ehealth.gov.ua
 
 # GENERAL MIS API
 
-**Version: 9.11.0.5 v.1**
+**Version: 9.13.0 v.1**
 
 Environment: **PROD**
 
@@ -3941,6 +3941,48 @@ Primary license must be updated with `Create/Update Legal Entity V2` method.
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (`crud_licenses_get`)
+
+## Minfin [/api/Minfin]
+
+### Get Minfin validation details [GET /api/minfin_validations_details{?request_id, resource_id, resource}]
+This method returns current person's Minfin validation details.
+
++ Parameters
+    + `minfin_request_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - minfin request identifier
+    + `resource_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person, Employee or Party identifier
+    + `resource`: `PARTY` (string, required) - type of resource
+        - PARTY
+        - PERSON
+        - EMPLOYEE
+    + `status`: `NEW` (string, optional) - status of non-compliance
+        - NEW
+        - DONE
+        - AUTO_REVIEW
+        - MANUAL_REVIEW
+    + `process_type`: `auto` (string, optional) - non compliance processing type
+        - manual
+        - auto
+    + `recommendation_id`: `xxxxxxxxx01`  (string, optional) - minfin recommendation identifier
+    + `non_compliance_date_from`: `2025-09-25` (string, optional) - minfin recommendation created date from
+    + `non_compliance_date_to`: `2025-09-27` (string, optional) - minfin recommendation created date to
+    + `page`: 2 (number, optional) - Page number.
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            api-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[`Minfin_Validation_Details`])
+
+
 
 # Group Public. Medical Programs
 
@@ -8576,6 +8618,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + birth_settlement: Вінниця (string, required)
 + birth_country: Україна (string, required) - країна народження
 + `verification_status`: `NOT_VERIFIED` (string, required)
++ `minfin_validation_status`: `VERIFICATION_NEEDED` (string, required)
 + `emergency_contact` (Emergency_Contact, required)
 + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc
 
@@ -8780,6 +8823,27 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
     + `legal_capacity` (object)
        + `verification_status`: `VERIFICATION_NOT_NEEDED` (string, required) - Person Legal capacity verification status according to `PERSON_VERIFICATION_STATUSES` dictionary.
        + `verification_reason`: `AUTO_DATA_ABSENT` (string, required) - Verification reason according to `PERSON_VERIFICATION_STATUS_REASONS` dictionary.
+
+### `Minfin_Validation_Details`
++ `id`: `eeebb86d-5cba-43c9-885b-6482ecaf82` (string, required) - recommendation internal identifier
++ `minfin_request_id`: `9547da91-bfcf-4fef-9b41-05af690d7de0` (string, required) - minfin request identifier
++ `resource_id`: `9547da91-bfcf-4fef-9b41-05af690d7de0` (string, required) - Person, employee or party unique identifier 
++ `resource`: `PARTY` (string, required) - Type of resource
++ `recommendation_id`: `XXXXXXXXXXXXX02` (string, required) - recommendation identifier
++ `recommendation_result`: 101 (string, optional) - decision based on results of recommendation
++ `result_date`: `2025-11-11T11:11:11Z` (string, optional) - decision result date
++ `non_compliance_info` (array, optional)
+    + (object)
+        + `code`: 487 (string, required) - non-conformance code
+        + `process_type`: `auto` (string, optional) - non compliance processing type
+        + `status`: NEW (string, required) - non-conformance status
+        + `data_sourse`: D2 (string, optional) - information source
+        + `updated_by`: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, optional) - user who updated non compliance
+        + `updated_at`: `2025-11-11T11:11:11Z` (string, optional) - non compliance create date
+        + `extention_json`: `json structure` (string, optional) - discrepancy detailed information
+        + `inserted_at`: `2025-11-11T11:11:11Z` (string, required) - recommendation create date
+        + `inserted_by`: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required) - user who create recommendation
+        + `discrepancy_result`: 101 (string, optional) - decision based on results of discrepancy
 
 ### `PersonVerification`
  + person_id: `5a4f839d-3c1d-40b6-93d2-4ad917f03d7e` (string, required) - Unique identifier of the person.
@@ -9460,6 +9524,7 @@ status: `APPROVED` (string, required)
 + secret: secret (string, required)
 + death_date: `2019-07-05` (string, optional)
 + `verification_status`: `VERIFICATION_NEEDED` (string, required)
++ `minfin_validation_status`: `VERIFICATION_NEEDED` (string, required)
 + documents (array, required)
     + (object)
         + type: BIRTH_CERTIFICATE (string, required) - `Dictionary DOCUMENT_TYPE`
@@ -9517,6 +9582,7 @@ status: `APPROVED` (string, required)
 + working_experience: 10 (number, optional) - full years of working experience
 + about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
 + `verification_status`: `NOT_VERIFIED` (string, required) - status of party verification according to `PARTY_VERIFICATION_STATUSES` dictionary
++ `minfin_validation_status`: `VERIFICATION_NEEDED` (string, required)
 + declaration_limit: `0` (number) - TO BE DEPRECATED, always zero! maximum number of declaration with a doctor.
 + declaration_count: `0` (number) - TO BE DEPRECATED, always zero! current number of declaration with a doctor.
 
@@ -9665,6 +9731,7 @@ status: `APPROVED` (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + status: APPROVED, DISMISSED, REORGANIZED (enum, required)
++ `minfin_validation_status`: `VERIFICATION_NEEDED` (string, required)
 + `is_active`: `true` (boolean, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (`Party_Response_old`)
@@ -9729,6 +9796,7 @@ status: `APPROVED` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
 + status: APPROVED, DISMISSED, REORGANIZED (enum, required) - Employee status
++ `minfin_validation_status`: `VERIFICATION_NEEDED` (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
@@ -9736,6 +9804,7 @@ status: `APPROVED` (string, required)
     + no_tax_id: true (boolean, optional) - true if employee doesn't have tax_id and false otherwise
     + include `Party_Short`
     + `verification_status`: `NOT_VERIFIED` (string, required) - status of party verification according to `PARTY_VERIFICATION_STATUSES` dictionary
+    + `minfin_validation_status`: `VERIFICATION_NEEDED` (string, required)
     + declaration_limit: `0` (number) - TO BE DEPRECATED, always zero! maximum number of declaration with a doctor.
     + declaration_count: `0` (number) - TO BE DEPRECATED, always zero! current number of declaration with a doctor.
 + division (`Division_Short`)
