@@ -3,7 +3,7 @@ HOST: https://api.ehealth.gov.ua
 
 # GENERAL MIS API
 
-**Version: 9.13.0 v.1**
+**Version: 9.13.6 v.1**
 
 Environment: **PROD**
 
@@ -219,7 +219,7 @@ Exposed client credentials may be blocked for a security reasons, you will need 
             + code: 201 (number)
         + data (`Access_Token`)
 
-### Renew access token using refresh token [POST /oauth/tokens]
+### Use Refresh Token for Access Token extension [POST /oauth/tokens]
 
 Currently `access_token` and `refresh_token` are configured to have same lifetime, so we don't expect you to refresh it.
 
@@ -9537,6 +9537,10 @@ status: `APPROVED` (string, required)
 + emergency_contact (object, required)
     + include `Emergency_Contact`
 + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
++ unzr: `20090705-00011` (string, optional) - the record number in the demographic register
++ preferred_way_communication: email (enum, optional) - the way how a patient wants to be reached
+    - email
+    - phone
   
 ## Party
 ### `Party_Short`
