@@ -3,7 +3,7 @@ HOST: https://api.ehealth.gov.ua
 
 # GENERAL MIS API
 
-**Version: 9.13.6 v.1**
+**Version: 9.13.9 v.1**
 
 Environment: **PROD**
 
@@ -2620,6 +2620,7 @@ This method returns person's emergency contact.
 
 Use this method to get list of legal entities filtering by parameters.
 List consists of legal entities with parameter `is_active = true`.
+Depends on client type, method return all LE (type = MIS, NHS,NHS ADMIN) or one LE (type = MSP,PHARMACY,MSP_PHARMACY,PRIMARY_CARE,OUTPATIENT,MSP_LIMITED,EMERGENCY) which related to user.
 
 + Parameters
     + `edrpou`: `341086` (string, optional)
@@ -2652,9 +2653,22 @@ List consists of legal entities with parameter `is_active = true`.
                     - ACTIVE
                     - CLOSED
                     - SUSPENDED
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array)
+            + (object)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+                + include (`Institutional_Legal_Entity_Response_Public_V2`)
+                + status: ACTIVE (enum, required)
+                    - ACTIVE
+                    - CLOSED
+                    - SUSPENDED
         
 
 ### Get Legal Entity by ID V2 [GET /api/v2/legal_entities/{id}]
+
+Depends on client type, method return all LE (type = MIS, NHS,NHS ADMIN) or one LE (type = MSP,PHARMACY,MSP_PHARMACY,PRIMARY_CARE,OUTPATIENT,MSP_LIMITED,EMERGENCY) which related to user.
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -2683,6 +2697,25 @@ List consists of legal entities with parameter `is_active = true`.
                 + `secret_key`: `secret_key` (string, required)
                 + `client_id`: `client_id` (string, required)
                 + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+
++ Response 200 (application/json)
+    + Attributes (`Response__Process_OK`)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include (`Institutional_Legal_Entity_Response_Public_V2`)
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+                - SUSPENDED
+            + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+
 
 ### Create/Update Legal Entity V2 [PUT /api/v2/legal_entities]
 
@@ -2750,6 +2783,54 @@ There is a [**dummy method Create/Update legal entity V2**](https://uaehealthapi
             + created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
             + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
             + updated_by: `userid` (string, required)
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
+
+### Create/Update Institutional Legal Entity [PUT /api/institutional/legal_entities]
+
+Key features and main differences from V2:
+
+* *Service available only for client type - INSTITUTIONAL_MIS*
+
+* *This method available for users with scope “legal_entity:write“*
+
+* *Verification source is institutional_registry instead of edr_data*
+
+* *Address details include only country name = Ukraine*
+
+* *Legal entity type only Outpatient*
+
+User may accept or decline Invitation.
+
+For changes to take effect employee must confirm the changes.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+    + Attributes (object)
+        + `signed_legal_entity_request`: `...` (string, required)
+        + `signed_content_encoding`: base64 (string, required)
+
++ Response 200 (application/json)
+    + Attributes (`Response__Process_OK`)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include (`Institutional_Legal_Entity_Response_Public`)
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+                - SUSPENDED
+            + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
         + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
@@ -2832,6 +2913,8 @@ Use this method to get the list of child legal entities which are related to cur
 
 ### Get divisions [GET /api/divisions{?ids,name,legal_entity_id,type,status,page,page_size}]
 
+This method return list of divisions which are related to user legal entity.
+
 + Parameters
     + ids: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
     + name: `Бориспільське відділення клініки` (string, optional)
@@ -2875,6 +2958,28 @@ More details can be found [here](https://e-health-ua.atlassian.net/wiki/x/GQB7Iw
     + Attributes (`Response_OK`)
         + data (`crud_division_get`)
 
+### Update Institutional division [PATCH /api/institutional/divisions/{id}]
+
+This method must be used to update existing Institutional division in the system
+
+Note that different legal entity types can register specific division types 
+More details can be found [here](https://e-health-ua.atlassian.net/wiki/x/GQB7Iw)
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+    + Attributes (`crud_institutional_division_post`)
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (`crud_institutional_division_get`)
+
 ### Create division [POST]
 
 This method must be used to create new division in the system
@@ -2893,6 +2998,24 @@ More details can be found [here](https://e-health-ua.atlassian.net/wiki/x/GQB7Iw
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (`crud_division_get`)
+
+### Create Institutuional division [POST /api/institutional/divisions]
+
+This method must be used to create new division for Institutuional LE in the system
+
+Note that institutional legal entity has only OUTPATIENT type, so owners can register LICENSED_UNIT division type with non required address data
+
++ Request (application/json)
+    + Attributes (`crud_institutional_division_post`)
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (`crud_institutional_division_get`)
 
 ### Deactivate division [PATCH /api/divisions/{id}/actions/deactivate]
 + Parameters
@@ -6889,6 +7012,38 @@ This service returns parties.declaration_count from report DB for get employees 
                 + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
             + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
 
+### Create/Update Institutional Legal Entity [PUT /dummy/institutional/legal_entities]
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+    + Attributes (object)
+        + include (`Institutional_Legal_Entity_Request_Public`)
+
++ Response 200 (application/json)
+    + Attributes (`Response__Process_OK`)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include (`Institutional_Legal_Entity_Response_Public`)
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+                - SUSPENDED
+            + `nhs_verified`: false (boolean, required)
+            + `nhs_reviewed`: false (boolean, required) - flag that shows whether legal entity was reviewed by nhs
+            + nhs_comment: `comment` (string, optional) - nhs's comment
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
+
+
 ## Dummy for person request [/dummy/person_requests]
 
 ### Sign person request [PATCH /dummy/person_requests/{id}/actions/sign]
@@ -10026,6 +10181,38 @@ status: `APPROVED` (string, required)
     + `consent_text`: `Consent text` (string, required)
     + `consent`: `true` (boolean, required)
 
+### `Institutional_Legal_Entity_Request_Public`
++ edrpou: 32323454 (string, required) - Unified Register of Businesses and Organizations
++ type: PRIMARY_CARE (string, required) - type of legal entity
++ phones (array, required)
+    + (object)
+        + include `Phone`
+        + note: Реєстратура (string, optional) - Notes to phone number
++ email: email@example.com (string, required) - email to contact person in charge from legal entity
++ website: `www.msp.com.ua` (string, optional) - legal entity website
++ receiver_funds_code: `12345` (string, optional) - treasury registration code [Код одержувача/розпорядника бюджетних коштів для Казначейства. Вказується за наявності.]
++ beneficiary: `Борисов Борис Борисович` (string, optional) - legal owner of legal entity [нформація про власника ЗОЗ, для ФОП не заповнюється]
++ owner(`Owner_V2`,required)
++ accreditation (MSP_Accreditation, optional)
+- One of
+    + license (object, required)
+        + type: MSP (string, required) - License type `Dictionary LICENSE_TYPE`
+        + license_number: fd123443 (string, optional)
+        + issued_by: Кваліфікаційна комісія (string, required)
+        + issued_date: `2017-02-28` (string, required)
+        + expiry_date: `2017-02-28` (string, optional)
+        + `active_from_date`: `2017-02-28` (string, required)
+        + what_licensed: реалізація наркотичних засобів (string, optional)
+        + order_no: ВА43234 (string, required) - номер наказу
+    + license (object, required)
+        + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `archive`(array[`Archive`], optional)
++ security (object, required, fixed-type)
+    + `redirect_uri`: `https://example.com` (string, required, fixed) - Redirect uri is used in oauth2.0 flow
++ public_offer(object, fixed-type, required)
+    + `consent_text`: `Consent text` (string, required)
+    + `consent`: `true` (boolean, required)
+
 ### `Legal_Entity_Response_Public`
 + name: Клініка Ноунейм (string, required) - full official name of legal entity also the name to show on public sources [as map, portal etc]
 + short_name: Ноунейм (string, optional) - short name of legal entity
@@ -10061,6 +10248,44 @@ status: `APPROVED` (string, required)
     + `consent_text`: `Consent text` (string, required)
     + `consent`: `true` (boolean, required)
 
+### `Institutional_Legal_Entity_Response_Public`
++ name: Клініка Ноунейм (string, required) - full official name of legal entity also the name to show on public sources [as map, portal etc]
++ short_name: Ноунейм (string, optional) - short name of legal entity
++ public_name: Ноунейм (string, optional)
++ type: MSP (string, required) - type of legal entity [MSP/PHARMACY]. MIS can't be created using this WS.
++ `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE` State or private type of legal entity
++ `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`  - business form [as ТОВ/ФОП/ДП/КП]
++ edrpou: 32323454 (string, required) - Unified Register of Businesses and Organizations
++ kveds: 86.10 (array, required) - Ukrainian Industry Classification System, there is a check that at least one of next kveds is input: 86.10, 86.21, 47.73.
++ addresses (array[`InstitutionalAddress`], required) - The max items of array is 2: REGISTRATION - required, RESIDENCE - optional. DIVISION is exception: REGISTRATION - optional, RESIDENCE - required
++ phones (array[`Phone`], required)
+    + (object)
+        + include `Phone`
+        + note: Реєстратура (string, optional) - Notes to phone number
++ email: email@example.com (string, required) - email to contact person in charge from legal entity
++ website: `www.msp.com.ua` (string, optional) - legal entity website
++ receiver_funds_code: `12345` (string, optional) - treasury registration code [Код одержувача/розпорядника бюджетних коштів для Казначейства. Вказується за наявності.]
++ beneficiary: `Борисов Борис Борисович` (string, optional) - legal owner of legal entity [нформація про власника ЗОЗ, для ФОП не заповнюється]
++ `medical_service_provider` (object, required)
+    + licenses (array, required, fixed)
+        + (object)
+            + license_number: fd123443 (string, optional)
+            + type: MSP (string, optional) - License type `Dictionary LICENSE_TYPE`
+            + kveds: 86.10 (array, optional) - Ukrainian Industry Classification System, there is a check that at least one of required kveds provided for specific license type
+            + issued_by: Кваліфікаційна комісія (string, required)
+            + issued_date: `2017-02-28` (string, required)
+            + expiry_date: `2017-02-28` (string, optional)
+            + `active_from_date`: `2017-02-28` (string, required)
+            + what_licensed: реалізація наркотичних засобів (string, optional)
+            + order_no: ВА43234 (string, required) - номер наказу
+    + accreditation (MSP_Accreditation, optional)
++ `archive`(array[`Archive`], optional)
++ security (object, fixed-type)
+    + `redirect_uri`: `https://example.com` (string, required, fixed) - Redirect uri is used in oauth2.0 flow
++ public_offer(object, fixed-type)
+    + `consent_text`: `Consent text` (string, required)
+    + `consent`: `true` (boolean, required)
+
 ### `Legal_Entity_Response_Public_V2`
 + `edr` (edr_data, required)
 + edrpou: 32323454 (string, required) - Unified Register of Businesses and Organizations
@@ -10077,6 +10302,35 @@ status: `APPROVED` (string, required)
     + type: MSP (string, optional) - License type `Dictionary LICENSE_TYPE`
     + license_number: fd123443 (string, optional)
     + issued_by: Кваліфікацйна комісія (string)
+    + issued_date: `2017-02-28` (string)
+    + expiry_date: `2017-02-28` (string)
+    + `active_from_date`: `2017-02-28` (string)
+    + what_licensed: реалізація наркотичних засобів (string, optional)
+    + order_no: ВА43234 (string) - номер наказу
++ `archive`(array[`Archive`], optional)
++ public_offer(object, fixed-type, required)
+    + `consent_text`: `Consent text` (string, required)
+    + `consent`: `true` (boolean, required)
+
+### `Institutional_Legal_Entity_Response_Public_V2`
++ `edr` (Institutional_edr_data, required)
++ edrpou: 32323454 (string, required) - Unified Register of Businesses and Organizations
++ residence_address (InstitutionalAddress, required) - address where the legal entity is physically located
++ type: OUTPATIENT (string, required) - type of legal entity `Dictionary LEGAL_ENTITY_TYPE_V2`
++ phones (array[`Phone`], required)
+    + (object)
+        + include `Phone`
+        + note: Реєстратура (string, optional) - Notes to phone number
++ email: email@example.com (string, required) - email to contact person in charge from legal entity
++ website: `www.msp.com.ua` (string, optional) - legal entity website
++ receiver_funds_code: `12345` (string, optional) - treasury registration code [Код одержувача/розпорядника бюджетних коштів для Казначейства. Вказується за наявності.]
++ beneficiary: `Борисов Борис Борисович` (string, optional) - legal owner of legal entity [нформація про власника ЗОЗ, для ФОП не заповнюється]
++ accreditation (MSP_Accreditation, optional)
++ license (object)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string)
+    + type: MSP (string, optional) - License type `Dictionary LICENSE_TYPE`
+    + license_number: fd123443 (string, optional)
+    + issued_by: Кваліфікаційна комісія (string)
     + issued_date: `2017-02-28` (string)
     + expiry_date: `2017-02-28` (string)
     + `active_from_date`: `2017-02-28` (string)
@@ -10129,19 +10383,25 @@ status: `APPROVED` (string, required)
 
 ## `EDR`
 ### `edr_data`
-+ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 + name: Клініка Ноунейм (string, required) - full official name of legal entity also the name to show on public sources [as map, portal etc]
 + short_name: Ноунейм (string, optional) - short name of legal entity
 + public_name: Ноунейм (string, optional)
 + `legal_form`: 140 (string, optional) - `Business form of legal entity received from edr - Use dictionary LEGAL_FORM to show the name`
 + edrpou: 54323454 (string, required) -  Unified Register of Businesses and Organizations
-+ kveds (array, required)
++ kveds (array, optional)
     + (object)
         + name: `Діяльність лікарняних закладів` (string, required)
         + code: `86.10` (string, required)
         + is_primary: true (boolean, required)
-+ `registration_address` (`registration_address`, required)
-+ state: 1 (number, required)
++ `registration_address` (`registration_address`, optional)
++ state: 1 (number, optional) - `Use dictionary EDR_STATE`
+
+### `Institutional_edr_data`
++ name: Клініка Ноунейм (string, required) - full official name of legal entity also the name to show on public sources [as map, portal etc]
++ short_name: Ноунейм (string, optional) - short name of legal entity
++ public_name: Ноунейм (string, optional)
++ edrpou: 54323454 (string, required) -  Unified Register of Businesses and Organizations
 
 ### `registration_address`
 + zip: `02090`
@@ -10161,7 +10421,7 @@ status: `APPROVED` (string, required)
 ## `Divisions`
 ### `Division`
 + name: Бориспільське відділення Клініки Ноунейм (string, required) - the full name of division
-+ addresses (array[`Address`], required)
++ addresses (array[`Address_v2`], required)
 + phones (array[`Phone`], required)
 + email: email@example.com (string, required) - division's email
 + working_hours (`workinghours`) - optional field, business hours by each day weekly, doesn't make any influence on business process and will be shown on portal and map.
@@ -10169,6 +10429,18 @@ status: `APPROVED` (string, required)
 + legal_entity_id: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, optional)
 + external_id: `3213213` (string, optional)
 + location (Location, optional) - optional field. geographical location, if it's empty, division won't be shown on a map.
+
+### `Institutional_Division`
++ name: Бориспільське відділення Клініки Ноунейм (string, required) - the full name of division
++ phones (array, required)
+    + (object)
+        + include `Phone`
+        + note: (string, optional) - Notes to phone number
++ email: qq2234562qq@gmail.com (string, optional) - division's email
++ legal_entity_id: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, optional) - appropriate LE identifier
++ working_hours (`workinghours`) - business hours by each day weekly, doesn't make any influence on business process and will be shown on portal and map.
++ type: LICENSED_UNIT (enum, required) - `Dictionary DIVISION_TYPE`
++ external_id: `3213213` (string, optional)
 
 ### workinghours
 + mon (array, optional)
@@ -10248,6 +10520,9 @@ status: `APPROVED` (string, required)
 ### `crud_division_post`
 + include `Division`
 
+### `crud_institutional_division_post`
++ include `Institutional_Division`
+
 ### `crud_division_get`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + include `Division`
@@ -10257,6 +10532,19 @@ status: `APPROVED` (string, required)
 + mountain_group: false (boolean, optional)
 + dls_id: `2872985` (string, optional)
 + dls_verified: true (boolean, optional)
+
+### `crud_institutional_division_get`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ include `Institutional_Division`
++ status: ACTIVE (enum, required) - `Dictionary DIVISION_STATUS`
+    - ACTIVE
+    - INACTIVE
++ dls_id: `2872985` (string, optional)
++ dls_verified: true (boolean, optional)
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, optional) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, optional)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, optional) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, optional)
 
 ## `Owners`
 ### `Owner`
@@ -10394,12 +10682,25 @@ status: `APPROVED` (string, required)
 + updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### Address
++ type: RESIDENCE (string, optional) - `Dictionary ADDRESS_TYPE`. 
++ country: UA (enum[string], required) - `Dictionary COUNTRY`
++ area: Житомирська (string, optional) - one of Ukraianian area
++ region: Бердичівський (string, optional) - district of area
++ settlement: Київ (string, optional) - city name
++ `settlement_type`: CITY (string, optional) - `Dictionary SETTLEMENT_TYPE` - type of settlement as city/town/village etc
++ `settlement_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - settlement identificator from uaadresses
++ `street_type`: STREET (string, optional) - `Dictionary STREET_TYPE` - type of street as street/road/line etc
++ street: `вул. Ніжинська` (string, optional) - street name
++ building: 15 (string, optional) - number of building
++ apartment: 23 (string, optional) - number of appartment
++ zip: 02090 (string, optional) - system of postal codes
+
+### Address_v2
 + type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`. 
 + country: UA (enum[string], required) - `Dictionary COUNTRY`
 + area: Житомирська (string, required) - one of Ukraianian area
 + region: Бердичівський (string, optional) - district of area
 + settlement: Київ (string, required) - city name
-+ `settlement_type`: CITY (string, required) - `Dictionary SETTLEMENT_TYPE` - type of settlement as city/town/village etc
 + `settlement_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - settlement identificator from uaadresses
 + `street_type`: STREET (string, optional) - `Dictionary STREET_TYPE` - type of street as street/road/line etc
 + street: `вул. Ніжинська` (string, optional) - street name
@@ -10407,6 +10708,25 @@ status: `APPROVED` (string, required)
 + apartment: 23 (string, optional) - number of appartment
 + zip: 02090 (string, optional) - system of postal codes
 
+### Address_v3
++ type: RESIDENCE (string, optional) - `Dictionary ADDRESS_TYPE`. 
++ country: UA (enum[string], optional) - `Dictionary COUNTRY`
++ area: Житомирська (string, optional) - one of Ukraianian area
++ region: Бердичівський (string, optional) - district of area
++ settlement: Київ (string, optional) - city name
++ `settlement_type`: CITY (string, optional) - `Dictionary SETTLEMENT_TYPE` - type of settlement as city/town/village etc
++ `settlement_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - settlement identificator from uaadresses
++ `street_type`: STREET (string, optional) - `Dictionary STREET_TYPE` - type of street as street/road/line etc
++ street: `вул. Ніжинська` (string, optional) - street name
++ building: 15 (string, optional) - number of building
++ apartment: 23 (string, optional) - number of appartment
++ zip: 02090 (string, optional) - system of postal codes
+
+### Address_v4
++ country: UA (enum[string], optional) - `Dictionary COUNTRY`
+
+### InstitutionalAddress
++ country: UA (enum[string], required) - `Dictionary COUNTRY`
 
 ### Phone
 + type: MOBILE (string, required) - `Dictionary PHONE_TYPE` type of phone Land Line or Mobile. At least one of type must be present. Each type can be represented only once.
