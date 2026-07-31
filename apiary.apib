@@ -3,7 +3,7 @@ HOST: https://api.ehealth.gov.ua
 
 # GENERAL MIS API
 
-**Version: 9.15.9 v.1**
+**Version: 9.15.12**
 
 Environment: **DEMO**
 
@@ -11686,8 +11686,8 @@ status: `APPROVED` (string, required)
 ### PartyDocument
 + type: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
 + number: АА120518 (string, required) - document issue number
-+ issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, optional) - authority which issued the document
-+ issued_at: `2017-02-28` (string, optional) - the date when document was issued
++ issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, required) - authority which issued the document
++ issued_at: `2017-02-28` (string, required) - the date when document was issued
 
 ### `RelationshipDocument_v1`
 + type: BIRTH_CERTIFICATE (string, required) - `Dictionary DOCUMENT_RELATIONSHIP_TYPE`
