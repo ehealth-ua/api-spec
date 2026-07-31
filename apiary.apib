@@ -3,7 +3,7 @@ HOST: https://api.ehealth.gov.ua
 
 # GENERAL MIS API
 
-**Version: 9.14.0**
+**Version: 9.15.4**
 
 Environment: **STAGE**
 
@@ -1571,7 +1571,9 @@ Method returns shortened data structure. Use [**Get Employee details**](https://
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + status: APPROVED (enum, optional) - filter employees by status
         - APPROVED
-        - DISMISSED
+        - STOPPED
+        - ENTERED IN ERROR
+        - AUTODEACTIVATED
         - REORGANIZED
     + employee_type: DOCTOR (string, optional)
     + page: 2 (number, optional) - Page number.
@@ -1636,8 +1638,7 @@ Employee deactivation:
 
 2. Deactivate declarations
 
-3. Update employee parameters:
- - change status=DISMISSED and end_date=now
+3. Update employee parameters
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1648,6 +1649,10 @@ Employee deactivation:
 
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+   
+    + Attributes (object)
+        + `status`: `STOPPED` (string, required) - reasons for deactivation: STOPPED or ENTERED IN ERROR
+        + `end_date`: `2017-09-01` (string, optional) - the actual date of termination the employee in the specified position. Required for status = STOPPED
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
@@ -1655,6 +1660,7 @@ Employee deactivation:
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
             + division (Division_Short)
                 + `legal_entity` (`Legal_Entity_Short`)
+            + status: STOPPED, ENTERED IN ERROR (enum,required)
 
 ### Get Party Verification Statuses List [GET /api/parties/verifications]
  This method returns a list of current party's verification statuses and additional related information.
@@ -4407,7 +4413,7 @@ Also, it returns INNM_DOSAGEs for which there are no registered BRANDs in the sy
     + `medication_request_allowed`: TRUE (boolean, optional) - flag whether medications are allowed to be dispensed by the program.
     + `care_plan_activity_allowed`: TRUE (boolean, optional) - flag whether activities are allowed to be created with product as this medications.
     + `page`: 2 (number, optional) - Page number.
-    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 500. Default: 50
 
 + Request (application/json)
 
@@ -5735,6 +5741,9 @@ This method in used to approve declaration request by patient via Cabinet
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
         + data (`Declaration_Details_Cabinet`)
+            + employee (`Employee_Declaration_Short`)
+                + status: APPROVED (enum, required)
+        
 
 ### Terminate declarations via Cabinet [PATCH /api/cabinet/declarations/{id}/actions/terminate]
 Patient can terminate active declaration using this method.
@@ -5754,6 +5763,8 @@ Patient can terminate active declaration using this method.
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
         + data (`Declaration_Details_Cabinet`)
+            + employee (`Employee_Declaration_Short`)
+                + status: APPROVED (enum, required)
 
 ### Get declaration details via Cabinet [GET /api/cabinet/declarations/{id}]
 
@@ -10454,7 +10465,7 @@ status: `APPROVED` (string, required)
 + position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: APPROVED, DISMISSED, REORGANIZED (enum, required)
++ status: APPROVED, STOPPED, ENTERED IN ERROR, REORGANIZED, AUTODEACTIVATED (enum, required)
 + `minfin_validation_status`: `VERIFICATION_NEEDED` (string, required)
 + `is_active`: `true` (boolean, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
@@ -10519,7 +10530,7 @@ status: `APPROVED` (string, required)
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
-+ status: APPROVED, DISMISSED, REORGANIZED (enum, required) - Employee status
++ status: APPROVED, STOPPED, ENTERED IN ERROR, AUTODEACTIVATED, REORGANIZED (enum, required) - Employee status
 + `minfin_validation_status`: `VERIFICATION_NEEDED` (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
@@ -10539,7 +10550,7 @@ status: `APPROVED` (string, required)
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
-+ status: APPROVED, DISMISSED (enum, required) - Employee status
++ status: APPROVED, STOPPED, ENTERED IN ERROR, REORGANIZED, AUTODEACTIVATED (enum, required) - Employee status
 + `minfin_validation_status`: `VERIFICATION_NEEDED` (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
