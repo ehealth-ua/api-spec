@@ -3,7 +3,7 @@ HOST: https://api.ehealth.gov.ua
 
 # GENERAL MIS API
 
-**Version: 9.15.4**
+**Version: 9.15.6**
 
 Environment: **STAGE**
 
@@ -4223,7 +4223,156 @@ This method returns current person's Minfin validation details.
     + Attributes (`Response_Collection_V2`)
         + data (array[`Minfin_Validation_Details`])
 
+## Care teams [/api/care_teams]
 
+### Create care team [POST]
+
+This method is used to create care teams for legal entity in the system.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+    + Attributes (`crud_care_team_post`)
+
++ Response 201 (application/json)
+    + Attributes (`Response__Process_OK`)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (`crud_care_team_post_patch_response`)
+
+### Search care teams by params [GET /api/care_teams{?category,period_start_from,period_start_to,period_end_from,period_end_to,status,legal_entity_id,member_id,page,page_size}]
+
+This method is used to search for care teams in the system.
+
++ Parameters
+    + category: `palliative_care_team` (string, optional) - Care team category
+    + period_start_from: `2024-12-12` (string, optional) - Date in ISO 8601 format without time
+    + period_start_to: `2024-12-22` (string, optional) - Date in ISO 8601 format without time
+    + period_end_from: `2025-12-12` (string, optional) - Date in ISO 8601 format without time
+    + period_end_to: `2025-12-22` (string, optional) - Date in ISO 8601 format without time
+    + status: `active` (string, optional) - Care team status
+    + legal_entity_id: `d17fe0c5-5c14-4982-b267-a17d62529ded` (string, optional) - Legal entity identifier
+    + member_id: `d17fe0c5-5c14-4982-b267-a17d62529ded` (string, optional) - Identifier of care team participant member (employee or care team)
+    + `page`: 2 (number, optional) - Page number.
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[`crud_care_team_get`])
+
+### Get care teams by ID [GET /api/care_teams/{id}]
+
+This method is used to get details of care team.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - care team identifier
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (`crud_care_team_details_get`)
+
+### Change care team status [PATCH /api/care_teams/{id}/actions/change_status]
+
+This method is used to change care team status.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Care team identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+    + Attributes (`crud_care_team_status_change_patch`)
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (`crud_care_team_status_change_patch_response`)
+
+### Update care team [PATCH /api/care_teams/{id}]
+
+This method is used to update care team. Only care team contact info and notes can be updated.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Care team identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+    + Attributes (`crud_care_team_patch`)
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (`crud_care_team_post_patch_response`)
+
+### Get care team participants list [GET /api/care_teams/participants{?care_team_id,role,status,page,page_size}]
+
+This method is used to get all care teams participants.
+
++ Parameters
+    + care_team_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - care team identifier
+    + role: `care_manager` (string, optional) - care team participant role
+    + status: `active` (string, optional) - care team participant status
+    + `page`: 2 (number, optional) - Page number.
+    + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[`crud_care_team_participant_get`])
+
+### Add care team participant [POST /api/care_teams/participants]
+
+This method is used to add additionals participants to care team.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+    + Attributes (`Care_team_participant_base`)
+
++ Response 201 (application/json)
+    + Attributes (`Response__Process_OK`)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (`crud_care_team_participant_post_response`)
+
+### Change care team participant status [PATCH /api/care_teams/participants/{id}/actions/change_status]
+
+This method is used to change care team participant status.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Care team participant identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
+    + Attributes (`crud_care_team_participant_patch`)
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (`crud_care_team_participant_get`)
 
 # Group Public. Medical Programs
 
@@ -10761,6 +10910,7 @@ status: `APPROVED` (string, required)
 ### `Institutional_Legal_Entity_Request_Public`
 + edrpou: 32323454 (string, required) - Unified Register of Businesses and Organizations
 + type: PRIMARY_CARE (string, required) - type of legal entity
++ residence_address (InstitutionalAddress, required) - address where the legal entity is physically located
 + phones (array, required)
     + (object)
         + include `Phone`
@@ -14804,6 +14954,100 @@ status: `APPROVED` (string, required)
 ### `crud_licenses_post`
 + include `License`
 + is_primary: false (boolean, required)
+
+## `Care teams`
+### `Care_team_base`
++ status: `draft` (string, required) - Dictionary `care_team_status`
++ category: `palliative_care_team` (string, required) - Dictionary `care_team_category`
++ name: `Тестова команда лікування` (string, optional) - Care team name
++ period_start: `2024-11-28` (string, required) - Start of period that care team covers
++ email: `test_care_team@email.com` (string, optional) - Care team contact email
++ phones (array[`Phone`], optional) - Array of care team contact phones
++ note: `Додаткова примітка до команди лікування` (string, optional) - Comments made about care team
++ author_employee_id: `28d9c1be-08f0-403b-aa76-bff228c9904f` (string, required) - Reference to employee as care team author
+
+### `Care_team_participant_base`
++ role: `participant` (string, required) - Dictionary `care_team_participant_roles`
++ `member_type`: `employee` (string, required) - Dictionary `care_team_participant_member_type`
++ member_id: `28d9c1be-08f0-403b-aa76-bff228c9904f` (string, required) - Care team participant member identifier
++ period_start: `2024-11-28` (string, required) - Start of period when member participates in care team
++ status: `active` (string, required) - Dictionary `care_team_participant_status`
++ care_team_id: `28d9c1be-08f0-403b-aa76-bff228c9904f` (string, required) - Care team identifier
+
+### `crud_care_team_get`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Unique record identifier
++ include `Care_team_base`
++ period_end: `2027-11-28` (string, optional) - End of period that care team covers
++ `status_reason`: `typo` (string, optional) - Dictionary `care_team_status_reasons`
++ `status_description`: `Деактивовано по причині виявлення шахрайства` (string, optional) - Optional description of care team status
++ legal_entity_id: `28d9c1be-08f0-403b-aa76-bff228c9904f` (string, required) - Reference to legal entity as care team owner
++ `inserted_at`: `2026-01-20T19:14:13Z` (string, required) - Date and time when record was created, ISO 8601 date and time in UTC timezone.
++ `updated_at`: `2026-01-20T19:14:13Z` (string, required) - Date and time when record was updated, ISO 8601 date and time in UTC timezone.
+
+### `crud_care_team_details_get`
++ include `crud_care_team_get`
++ `status_history` (array[`care_team_status_history_record`], optional) - Care team status changes history records in ascending order
+
+### `care_team_status_history_record`
++ status: `draft` (string, required) - Dictionary `care_team_status`
++ `status_reason`: `typo` (string, optional) - Dictionary `care_team_status_reasons`
++ `status_description`: `Деактивовано по причині виявлення шахрайства` (string, optional) - Optional description of care team status
++ `inserted_at`: `2026-01-20T19:14:13Z` (string, required) - Date and time when record was created, ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
+
+### `crud_care_team_patch`
++ email: `test_care_team@email.com` (string, optional) - Care team contact email
++ phones (array[`Phone`], optional) - Array of care team contact phones
++ note: `Додаткова примітка до команди лікування` (string, optional) - Comments made about care team
+
+### `crud_care_team_post_patch_response`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Unique record identifier
++ include `Care_team_base`
++ period_end: null (string, optional, nullable) - End of period that care team covers
++ `status_reason`: null (string, optional, nullable) - Dictionary `care_team_status_reasons`
++ `status_description`: null (string, optional, nullable) - Optional description of care team status
++ legal_entity_id: `28d9c1be-08f0-403b-aa76-bff228c9904f` (string, required) - Reference to legal entity as care team owner
++ `inserted_at`: `2026-01-20T19:14:13Z` (string, required) - Date and time when record was created, ISO 8601 date and time in UTC timezone.
++ `updated_at`: `2026-01-20T19:14:13Z` (string, required) - Date and time when record was updated, ISO 8601 date and time in UTC timezone.
+
+### `crud_care_team_participant_get`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Unique record identifier
++ include `Care_team_participant_base`
++ period_end: `2027-11-28` (string, optional) - End of period when member participates in care team
++ `status_reason`: `typo` (string, optional) - Dictionary `care_team_participant_status_reasons`
++ `inserted_at`: `2026-01-20T19:14:13Z` (string, required) - Date and time when record was created, ISO 8601 date and time in UTC timezone.
++ `updated_at`: `2026-01-20T19:14:13Z` (string, required) - Date and time when record was updated, ISO 8601 date and time in UTC timezone.
+
+### `crud_care_team_post`
++ include `Care_team_base`
+
+### `crud_care_team_status_change_patch`
++ status: `inactive` (string, required) - Dictionary `care_team_status`
++ `status_reason`: `typo` (string, optional) - Dictionary `care_team_status_reasons`
++ period_end: `2024-11-28` (string, optional) - End of period that care team covers
+
+### `crud_care_team_status_change_patch_response`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Unique record identifier
++ include `Care_team_base`
++ period_end: `2024-11-28` (string, optional) - End of period that care team covers
++ `status_reason`: `typo` (string, optional) - Dictionary `care_team_status_reasons`
++ `status_description`: null (string, optional) - Optional description of care team status
++ legal_entity_id: `28d9c1be-08f0-403b-aa76-bff228c9904f` (string, required) - Reference to legal entity as care team owner
++ `inserted_at`: `2026-01-20T19:14:13Z` (string, required) - Date and time when record was created, ISO 8601 date and time in UTC timezone.
++ `updated_at`: `2026-01-20T19:14:13Z` (string, required) - Date and time when record was updated, ISO 8601 date and time in UTC timezone.
+
+### `crud_care_team_participant_patch`
++ status: `inactive` (string, required) - Dictionary `care_team_participant_status`
++ period_end: `2024-11-28` (string, optional) - End of period when member participates in care team
++ `status_reason`: `typo` (string, optional) - Dictionary `care_team_participant_status_reasons`
+
+### `crud_care_team_participant_post_response`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Unique record identifier
++ include `Care_team_participant_base`
++ period_end: null (string, optional, nullable) - End of period when member participates in care team
++ `status_reason`: null (string, optional, nullable) - Dictionary `care_team_participant_status_reasons`
++ `inserted_at`: `2026-01-20T19:14:13Z` (string, required) - Date and time when record was created, ISO 8601 date and time in UTC timezone.
++ `updated_at`: `2026-01-20T19:14:13Z` (string, required) - Date and time when record was updated, ISO 8601 date and time in UTC timezone.
 
 ## Approvals
 ### Approval (object)
