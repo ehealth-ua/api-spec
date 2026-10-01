@@ -1476,6 +1476,35 @@ Method returns shortened details, to obtain full information - get Declaration D
     + Attributes (`Response_Collection_V2`)
         + data (array[`nhs_declaration_list_Public`])
 
+### Get Declarations List V2 [GET /api/v2/declarations{?employee_id,legal_entity_id,status,declaration_number,page,page_size,reason}]
+
+Use this method to obtain list of Declarations for an `empolee_id` and legal_entity_id. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
+
+**Scopes required:** `declaration:read`
+
+Method returns shortened details, to obtain full information - get Declaration Details by it's ID.
+
++ Parameters
+    + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - `user_id` of a Doctor.
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    + `declaration_number`: `0000-12H4-245D` (string, optional) - unique human redable number of declaration.
+    + status: active (string, optional)
+        + Default: active
+    + reason: offline (string, optional) - filter declaration by reason
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[`nhs_declaration_list_Public_V2`])
+
 ### Get Declaration by ID [GET /api/declarations/{id}]
 This method allows to receive detailed information about person Declaration by declaration ID.
 
@@ -1497,6 +1526,36 @@ This method allows to receive detailed information about person Declaration by d
             + code: 200 (number)
         + data (object)
             + include `Declaration_Details`
+        + urgent (object, required)
+            + `authentication_method_current` (object, required)
+                + type: `OTP` (enum, required)
+                    - OTP
+                    - OFFLINE
+                    - NA
+                + number: `+38093*****85` (string, required)
+
+### Get Declaration by ID V2 [GET /api/v2/declarations/{id}]
+This method allows to receive detailed information about person Declaration by declaration ID.
+
+**Scopes required:** `declaration:read`
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (object)
+            + include `Declaration_Details_V2`
+            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a end-user and signed by hes key. - Should be defined on the client side.
         + urgent (object, required)
             + `authentication_method_current` (object, required)
                 + type: `OTP` (enum, required)
@@ -2084,6 +2143,8 @@ It returns:
 2. 404 error if **active declaration not found**.
 3. 403 if **active declaration found** issued by **other** (not available by access scopes) legal entity.
 
+**Scopes required:** `declaration:read`
+
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
@@ -2102,9 +2163,40 @@ It returns:
     + Attributes (`Response_Error`)
         + meta (Response__Meta, fixed-type)
             + code: 403 (number)
-        + error (Response__Error, fixed-type)
+        + error (Response___Error, fixed-type)
             + type: `forbidden`
-            + message: `Active declaration belongs to another msp` (string)
+
+### Get Person Declaration V2 [GET /api/v2/persons/{id}/declaration]
+
+This method allows to receive active person declarations issued by current legal entity (based on access_token). It can be used to check if Patient has active declarations in other Legal Entities.
+
+It returns:
+1. Short declaration info if **active declaration found** AND issued by legal entity that is available for `access_token` scope.
+2. 404 error if **active declaration not found**.
+3. 403 if **active declaration found** issued by **other** (not available by access scopes) legal entity.
+
+**Scopes required:** `declaration:read`
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer c2778f3064753ea70de870a53795f5c9
+            X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection`)
+        + data (array[`Declaration_Details_V2`])
+
++ Response 403 (application/json)
+    + Attributes (`Response_Error`)
+        + meta (Response__Meta, fixed-type)
+            + code: 403 (number)
+        + error (Response___Error, fixed-type)
+            + type: `forbidden`
 
 ### Get Person Authentication methods [GET /api/persons/{id}/authentication_methods]
 
@@ -9074,6 +9166,9 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + total_entries: 1000 (number) - Total number of objects in collection.
 + total_pages: 23 (number) - Total number of pages.
 
+### `Response___Error`
++ type: type_atom (string) - Atom that represents error type.
+
 ## Persons
 ### `Person`
 + first_name: Петро (string, required)
@@ -9890,6 +9985,28 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + employee (`Employee_Declaration_Short`)
 + division (`Division_Short`)
 + `legal_entity` (MSP_Details)
++ status (enum, required)
+    - active
+    - pending_verification
+    - terminated
++ scope (enum, optional)
+    - family_doctor
++ `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
++ inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ reason: `manual_employee` (string, optional)
++ reason_description: `Згідно постанови 1 від 10.01.2017` (string, optional)
+
+### `Declaration_Details_V2`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
++ signed_at: `2017-03-02T00:00:00.000Z` (string, required)
++ `person_id`: `5e661b15-a39a-4713-b18e-ba03a4a48ecc` (string, required) - person_id of a patient.
++ `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - Unique doctor identifier.
++ `division_id`: `2848a935-5fd7-48ba-b235-a9b5d475c647` (string, required) - `Division identifier`
++ legal_entity_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Legal entity ID
 + status (enum, required)
     - active
     - pending_verification
@@ -11831,10 +11948,6 @@ status: `APPROVED` (string, required)
     + `medical_program_settings` (`Medical_program_settings`, required) - some conditions for using program
     + `medical_program_settings_text`: `Some text` (string, required) - justification of the possibility or impossibility of using the program on medication request with some settings
     + `is_active`: `true` (boolean, required) - Is medical program active or not. True - Active; False - Inactive
-    + `medication_dispense_allowed`: true (boolean, required) - posibility to create medication dispense with program
-    + `medication_dispense_allowed_text`: `Some text` (string, required) - justification of the possibility or impossibility of using the program on medication dispense
-    + `medication_request_allowed`: true (boolean, required) - posibility to create medication request with program
-    + `medication_request_allowed_text`: `Some text` (string, required) - justification of the possibility or impossibility of using the program on medication request
     + `type`: `MEDICATION` (string, required) - `Dictionary MEDICAL_PROGRAM_TYPE`
     + `funding_source`: `NHS` (string, required) - `Dictionary FUNDING_SOURCE`
     + `mr_blank_type`: `F-1` (string, required) - `Dictionary MR_BLANK_TYPES`
@@ -11999,6 +12112,25 @@ status: `APPROVED` (string, required)
 + reason_description: `Згідно постанови 1 від 10.01.20171111` (string, optional)
 + person (`Person_Minimal_Declaration_List`, required)
 + `legal_entity` (`Legal_Entity_For_Declaration_Short`, required)
++ `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
+
+### `nhs_declaration_list_Public_V2`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
++ `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - Unique doctor identifier.
++ `division_id`: `2848a935-5fd7-48ba-b235-a9b5d475c647` (string, required) - `Division identifier`
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
++ status (enum, optional)
+    - active
+    - closed
+    - terminated
++ reason: `manual_employee` (string, optional)
++ reason_description: `Згідно постанови 1 від 10.01.20171111` (string, optional)
++ `person_id`: `5e661b15-a39a-4713-b18e-ba03a4a48ecc` (string, required) - person_id of a patient.
++ legal_entity_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - `Legal entity identifier`
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
@@ -12170,10 +12302,6 @@ status: `APPROVED` (string, required)
 + `medical_program_settings` (`Medical_program_settings`, required) - some conditions for using program
 + `medical_program_settings_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication request with some settings
 + `is_active`: `true` (boolean, optional) - Is medical program active or not. True - Active; False - Inactive
-+ `medication_dispense_allowed`: true (boolean, optional) - posibility to create medication dispense with program
-+ `medication_dispense_allowed_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication dispense
-+ `medication_request_allowed`: true (boolean, optional) - posibility to create medication request with program
-+ `medication_request_allowed_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication request
 + `type`: `MEDICATION` (string, optional) - `Dictionary MEDICAL_PROGRAM_TYPE`
 + `funding_source`: `NHS` (string, required) - `Dictionary FUNDING_SOURCE`
 + `mr_blank_type`: `F-1` (string, required) - `Dictionary MR_BLANK_TYPES`
@@ -12186,10 +12314,6 @@ status: `APPROVED` (string, required)
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
 + `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
 + `is_active`: `true` (boolean, optional) - Is medical program active or not. True - Active; False - Inactive
-+ `medication_dispense_allowed`: true (boolean, optional) - posibility to create medication dispense with program
-+ `medication_dispense_allowed_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication dispense
-+ `medication_request_allowed`: true (boolean, optional) - posibility to create medication request with program
-+ `medication_request_allowed_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication request
 + `type`: `MEDICATION` (string, optional) - `Dictionary MEDICAL_PROGRAM_TYPE`
 + `funding_source`: `NHS` (string, required) - `Dictionary FUNDING_SOURCE`
 + `mr_blank_type`: `F-1` (string, required) - `Dictionary MR_BLANK_TYPES`
@@ -13035,10 +13159,6 @@ status: `APPROVED` (string, required)
 + `medical_program_settings` (`Medical_program_settings`, required) - some conditions for using program
 + `medical_program_settings_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication request with some settings
 + `is_active`: `true` (boolean, optional) - Is medical program active or not. True - Active; False - Inactive
-+ `medication_dispense_allowed`: true (boolean, optional) - posibility to create medication dispense with program
-+ `medication_dispense_allowed_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication dispense
-+ `medication_request_allowed`: true (boolean, optional) - posibility to create medication request with program
-+ `medication_request_allowed_text`: `Some text` (string, optional) - justification of the possibility or impossibility of using the program on medication request
 + `type`: `MEDICATION` (string, optional) - `Dictionary MEDICAL_PROGRAM_TYPE`
 + `funding_source`: `NHS` (string, required) - `Dictionary FUNDING_SOURCE`
 + `mr_blank_type`: `F-1` (string, required) - `Dictionary MR_BLANK_TYPES`
@@ -13048,12 +13168,12 @@ status: `APPROVED` (string, required)
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, optional)
 
 ### `Medical_program_settings`
-+ `care_plan_required`: true (boolean, required) - posibility to create medication request with reference on care plan
-+ `employee_types_to_create_medication_request` (array, required) - posibility to create medication request for particular types of employees
++ `care_plan_required`: true (boolean, optional) - posibility to create medication request with reference on care plan
++ `employee_types_to_create_request` (array, optional) - posibility to create medication request or device request for particular types of employees
     + `SPECIALIST` (string, required)
     + `DOCTOR` (string, required)    
-+ `skip_mnn_in_treatment_period`: true (boolean, required) - posibility to create new medication request with the same mnn in one treatment period
-+ `skip_employee_validation`: true (boolean, required) - posibility to create medication request by any user who has a scope
++ `skip_treatment_period`: true (boolean, optional) - posibility to create new medication request with the same mnn or device request with the same code in one treatment period
++ `skip_employee_validation`: true (boolean, optional) - posibility to create medication request by any user who has a scope
 + `speciality_types_allowed` (array, optional) - posibility to create medication request or care plan activity for particular specialities of employees
     + `ENDOCRINOLOGY` (string, required)
     + `PEDIATRIC_NEUROLOGY` (string, required)
@@ -13072,15 +13192,14 @@ status: `APPROVED` (string, required)
 + `providing_conditions_allowed` (array, optional) - posibility to create care plan activity for particular terms of service. - `Dictionary PROVIDING_CONDITION`
     + `INPATIENT` (string, required)
     + `OUTPATIENT` (string, required)
-+ `medication_request_max_period_day`: 90 (number, optional) - maximum period length (in days) allowed for the Medication request with the medical program
-+ `skip_medication_request_employee_declaration_verify`: true (boolean, required) - allows to skip verification if employee has declaration with patient to create medication request
-+ `skip_medication_request_legal_entity_declaration_verify`: true (boolean, required) - allows to skip verification if employee in legal entity that has declaration with patient to create medication request
-+ `multi_medication_dispense_allowed`: true (boolean, required) - check if medication request can be dispensed partially
-+ `skip_medication_dispense_sign`: true (boolean, required) - check if process medication dispense should be invoked using digital sign
-+ `medication_request_notification_disabled`: true (boolean, required) - check if patient should not be notified via SMS on operations with medication request (create/reject/resend)
-+ `skip_contract_provision_verify`: true (boolean, required) - check if validations of Contract and Medical Program Provisions should be invoked for the medical program
-+ `medication_dispense_period_day`: 90 (number, optional) - medication dispense period (in days)
-+ `medical_program_change_on_dispense_allowed`: true (boolean, required) - check if medication request can be dispensed with another medical program.
++ `request_max_period_day`: 90 (number, optional) - maximum period length (in days) allowed for the Medication request or Device request with the medical program
++ `skip_request_employee_declaration_verify`: true (boolean, optional) - allows to skip verification if employee has declaration with patient to create medication request or device request
++ `skip_request_legal_entity_declaration_verify`: true (boolean, optional) - allows to skip verification if employee in legal entity that has declaration with patient to create medication request or device request
++ `multi_medication_dispense_allowed`: true (boolean, optional) - check if medication request can be dispensed partially
++ `skip_medication_dispense_sign`: true (boolean, optional) - check if process medication dispense should be invoked using digital sign
++ `skip_contract_provision_verify`: true (boolean, optional) - check if validations of Contract and Medical Program Provisions should be invoked for the medical program
++ `dispense_period_day`: 90 (number, optional) - period of medication dispense or device dispense (in days)
++ `medical_program_change_on_dispense_allowed`: true (boolean, optional) - check if medication request can be dispensed with another medical program.
 + `patient_categories_allowed` (array, optional) - posibility to create care plan activity for particular terms of service. - `Dictionary eHealth/clinical_impression_patient_categories`
     + `insulin_1` (string, required)
     + `insulin_2` (string, required)
@@ -13091,7 +13210,10 @@ status: `APPROVED` (string, required)
     + `CLASSIFICATION_TYPE`
     + `DEVICE_DEFINITION`
 + `request_notification_disabled`: true (boolean, optional) - check if patient should not be notified via SMS on operations with medication or device request (create/reject/resend)
++ `request_allowed`: true (boolean, optional) -  Creation of device request or medication request allowed for the medical program
++ `dispense_allowed`: true (boolean, optional) -  Creation of device dispense or medication dispense allowed for the medical program
 + `skip_dispense_division_dls_verify`: true (boolean, optional) -  Check if validation of DLS license should be invoked for the medical program
+
 
 ### `medical_programs_list`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
