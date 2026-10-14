@@ -49,7 +49,7 @@ PROD    | https://api.ehealth.gov.ua
 **API-key:**
 - For identifiers MIS clients (as a brocker) we use term API-key. MIS must be **mandatory** send API-key when called e-Health API.
 - API-key its a `mis_client_secret` - Medical Information System secret key issued upon integration request.
-- API-key dispatched in Request HEADER as a `API-key` attribute. 
+- API-key dispatched in Request HEADER as a `API-key` attribute.
 - If MIS don't send API-key in Request HEADER, API return 401 error wih message "API-KEY header required".
 
 **X-Custom-PSK:**
@@ -345,7 +345,7 @@ This resource should be used to get the last updated_at (the latest `updated_at`
 + Response 200 (application/json)
     + Attributes (Response_Collection)
         + data (array[`Composition_Configurations_Response`])
-        
+
 
 ### Get Devices Configurations by search params [GET /api/devices_configurations{?device_code,is_active,page,page_size}]
 
@@ -356,7 +356,7 @@ This resource should be used to get the last updated_at (the latest `updated_at`
     + `inserted_at_from`: `2024-10-31` (date, optional) - Inserted_at filter period start date
     + `inserted_at_to`: `2024-10-31` (date, optional) - Inserted_at filter period end date
     + `updated_at_from`: `2024-10-31` (date, optional) - Updated_at filter period start date
-    + `updated_at_to`: `2024-10-31` (date, optional) - Updated_at filter period end date    
+    + `updated_at_to`: `2024-10-31` (date, optional) - Updated_at filter period end date
     + page: 2 (number, optional) - Page number
     + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 500. Default: 50
 
@@ -381,7 +381,7 @@ This resource should be used to get the last updated_at (the latest `updated_at`
     + `inserted_at_from`: `2024-10-31` (date, optional) - Inserted_at filter period start date
     + `inserted_at_to`: `2024-10-31` (date, optional) - Inserted_at filter period end date
     + `updated_at_from`: `2024-10-31` (date, optional) - Updated_at filter period start date
-    + `updated_at_to`: `2024-10-31` (date, optional) - Updated_at filter period end date    
+    + `updated_at_to`: `2024-10-31` (date, optional) - Updated_at filter period end date
     + page: 2 (number, optional) - Page number
     + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 500. Default: 50
 
@@ -405,7 +405,7 @@ This resource should be used to get the last updated_at (the latest `updated_at`
     + `inserted_at_from`: `2024-10-31` (date, optional) - Inserted_at filter period start date
     + `inserted_at_to`: `2024-10-31` (date, optional) - Inserted_at filter period end date
     + `updated_at_from`: `2024-10-31` (date, optional) - Updated_at filter period start date
-    + `updated_at_to`: `2024-10-31` (date, optional) - Updated_at filter period end date    
+    + `updated_at_to`: `2024-10-31` (date, optional) - Updated_at filter period end date
     + page: 2 (number, optional) - Page number
     + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 500. Default: 50
 
@@ -430,7 +430,7 @@ This resource should be used to get the last updated_at (the latest `updated_at`
     + `inserted_at_from`: `2024-10-31` (date, optional) - Inserted_at filter period start date
     + `inserted_at_to`: `2024-10-31` (date, optional) - Inserted_at filter period end date
     + `updated_at_from`: `2024-10-31` (date, optional) - Updated_at filter period start date
-    + `updated_at_to`: `2024-10-31` (date, optional) - Updated_at filter period end date    
+    + `updated_at_to`: `2024-10-31` (date, optional) - Updated_at filter period end date
     + page: 2 (number, optional) - Page number
     + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 500. Default: 50
 
@@ -503,7 +503,7 @@ Method is used to verify that provided in declarartion request phone number is v
 
 ### Verify phone number [POST /api/sms_verifications]
 
-This endpoint is used to verify submitted phone number as a part of person registration process. 
+This endpoint is used to verify submitted phone number as a part of person registration process.
 
 In case number needs verification - generate and send OTP, in case phone does not need verification - return OK.
 
@@ -512,7 +512,7 @@ In case number needs verification - generate and send OTP, in case phone does no
     + Headers
             Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjYWJpbmV0LXJlZ2lzdHJhdGlvbiIsImVtYWlsIjoiYXByb2tvcHBoYXJtZGlyNEB1a3IubmV0IiwiZXhwIjoxNjgyNjkzNTc3LCJpYXQiOjE2ODI2NjQ3NzcsImlzcyI6IkVIZWFsdGgiLCJqdGkiOiIxOTAyYTkyYS00MDcyLTQ3MWEtYmU4NS1iZWU0MzQzNmNlYjEiLCJuYmYiOjE2ODI2NjQ3NzYsInN1YiI6ImFwcm9rb3BwaGFybWRpcjRAdWtyLm5ldCIsInR5cCI6ImFjY2VzcyJ9.EXTuYRQenjqzsjNAJ5agmEbSHcg_XRKwc3VOGAtSjfMOy4uIJ_BBMUeUWSVzy4_OezPjEIiVcnaLTN4pZbtgow
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-            
+
     + Attributes (object)
         + `factor`: `+380501112233` (string, required) - phone number that needs to be verified.
         + `type`: SMS (enum, required) - verification type.
@@ -684,7 +684,7 @@ Link to THIRD PERSON (`authentication_methods.value`) must be equal to confidant
             + type: unverified (string, required)
             + message: `Unverified phone number` (string, required)
 
-  
+
 ### Approve Person Request v2 [PATCH /api/v2/person_requests/{id}/actions/approve]
 
 This method will be deprecated. Use **Approve Person Request v3**.
@@ -1039,7 +1039,7 @@ Use this method to obtain Person Request details.
 
 This method will be depricated. Use **Get Person Request List v3** instead.
 
-Use this method to obtain list of Person Requests. 
+Use this method to obtain list of Person Requests.
 If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor or Admin is interested in current UI.
 
 Service returns only person request related to the same legal entity as the user.
@@ -1074,7 +1074,7 @@ More detailed information - https://e-health-ua.atlassian.net/wiki/x/BADDIw
 
 ### Get Person Requests List v3 [GET /api/v3/person_requests{?legal_entity_id,status,page,page_size}]
 
-Use this method to obtain list of Person Requests. 
+Use this method to obtain list of Person Requests.
 If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor or Admin is interested in current UI.
 
 Service returns only person request related to the same legal entity as the user.
@@ -1124,7 +1124,7 @@ More detailed information - https://e-health-ua.atlassian.net/wiki/x/N4DrJ
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             api-key: uXhEczJ56adsfh3Ri9SUkc4en
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-    
+
     <!--+ Attributes (object)
         + type: `THIRD_PERSON` (enum, optional)
             - OTP
@@ -1144,7 +1144,7 @@ After declaration request is signed and/or verified (depends on verification log
 
 ### Create Declaration Request V3 [POST /api/v3/declaration_requests]
 
-This method is used to create Declaration Request (as part of Declaration creation process) via new api. 
+This method is used to create Declaration Request (as part of Declaration creation process) via new api.
 
 This method method allows you to create a declaration only for an existing person.
 
@@ -1183,7 +1183,7 @@ To create declaration request based on active declaration in reorganized legal e
             + `current_declaration_count`: 675 (number, optional) - Number of declarations assigned to doctor
             + channel: `MIS` (enum, required) - channel that invoke declaration create service
             + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of person's auth method
-            
+
         + urgent (object, required)
             + `authentication_method_current` (object, required)
                 + type: `OTP` (enum, required)
@@ -1329,8 +1329,8 @@ There is a [**dummy method**](https://uaehealthapi.docs.apiary.io/#reference/dum
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
         + data (`Declaration_short_v3`)
-        
-        
+
+
 
 ### Get Declaration Request by ID V3 [GET /api/v3/declaration_requests/{id}]
 
@@ -1360,7 +1360,7 @@ This endpoint returns declaration requests that were created through V2 and V3. 
             + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - MSP ID.
             + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
             + declaration_id: `8311ab82-e341-4da0-8a95-235ec9885e23` (string, required) - presetted id for future declaration
-            + parent_declaration_id: `8c7753fc-a647-435f-8e43-4ff4546431f6` (string, optional) - identifier of parent declaration  
+            + parent_declaration_id: `8c7753fc-a647-435f-8e43-4ff4546431f6` (string, optional) - identifier of parent declaration
             + status: SIGNED (enum, required)
                 - NEW
                 - APPROVED
@@ -1423,8 +1423,8 @@ If declaration request is created by v2, the field `person_id` will be empty
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
         + data (array[`Declaration_Response_Short_v3`])
-        
-        
+
+
 
 ### Resend Authorization OTP on Declaration Request [POST /api/v3/declaration_requests/{id}/actions/resend_otp]
 
@@ -1614,7 +1614,7 @@ Response structure differs depending on employee type:
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
 
@@ -1649,7 +1649,7 @@ Employee deactivation:
 
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-   
+
     + Attributes (object)
         + `status`: `STOPPED` (string, required) - reasons for deactivation: STOPPED or ENTERED IN ERROR
         + `end_date`: `2017-09-01` (string, optional) - the actual date of termination the employee in the specified position. Required for status = STOPPED
@@ -1664,9 +1664,9 @@ Employee deactivation:
 
 ### Get Party Verification Statuses List [GET /api/parties/verifications]
  This method returns a list of current party's verification statuses and additional related information.
- 
+
  **Scopes required:** `party_verification:read`
- 
+
  + Parameters
      + verification_status: `VERIFIED` (string, required) - Filter by verification status. Possible values:
          + `CHANGES_NEEDED`
@@ -1677,15 +1677,15 @@ Employee deactivation:
      + status: `APPROVED` (string, optional) - Filter by employee status.
      + page: `1` (integer, optional) - Page number.
      + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
- 
+
  + Request (application/json)
- 
+
      + Headers
- 
+
              Authorization: Bearer {access_token}
              api-key: {your_api_key}
              X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
- 
+
  + Response 200 (application/json)
      + Attributes (`Response__Process_OK`)
           + data (array[`PartyVerification`])
@@ -1695,8 +1695,8 @@ This method returns current party's verification status and another information 
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Party identifier
-    
-    
+
+
 + Request (application/json)
 
     + Headers
@@ -1710,7 +1710,7 @@ This method returns current party's verification status and another information 
         + meta (Response__Meta)
         + data (object)
             + include `Party_Verification_Details`
-                    
+
 
 ### Update Party verification status [PATCH /api/parties/{id}/verification]
 Use this method to update party's verification status. Now updating of DRACS death and DRACS name change verification status is allowed.
@@ -1719,7 +1719,7 @@ Use this method to update party's verification status. Now updating of DRACS dea
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Party identifier
-    
+
 + Request (application/json)
 
     + Headers
@@ -1963,7 +1963,7 @@ Method returns only **requested** parameters, birth place and second name in add
 
 This method will be deprecated. Use **Get personal data v2**.
 
-This method is used to obtain full information about person by Id. 
+This method is used to obtain full information about person by Id.
 This method is applicable only if there is an active approval of type 'person'.
 
 **Scopes required:** `personal_data:read`
@@ -1996,7 +1996,7 @@ This method is applicable only if there is an active approval of type 'person'.
 
 ### Get personal data v2 [GET /api/v2/persons/{id}/personal_data]
 
-This method is used to obtain full information about person by Id. 
+This method is used to obtain full information about person by Id.
 This method is applicable only if there is an active approval of type 'person'.
 
 **Scopes required:** `personal_data:read`
@@ -2026,7 +2026,7 @@ This method is applicable only if there is an active approval of type 'person'.
         + error (Response__Error, fixed-type)
             + type: `forbidden`
             + message: `Access denied` (string)
-         
+
 
 ### Search Person's merged persons [GET /api/persons/{id}/merged_persons{?status,page,page_size}]
 
@@ -2125,7 +2125,7 @@ This method allows to find the active person's authentication methods.
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (array[`Person_auth_methods`, `Person_auth_methods_v2`])
-        
+
 
 + Response 403 (application/json)
     + Attributes (`Response_Error`)
@@ -2168,12 +2168,12 @@ Confluence - https://e-health-ua.atlassian.net/wiki/x/FwC_J
                     - OTP
                     - OFFLINE
                 + phone_number: `+380976549872` (string, optional)
-                + value: `7b100a9c-daaa-490e-b88d-2a911059b0d2` (string, optional) - identifier of active person. It's required when type= THIRd_PERSON 
+                + value: `7b100a9c-daaa-490e-b88d-2a911059b0d2` (string, optional) - identifier of active person. It's required when type= THIRd_PERSON
                 + alias: `husband` (string, optional) - it's required id type = THIRD_PERSON
             + `authentication_method`(object, required)
                 + id: `7b100a9c-daaa-490e-b88d-2a911059b055` (string, required)
                 + alias: `wife` (string, optional)
-    
+
 
 + Response 201 (application/json)
     + Attributes (`Response__Process_OK`)
@@ -2205,7 +2205,7 @@ In case if person's or third person's authent authentication_method is OTP, requ
   "verification_code": 7590
 }
 
-In case if authentication_method is OFFLINE, request body should be empty. Before approve patient's scanned documents should be uploaded to the (Signed URL's). All links are generated for one one-page document in jpeg format. Document should be no more than 10MB. 
+In case if authentication_method is OFFLINE, request body should be empty. Before approve patient's scanned documents should be uploaded to the (Signed URL's). All links are generated for one one-page document in jpeg format. Document should be no more than 10MB.
 
 Confluence - https://e-health-ua.atlassian.net/wiki/x/G4DJJ
 
@@ -2214,7 +2214,7 @@ Confluence - https://e-health-ua.atlassian.net/wiki/x/G4DJJ
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
     + request_id: `1096f147-7f93-3fc6-bddc-9d71b198fb7f` (string, required) - Request identifier
-    
+
 
 + Request (application/json)
 
@@ -2254,7 +2254,7 @@ This method is used when you need to re-send SMS to a person or third person
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
     + request_id: `1096f147-7f93-3fc6-bddc-9d71b198fb7f` (string, required) - Request identifier
-    
+
 
 + Request (application/json)
 
@@ -2268,7 +2268,7 @@ This method is used when you need to re-send SMS to a person or third person
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
         + data (`OTP`)
-        
+
 
 ### Get Confidant Person relationships [GET /api/persons/{id}/confidant_person_relationships{?is_expired,page,page_size}]
 
@@ -2368,7 +2368,7 @@ This method allows to deactivate Confidant Person relationship.
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
-    
+
 
 + Request (application/json)
 
@@ -2496,7 +2496,7 @@ Clients can use signed URL's to directly access [s3 storage](https://storage.ehe
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
     + confidant_person_relationship_request_id: `1096f147-7f93-3fc6-bddc-9d71b198fb7f` (string, required) - Confidant Person relationship request identifier
-    
+
 
 + Request (application/json)
 
@@ -2605,7 +2605,7 @@ This method is used when you need to re-send SMS to Confidant
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
     + confidant_person_relationship_request_id: `1096f147-7f93-3fc6-bddc-9d71b198fb7f` (string, required) - Confidant Person relationship request identifier
-    
+
 
 + Request (application/json)
 
@@ -2623,10 +2623,10 @@ This method is used when you need to re-send SMS to Confidant
 
 ### Get Persons Verification Statuses List [GET /api/persons/verifications]
  This method returns a list of persons with their verification statuses and additional related information.
- 
+
  **Scopes required:** `person_verification:read`
- 
- 
+
+
  + Parameters
      + employee_id: `a3d5e1c7-8a2f-43f3-bef5-912b6e27a7b9` (string, required) - Identifier of the employee.
      + verification_status: `VERIFIED` (string, required) - Filter by verification status. Possible values:
@@ -2637,15 +2637,15 @@ This method is used when you need to re-send SMS to Confidant
      + status: `active` (string, optional, default: `active`) - Filter by person status.
      + page: `1` (number, optional) - Page number.
      + page_size: `50` (number, optional)  - A limit on the number of objects to be returned, between 1 and 300. Default: 50
- 
+
  + Request (application/json)
- 
+
      + Headers
- 
+
              Authorization: Bearer c2778f3064753ea70de870a53795f5c9
              api-key: uXhEczJ56adsfh3Ri9SUkc4en
              X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
- 
+
  + Response 200 (application/json)
      + Attributes (`Response__Process_OK`)
           + data (array[`PersonVerification`])
@@ -2655,8 +2655,8 @@ This method returns current person's verification status and another information
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
-    
-    
+
+
 + Request (application/json)
 
     + Headers
@@ -2664,13 +2664,13 @@ This method returns current person's verification status and another information
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             api-key: uXhEczJ56adsfh3Ri9SUkc4en
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-    
-    
+
+
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
          + data (object)
             + include `Person_Verification_Details`
-            
+
 
 ### Update Person verification status [PATCH /api/persons/{id}/verification]
 Use this method to update person's verification status. Now updating of DRACS death and DRACS name change verification status is allowed.
@@ -2681,7 +2681,7 @@ Look at [**Dummy Update Person verification status**](#reference/dummy-methods/d
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person identifier
-    
+
 + Request (application/json)
 
     + Headers
@@ -2714,8 +2714,8 @@ This method returns person's emergency contact.
         - conditions
         - diagnostic_reports
     + medical_event_id: `164f9ce8-4455-4759-b0c2-726db7218224` (string, required) - Medical event identifier
-    
-    
+
+
 + Request (application/json)
 
     + Headers
@@ -2723,8 +2723,8 @@ This method returns person's emergency contact.
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             api-key: uXhEczJ56adsfh3Ri9SUkc4en
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-    
-    
+
+
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
         + data (object)
@@ -2782,7 +2782,7 @@ Depends on client type, method return all LE (type = MIS, NHS,NHS ADMIN) or one 
                     - ACTIVE
                     - CLOSED
                     - SUSPENDED
-        
+
 
 ### Get Legal Entity by ID V2 [GET /api/v2/legal_entities/{id}]
 
@@ -3080,7 +3080,7 @@ More details can be found [here](https://e-health-ua.atlassian.net/wiki/x/GQB7Iw
 
 This method must be used to update existing Institutional division in the system
 
-Note that different legal entity types can register specific division types 
+Note that different legal entity types can register specific division types
 More details can be found [here](https://e-health-ua.atlassian.net/wiki/x/GQB7Iw)
 
 + Parameters
@@ -3138,7 +3138,7 @@ Note that institutional legal entity has only OUTPATIENT type, so owners can reg
 ### Deactivate division [PATCH /api/divisions/{id}/actions/deactivate]
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-    
+
 + Request (application/json)
     + Headers
 
@@ -3153,8 +3153,8 @@ Note that institutional legal entity has only OUTPATIENT type, so owners can reg
 ### Activate division [PATCH /api/divisions/{id}/actions/activate]
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-    
-    
+
+
 + Request (application/json)
     + Headers
 
@@ -3504,9 +3504,9 @@ Capitation reports are created monthly
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
 
 + Request (application/json)
-    
+
     + Headers
-    
+
         X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
 
 + Response 200 (application/json)
@@ -3536,7 +3536,7 @@ There are following age groups right now:
 + Request (application/json)
 
     + Headers
-        
+
         X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
 
 + Response 200 (application/json)
@@ -3738,7 +3738,7 @@ Returns my user details based on user in access_token
     + Attributes (`Response__Process_OK`)
         + data (`User_details_response`)
 
-        
+
 ## Equipment [/api/equipment]
 
 ### Create equipment [POST]
@@ -3785,11 +3785,11 @@ This method allows to register equipment and bind it with division of legal enti
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             API-key: uXhEczJ56adsfh3Ri9SUkc4en
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-            
+
 + Response 200 (application/json)
 
     + Attributes (`Response_Collection_V2`)
@@ -3803,11 +3803,11 @@ This method allows to register equipment and bind it with division of legal enti
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             API-key: uXhEczJ56adsfh3Ri9SUkc4en
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-            
+
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
         + data (`Equipment_response_v2`)
@@ -3822,11 +3822,11 @@ Method to changes equipment status to `inactive` or `entered_in_error`
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             API-key: uXhEczJ56adsfh3Ri9SUkc4en
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-    
+
     + Attributes (object)
         + status: `entered_in_error` (string, required) - New equipment status `Dictionary: equipment_statuses`
         + `error_reason`: `Out of service` (string, optional) - Error reason `Dictionary: equipment_status_reasons`
@@ -3845,11 +3845,11 @@ Method to changes equipment status to `inactive` or `entered_in_error`
 + Request (application/json)
 
     + Headers
-    
+
         Authorization: Bearer c2778f3064753ea70de870a53795f5c9
         API-key: uXhEczJ56adsfh3Ri9SUkc4en
         X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-    
+
     + Attributes (object)
         + availability_status: `damaged` (string, required) - New equipment status
 
@@ -3858,7 +3858,7 @@ Method to changes equipment status to `inactive` or `entered_in_error`
     + Attributes (`Response__Process_OK`)
         + data (`Equipment_response_v2`)
             - availability_status: `damaged` (string, required) - New equipment status
-            
+
 
 ## Preperson [/api/prepersons]
 
@@ -3868,15 +3868,15 @@ This method allows to create unidentified person. There is one necessary field i
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             API-key: uXhEczJ56adsfh3Ri9SUkc4en
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-    
+
     + Attributes (object)
         + include `Preperson_base`
         + note: `Registered in SmartMed clinic at 01.01.2019 16:40. Male, 40 years old approximately, tatoo with sport motorcycle on the right forearm` (string, optional) - Notes
-        
+
 + Response 201 (application/json)
 
     + Attributes (`Response__Process_OK`)
@@ -3884,13 +3884,13 @@ This method allows to create unidentified person. There is one necessary field i
             + code: 201 (number)
         + data (object)
             + include `Preperson_response`
-            
+
 
 ### Update preperson [PATCH /api/prepersons/{id}]
 Method enables to modify all the preperson fields except note and status.
 
 + Parameters
-    + `id`: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, required) - MPI identifier of the preperson. 
+    + `id`: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, required) - MPI identifier of the preperson.
 
 + Request (application/json)
 
@@ -3899,7 +3899,7 @@ Method enables to modify all the preperson fields except note and status.
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             API-key: uXhEczJ56adsfh3Ri9SUkc4en
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-    
+
     + Attributes (object)
         + include `Preperson_base`
         + gender: MALE (string, optional) - `Dictionary GENDER`
@@ -3913,13 +3913,13 @@ Method enables to modify all the preperson fields except note and status.
             + code: 200 (number)
         + data (object)
             + include `Preperson_response`
-            
+
 
 ### Get preperson by ID [GET /api/prepersons/{id}]
 Returns preperson details by it's MPI identifier
 
 + Parameters
-    + id: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, required) - MPI identifier of the preperson. 
+    + id: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, required) - MPI identifier of the preperson.
 
 + Request (application/json)
 
@@ -3933,8 +3933,8 @@ Returns preperson details by it's MPI identifier
     + Attributes (`Response__Process_OK`)
         + meta (Response__Meta)
             + code: 200 (number)
-        + data (`Preperson_response`)     
-        
+        + data (`Preperson_response`)
+
 
 
 ## Merge request [/api/merge_requests]
@@ -3949,11 +3949,11 @@ If there is needs to change person\`s default authentication method for merge re
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             API-key: uXhEczJ56adsfh3Ri9SUkc4en
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-    
+
     + Attributes (object)
         + include `Merge_request_base`
         + authorize_with: `cc949559-5dfe-420f-ac05-065e443b2cc6` (string, optional)- identifier of master person auth method
-        
+
 + Response 201 (application/json)
     + Attributes (`Response__Process_OK`)
         + meta (Response__Meta)
@@ -3968,15 +3968,15 @@ Serves for receiving approval from person on action of merge with preperson. Als
 
 + Parameters
     + id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
-    
+
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             API-key: uXhEczJ56adsfh3Ri9SUkc4en
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-    
+
     + Attributes (object)
         + `verification_code`: 6598 (number, optional) - required if authentication_method is OTP
 
@@ -3995,11 +3995,11 @@ This method gives opportunity to reject and close preperson merge request by han
 
 + Parameters
     + id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
-    
+
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             API-key: uXhEczJ56adsfh3Ri9SUkc4en
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
@@ -4029,7 +4029,7 @@ There is a [**dummy method**](https://uaehealthapi.docs.apiary.io/#reference/dum
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             API-key: uXhEczJ56adsfh3Ri9SUkc4en
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
@@ -4059,7 +4059,7 @@ Use this method to resend sms with OTP-code on previously created merge request 
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             api-key: uXhEczJ56adsfh3Ri9SUkc4en
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-    
+
 
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
@@ -4083,7 +4083,7 @@ Method returns a list of merge requests. Service returns only merge requests rel
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             API-key: uXhEczJ56adsfh3Ri9SUkc4en
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
@@ -4100,7 +4100,7 @@ Method returns merge request details by it's ID. Depending on merge request stat
 
 + Parameters
     + id: `7c3da506-804d-4550-8993-bf17f9ee0404` (string, required) - `Identifier of the merge request`
-    
+
 + Request (application/json)
 
     + Headers
@@ -4391,7 +4391,7 @@ Method returns list of medical programs filtering by parameters. By default meth
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
     + `type`: `MEDICATION`(string, optional) - medical program type
-    
+
 
 + Request (application/json)
 
@@ -4520,7 +4520,7 @@ The method contains is_primary parameter, which indicates whether the ingredient
     + `medication_code_atc`: `С01BD01` (string, optional) - Medication code ATC.
     + `medical_program_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - medical program id.
     + `mr_blank_type`: `F-1` (string, optional) - parameter of Likarska form, specifying of paper form for issuing of Medication request, example F-1 or F-3.
-    + `dosage_form_is_dosed`: TRUE (boolean, optional) - parameter of Likarska form, specifying of type of Likarska form - dosed, like `pills`, or not dosed, like `salve`.  
+    + `dosage_form_is_dosed`: TRUE (boolean, optional) - parameter of Likarska form, specifying of type of Likarska form - dosed, like `pills`, or not dosed, like `salve`.
     + `medication_request_allowed`: TRUE (boolean, optional) - flag whether medications are allowed to be dispensed by the program.
     + `care_plan_activity_allowed`: TRUE (boolean, optional) - flag whether activities are allowed to be created with product as this medications.
     + `page`: 2 (number, optional) - Page number.
@@ -4542,7 +4542,7 @@ The method contains is_primary parameter, which indicates whether the ingredient
 
 ### Get drugs list v3 [GET /api/v3/drugs{?innm_id,innm_name,innm_sctid,innm_dosage_form,innm_dosage_id,innm_dosage_name,medication_code_atc,medical_program_id,mr_blank_type,dosage_form_is_dosed,medication_request_allowed,care_plan_activity_allowed,page,page_size}]
 
-This method extends the functionality of the Get Drugs v2 method, allowing to display program participant parameters for INNM_DOSAGE. 
+This method extends the functionality of the Get Drugs v2 method, allowing to display program participant parameters for INNM_DOSAGE.
 Also, it returns INNM_DOSAGEs for which there are no registered BRANDs in the system
 
 
@@ -4558,7 +4558,7 @@ Also, it returns INNM_DOSAGEs for which there are no registered BRANDs in the sy
     + `medication_code_atc`: `С01BD01` (string, optional) - Medication code ATC.
     + `medical_program_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - medical program id.
     + `mr_blank_type`: `F-1` (string, optional) - parameter of Likarska form, specifying of paper form for issuing of Medication request, example F-1 or F-3.
-    + `dosage_form_is_dosed`: TRUE (boolean, optional) - parameter of Likarska form, specifying of type of Likarska form - dosed, like `pills`, or not dosed, like `salve`.  
+    + `dosage_form_is_dosed`: TRUE (boolean, optional) - parameter of Likarska form, specifying of type of Likarska form - dosed, like `pills`, or not dosed, like `salve`.
     + `medication_request_allowed`: TRUE (boolean, optional) - flag whether medications are allowed to be dispensed by the program.
     + `care_plan_activity_allowed`: TRUE (boolean, optional) - flag whether activities are allowed to be created with product as this medications.
     + `page`: 2 (number, optional) - Page number.
@@ -4685,7 +4685,7 @@ This method is used to create Medication request Request (as a part of Medicatio
 
 ### Get medication request requests by search params [GET /api/persons/{person_id}/medication_request_requests{?legal_entity_id,employee_id,episode_id,care_plan_id,activity_id,encounter_id,status,intent,page,page_size}]
 
-Use this method to obtain list of Medication request Requests. 
+Use this method to obtain list of Medication request Requests.
 Use [**Get Medication request requests details**](https://uaehealthapi.docs.apiary.io/#reference/public.-reimbursement/medication-request-requests/get-medication-request-requests-details) to get Medication request Request by ID.
 
 + Parameters
@@ -4704,7 +4704,7 @@ Use [**Get Medication request requests details**](https://uaehealthapi.docs.apia
     + intent: order (string, optional) - Medication request request intent
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50.
-    
+
 
 + Request (application/json)
 
@@ -4721,7 +4721,7 @@ Use [**Get Medication request requests details**](https://uaehealthapi.docs.apia
 
 ### Get Medication Request Requests in care plan context [GET /api/care_plans/{care_plan_id}/medication_request_requests{?employee_id,person_id,status,intent,encounter_id,page,page_size}]
 
-The method returns a list of medication request requests in the context of a care plan. 
+The method returns a list of medication request requests in the context of a care plan.
 User must have an approval on the care plan from url.
 
 Use [**Get Medication request requests details**](https://uaehealthapi.docs.apiary.io/#reference/public.-reimbursement/medication-request-requests/get-medication-request-requests-details) to get Medication request Request by ID.
@@ -4789,7 +4789,7 @@ Look at [**Dummy Sign Medication Request Requests**](https://uaehealthapi.docs.a
 
 + Parameters
     + id: 6a8a83a4-ac39-4547-bfa2-813bc87362a4 (string, required)
-    
+
 
 + Request (application/json)
 
@@ -4864,7 +4864,7 @@ This method is used to qualify (possibility to use Innm for the program) Medicat
 
 ### Get medication requests by search params [GET /api/persons/{person_id}/medication_requests{?legal_entity_id,employee_id,status,request_number,created_from,created_to,medication_id,intent,care_plan_id,encounter_id,episode_id,page,page_size,medical_program_id,started_at_from,started_at_to,ended_at_from,ended_at_to,dispense_valid_from_start,dispense_valid_from_end,dispense_valid_to_start,dispense_valid_to_end}]
 
-Use this method to obtain list of Medication Requests. 
+Use this method to obtain list of Medication Requests.
 Use [**Get medication requests details**](https://uaehealthapi.docs.apiary.io/#reference/public.-reimbursement/medication-request/get-medication-requests-details) to get Medication Request by ID.
 
 + Parameters
@@ -4912,7 +4912,7 @@ Use [**Get medication requests details**](https://uaehealthapi.docs.apiary.io/#r
 
 ### Get Medication requests in care plan context [GET /api/care_plans/{care_plan_id}/medication_requests{?legal_entity_id,employee_id,person_id,status,request_number,created_from,created_to,medication_id,intent,encounter_id,page,page_size,medical_program_id,started_at_from,started_at_to,ended_at_from,ended_at_to,dispense_valid_from_start,dispense_valid_from_end,dispense_valid_to_start,dispense_valid_to_end}]
 
-The method returns a list of medication requests in the context of a care plan. 
+The method returns a list of medication requests in the context of a care plan.
 User must have an approval on the care plan from url.
 
 Use [**Get medication requests details**](https://uaehealthapi.docs.apiary.io/#reference/public.-reimbursement/medication-request/get-medication-requests-details) to get Medication Request by ID.
@@ -4978,7 +4978,7 @@ Use this method to obtain Medication Request by ID.
             + `medication_info` (object, required)
                 + include `Innm_Dosage_for_Medication_request_Responce`
                 + `medication_remaining_qty`: 10.23 (number, optional) - medication quantity allowed to dispense
-            
+
 
 ### Reject Medication Request [PATCH /api/medication_requests/{id}/actions/reject]
 
@@ -5094,7 +5094,7 @@ Use [**Get Medication dispense details in person context**](https://uaehealthapi
     + status: PROCESSED (string, optional) - Status
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
-    
+
 
 + Request (application/json)
 
@@ -5186,7 +5186,7 @@ Use this method to obtain Medication request by ID.
             + `medication_info` (object, required)
                 + include `Innm_Dosage_for_Medication_request_Responce`
                 + `medication_remaining_qty`: 10.23 (number, optional) - medication quantity allowed to dispense
-                
+
 
 ### Block Medication Request [PATCH /api/medication_requests/{id}/actions/block]
 
@@ -5232,10 +5232,10 @@ Use this method to unblock previously blocked Medication request for dispense. I
 
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-    
+
     + Attributes (object)
        + `block_reason`: `помилки відсутні` (string, optional) - Unblock reason
-       + `block_reason_code`: `UNBLOCK_DEFAULT` (string, required) - Unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`       
+       + `block_reason_code`: `UNBLOCK_DEFAULT` (string, required) - Unblock reason code `Dictionary MEDICATION_REQUEST_BLOCK_REASON`
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
@@ -5289,7 +5289,7 @@ This method must be used only by employees with type 'PHARMACIST'.
             Authorization: Bearer c2778f3064753ea70de870a53795f5c9
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
 
-    + Attributes (object) 
+    + Attributes (object)
        + `block_reason_code`: `PRODUCTION_CANCEL` (string, required) - Block reason code `Dictionary MEDICATION_REQUEST_UNBLOCK_REASON`
 
 + Response 200 (application/json)
@@ -5299,7 +5299,7 @@ This method must be used only by employees with type 'PHARMACIST'.
 
 ### Get Medication Request details in composition context [GET /api/persons/{person_id}/compositions/{composition_id}/medication_requests/{id}]
 
-Method returns Medication Request details in the context of Composition 
+Method returns Medication Request details in the context of Composition
 User must have an approval on the composition from url.
 
 + Parameters
@@ -5501,7 +5501,7 @@ This method allows to get short information of the Medication Dispense for the M
 
 ### Get Medication Dispense details in Composition context [GET /api/persons/{person_id}/compositions/{composition_id}/medication_dispenses/{id}]
 
-Method returns Medication Dispense details in the context of Composition 
+Method returns Medication Dispense details in the context of Composition
 User must have an approval on the composition from url.
 
 + Parameters
@@ -5629,7 +5629,7 @@ In the EventDB events are kept during one month or till 10K. The duration and am
 
 This method is used to obtain events by id.
 
-Object `properties` may has a different fields depending on the `entity_type`. 
+Object `properties` may has a different fields depending on the `entity_type`.
 
 Entity_type|Possible fields
 ----------|-----------
@@ -5671,7 +5671,7 @@ This method is used to obtain list of events with filters.
 
 The period of events provided in response is also limited by configuration, not only by the request parameters.
 
-Object `properties` may has a different fields depending on the `entity_type`. 
+Object `properties` may has a different fields depending on the `entity_type`.
 
 Entity_type|Possible fields
 ----------|-----------
@@ -5892,7 +5892,7 @@ This method in used to approve declaration request by patient via Cabinet
         + data (`Declaration_Details_Cabinet`)
             + employee (`Employee_Declaration_Short`)
                 + status: APPROVED (enum, required)
-        
+
 
 ### Terminate declarations via Cabinet [PATCH /api/cabinet/declarations/{id}/actions/terminate]
 Patient can terminate active declaration using this method.
@@ -5998,7 +5998,7 @@ This WS allows to see 2FA number via Cabinet
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (`authentication_factor`)
-        
+
 
 ### Get medication request list via Cabinet [GET /api/cabinet/medication_requests{?legal_entity_id,employee_id,person_id,status,request_number,created_from,created_to,medication_id,intent,encounter_id,page,page_size}]
 
@@ -6056,7 +6056,7 @@ Use this method to obtain full information of Medication request an `id`.
         + data (object)
             + include `Medication_request_Public_Response_with_Medical_Program_min`
             + verification_code: `1234` (string, required)
-            
+
 
 ### Get Medication Dispenses List via Cabinet [GET /api/cabinet/medication_dispenses{?id,medication_request_id,legal_entity_id,division_id,status,dispensed_from,dispensed_to,page,page_size}]
 
@@ -6101,7 +6101,7 @@ Use this method to obtain full information of Medication request an `id`.
     + Attributes (`Response_OK`)
         + data (object)
             + include `Medication_Dispense_Response_without_2d_codes`
-            
+
 
 ### Get monitoring Justifications [GET /api/cabinet/justifications{?status,expires_from,expires_to,page,page_size}]
 Use this method to get information about justification for monitoring patient's personal and medical data by NHS employees (not medical employees as doctors)
@@ -6651,7 +6651,7 @@ After contract request was signed by both sides signed contract request with pri
 ### Create Medical program provision [POST]
 This method allows to create medical program provision by divisions of user’s legal entity. It shows what divisions provide medical program according to legal entity contract.
 Method receives signed message (pkcs7) that consists of signed content, digital signature and signer public key. All signature fields will be validated (including signer certificate authority).
-Service will store signed copy of the request in Media Content Storage if all checks is passed. 
+Service will store signed copy of the request in Media Content Storage if all checks is passed.
 
 **Scopes required:** `medical_program_provision:write`
 
@@ -6660,11 +6660,11 @@ Look at [Dummy Create Medical program provision](https://uaehealthapi.docs.apiar
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer F3GF124Df565FDS234SDF34
             api-key: aDGFDFGT46S5gFGD
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-        
+
     + Attributes (object)
         + `signed_content`:`ew0KICAicGVyaW9kIjogew0KIC...` (string, required, fixed-type)
         + `signed_content_encoding`: `base64` (string, required)
@@ -6682,11 +6682,11 @@ Look at [Dummy Create Medical program provision](https://uaehealthapi.docs.apiar
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer F3GF124Df565FDS234SDF34
             api-key: aDGFDFGT46S5gFGD
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-        
+
     + Attributes (`Medical_program_provision_request`)
 
 
@@ -6718,7 +6718,7 @@ This method allows to get a list of medical programs already provided by the div
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer F3GF124Df565FDS234SDF34
             api-key: aDGFDFGT46S5gFGD
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
@@ -6738,11 +6738,11 @@ This method allows to deactivate division that provide a medical program within 
 
 + Parameters
     + `id`: `2060b523-b469-4fc5-89af-ddb5899d8efe` (string, required) - Medical program provision identifier
-    
+
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer F3GF124Df565FDS234SDF34
             api-key: aDGFDFGT46S5gFGD
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
@@ -6754,7 +6754,7 @@ This method allows to deactivate division that provide a medical program within 
             + `deactivate_reason`: `MANUAL_DEACTIVATION` (string, required, nullable) - the reason of deactivated status. According to `PROVISON_DEACTIVATE_REASON` dictionary
 
 ## Group Public. Forbidden groups
-There are public methods presented to work with a forbidden groups data. 
+There are public methods presented to work with a forbidden groups data.
 
 ### Get Forbidden group list [GET /api/forbidden_groups{?name,page,page_size}]
 This web service returns a catalog of all active forbidden groups in eHealth.
@@ -6803,7 +6803,7 @@ This web service returns forbidden group details filtered by ID with active code
                         + creation_reason: `Some text` (string, required) - Forbidden group service creation reason
 
 ## Group Public. Groups of Diagnoses
-There are public methods presented to work with Groups of Diagnoses data. 
+There are public methods presented to work with Groups of Diagnoses data.
 
 ### Get Groups of Diagnoses list [GET /api/diagnoses_groups{?diagnoses_group_name,diagnoses_group_code,diagnosis_name,diagnosis_code,page,page_size}]
 This web service returns a catalog of all active Groups of Diagnoses in eHealth.
@@ -6861,7 +6861,7 @@ Will be deprecated. The method to get or search active device definitions in the
     + `model_number`: `H00P53` (string, optional) - Model number for the device
     + `name`: `Some name` (string, optional) - Device name
     + `name_type`: `registered` (enum, optional) - Device name type. Dictionary `device_name_type`
-    + `medical_program_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - medical program id.    
+    + `medical_program_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - medical program id.
     + `is_active`: true (boolean, optional) - device definition status
     + `page`: 2 (number, optional) - Page number
     + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
@@ -6890,7 +6890,7 @@ The method to search all active device definitions in the system.
     + `model_number`: `H00P53` (string, optional) - Model number for the device
     + `name`: `Some name` (string, optional) - Device name
     + `name_type`: `registered` (enum, optional) - Device name type. Dictionary `device_name_type`
-    + `medical_program_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - medical program id.    
+    + `medical_program_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - medical program id.
     + `is_active`: true (boolean, optional) - device definition status
     + `page`: 2 (number, optional) - Page number
     + `page_size`: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
@@ -6914,7 +6914,7 @@ The method to search all active device definitions in the system.
 Will be deprecated. This web service returns Device definition details filtered by ID with old structure only. Use **Get Device definition details v2** instead.
 
 + Parameters
-    + `id`: `88ecde40-c97f-4b36-bffd-0da9c60d697c` (string, required) - Device definition identifier    
+    + `id`: `88ecde40-c97f-4b36-bffd-0da9c60d697c` (string, required) - Device definition identifier
 
 + Request (application/json)
 
@@ -6929,14 +6929,14 @@ Will be deprecated. This web service returns Device definition details filtered 
         + meta (Response__Meta)
             + code: 200 (number)
         + data (`Device_Definition_Response_v1`)
-        
+
 
 ### Get Device definition details v2 [GET /api/v2/device_definitions/{id}]
 
 This web service returns Device definition details filtered by ID.
 
 + Parameters
-    + `id`: `88ecde40-c97f-4b36-bffd-0da9c60d697c` (string, required) - Device definition identifier    
+    + `id`: `88ecde40-c97f-4b36-bffd-0da9c60d697c` (string, required) - Device definition identifier
 
 + Request (application/json)
 
@@ -6975,7 +6975,7 @@ Total statistis are calculated on the date that is transmitted in the current da
             + pharmacists: 6 (number, required)
             + medication_requests_active: 13 (number, required)
             + medication_requests_completed: 20 (number, required)
-            
+
 
 ### Get Main Stats by Regions [GET /reports/stats/regions/]
 
@@ -7143,7 +7143,7 @@ Service to search parties (doctors) in eHealth
 + Parameters
     + employee_type: DOCTOR (string, optional)
     + full_name: `Іванов Іван Іванович` (enum, optional) - doctor's full name
-    + `verification_status`: `NOT_VERIFIED` (string, optional) - status of party verification according to `PARTY_VERIFICATION_STATUSES` dictionary    
+    + `verification_status`: `NOT_VERIFIED` (string, optional) - status of party verification according to `PARTY_VERIFICATION_STATUSES` dictionary
     + `minfin_validation_status`: `VERIFICATION_NEEDED` (string, required)
     + speciality: `FAMILY_DOCTOR` (string, optional) - specialization of healthcare services provided by doctor
     + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - division ID
@@ -7175,7 +7175,7 @@ This service returns parties.declaration_count from report DB for get employees 
 
     + Headers
         X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-        
+
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
 
@@ -7324,7 +7324,7 @@ This service returns parties.declaration_count from report DB for get employees 
 
 + Parameters
    + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
-   
+
 + Request (application/json)
 
     + Headers
@@ -7344,7 +7344,7 @@ This service returns parties.declaration_count from report DB for get employees 
         + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
         + content: `<html><body><p>signed person data</p></body></html>` (string, required) - HTML document that MUST be shown to a end-user and signed by his key.
         + channel: `MIS` (enum, required) - channel that invoke patient create service
-        
+
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
         + data (`Patient_short`)
@@ -7354,7 +7354,7 @@ This service returns parties.declaration_count from report DB for get employees 
 
 + Parameters
    + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
-   
+
 + Request (application/json)
 
     + Headers
@@ -7374,7 +7374,7 @@ This service returns parties.declaration_count from report DB for get employees 
         + `process_disclosure_data_consent`: true (boolean, required) - Person's evidence of information about consent to data disclosure
         + content: `<html><body><p>signed person data</p></body></html>` (string, required) - HTML document that MUST be shown to a end-user and signed by his key.
         + channel: `MIS` (enum, required) - channel that invoke patient create service
-        
+
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
         + data (`Patient_short`)
@@ -7397,7 +7397,7 @@ This service returns parties.declaration_count from report DB for get employees 
 
     + Attributes (`Merge_request_sign_data`, required)
          + patient_signed: true (boolean, required) - Master person's evidence of sign the merge request.
-        
+
 
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
@@ -7413,7 +7413,7 @@ This service returns parties.declaration_count from report DB for get employees 
 
 + Parameters
    + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
-   
+
 + Request (application/json)
 
     + Headers
@@ -7424,7 +7424,7 @@ This service returns parties.declaration_count from report DB for get employees 
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
 
     + Attributes (`Decl_req_data_to_be_signed`, required)
-        
+
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
         + data (`Declaration_short`)
@@ -7436,7 +7436,7 @@ This service returns parties.declaration_count from report DB for get employees 
 
 + Parameters
    + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
-   
+
 + Request (application/json)
 
     + Headers
@@ -7448,14 +7448,14 @@ This service returns parties.declaration_count from report DB for get employees 
 
     + Attributes (object, required)
         + include `Medication_request_Request_Sign`
-    
+
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
         + data (object)
             + include `Medication_request_Public_Response`
             + printout_form: `HTML` (string, required) - Generated printout form
         + meta (Response__Meta)
-        
+
 ## Dummy for medication request [/dummy/medication_requests]
 
 ### Reject medication request [PATCH /dummy/medication_requests/{id}/actions/reject]
@@ -7463,7 +7463,7 @@ This service returns parties.declaration_count from report DB for get employees 
 
 + Parameters
    + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
-   
+
 + Request (application/json)
 
     + Headers
@@ -7472,9 +7472,9 @@ This service returns parties.declaration_count from report DB for get employees 
             api-key: uXhEczJ56adsfh3Ri9SUkc4en
             msp_drfo: 2534157686
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-            
+
     + Attributes (`Medication_request_Reject`, required)
-    
+
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + meta (Response__Meta)
@@ -7486,7 +7486,7 @@ This service returns parties.declaration_count from report DB for get employees 
 
 + Parameters
    + id: `eeebb86d-5cba-43c9-885b-6482ecaf826b` (string, required)
-   
+
 + Request (application/json)
 
     + Headers
@@ -7495,9 +7495,9 @@ This service returns parties.declaration_count from report DB for get employees 
             api-key: uXhEczJ56adsfh3Ri9SUkc4en
             msp_drfo: 2534157686
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-            
+
     + Attributes (`Medication_request_Reject`, required)
-    
+
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + meta (Response__Meta)
@@ -7510,7 +7510,7 @@ This service returns parties.declaration_count from report DB for get employees 
 
 + Parameters
    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-   
+
 + Request (application/json)
 
     + Headers
@@ -7519,7 +7519,7 @@ This service returns parties.declaration_count from report DB for get employees 
             api-key: uXhEczJ56adsfh3Ri9SUkc4en
             msp_drfo: 2534157686
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-            
+
     + Attributes (object, required)
         + include `Medication_Dispense_Process_Request`
 
@@ -7533,7 +7533,7 @@ This service returns parties.declaration_count from report DB for get employees 
 
 + Parameters
    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-   
+
 + Request (application/json)
 
     + Headers
@@ -7542,7 +7542,7 @@ This service returns parties.declaration_count from report DB for get employees 
             api-key: uXhEczJ56adsfh3Ri9SUkc4en
             msp_drfo: 2534157686
             X-Custom-PSK: a2aa05c76f3f2d91870f923a53cc8aa8f23bbc01a8238d1c2c26d4299715a7e4
-            
+
     + Attributes (object, required)
         + include `Medication_Dispense_Process_Request_for_Pharmacist`
 
@@ -7582,7 +7582,7 @@ This service returns parties.declaration_count from report DB for get employees 
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person identifier
-    
+
 + Request (application/json)
 
     + Headers
@@ -7680,8 +7680,8 @@ This table shows which fields can be set for specific action:
 
 Actions   | person.id     | person.authentication_methods
 ----------|---------------|--------------------
-**Create**    |      -        | required    
-**Update**    | required      |     -       
+**Create**    |      -        | required
+**Update**    | required      |     -
 
 There are three methods of authentication - OTP, OFFLINE and the THIRD_PERSON. A person > 14 years can have OTP or OFFLINE.
 A person < 14 years can only have authentication method = THIRD PERSON.
@@ -8234,7 +8234,7 @@ If declaration_request without field `person.id`, a new person is created. But i
         + error
             + type: unverified (string, required)
             + message: `Unverified phone number` (string, required)
-            
+
 
 
 
@@ -8373,7 +8373,7 @@ Look at [**Dummy Sign Declaration Request**](https://uaehealthapi.docs.apiary.io
 + Response 200 (application/json)
     + Attributes (`Response__Process_OK`)
         + data (`Declaration_short`)
-        
+
 
 ## Legal Entities [/api/legal_entities]
 
@@ -8758,7 +8758,7 @@ Use this method to obtain Medication request by ID.
             + `medication_info` (object, required)
                 + include `Innm_Dosage_for_Medication_request_Responce`
                 + `medication_remaining_qty`: 10.23 (number, optional) - medication quantity allowed to dispense
-                
+
 
 
 
@@ -8817,7 +8817,7 @@ Use [**Get Medication dispense details**](https://uaehealthapi.docs.apiary.io/#r
     + status: PROCESSED (string, optional) - Status
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 300. Default: 50
-    
+
 
 + Request (application/json)
 
@@ -8836,7 +8836,7 @@ Use [**Get Medication dispense details**](https://uaehealthapi.docs.apiary.io/#r
 
 ### Get Medication dispense details - Deprecated [GET /api/medication_dispenses/{id}]
 
-Please see a similar endpoint with role context ("Get Medication dispense details by Pharmacy User") below. 
+Please see a similar endpoint with role context ("Get Medication dispense details by Pharmacy User") below.
 
 **Scopes required:** `medication_dispense:read`
 
@@ -8854,7 +8854,7 @@ Please see a similar endpoint with role context ("Get Medication dispense detail
     + Attributes (`Response_OK`)
         + data (object)
             + include `Medication_Dispense_Response`
-    
+
 
 
 
@@ -8896,7 +8896,7 @@ Use [**Get Medication dispense details**](https://uaehealthapi.docs.apiary.io/#r
 
 ### Reject Medication Dispense - Deprecated [PATCH /api/medication_dispenses/{id}/actions/reject]
 
-Please see a similar endpoint with role context ("Reject Medication Dispense by Pharmacy User") below. 
+Please see a similar endpoint with role context ("Reject Medication Dispense by Pharmacy User") below.
 
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
@@ -8935,7 +8935,7 @@ Look at [**Dummy Process Medication Dispense**](https://uaehealthapi.docs.apiary
     + Attributes (`Response_OK`)
         + data (object)
             + include `Medication_Dispense_Response`
-            
+
 
 
 ### Create Medication Dispense - Deprecated [POST /api/medication_dispenses{?code}]
@@ -9041,7 +9041,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
     + rules (array)
         + rule: required (string) - String constant that represents validation rule type. List of all types can be found in [API Manifest](https://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors).
         + params (array) - Validation Parameters.
-        
+
 ### `Response__Error_ValidationFailed_Extended`
 + `error` (object)
     + type: validation_failed (string) - type of an error.
@@ -9113,7 +9113,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + preferred_way_communication: email (enum, optional) - the way how a patient wants to be reached
     - email
     - phone
-    
+
 
 ### `Person_for_update`
 + id: `14b8f6fa-dc59-4e86-9bbd-dfb35a4b1713` (string, required)
@@ -9133,7 +9133,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 + preferred_way_communication: email (enum, optional) - the way how a patient wants to be reached
     - email
     - phone
-    
+
 
 ### `Confidant_Person`
 + relation_type: PRIMARY (enum, required)
@@ -9493,7 +9493,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
                 - OTP
                 - OFFLINE
             + phone_number: `+380976549872` (string, optional)
-            + value: `7b100a9c-daaa-490e-b88d-2a911059b0d2` (string, optional) - identifier of active person. It's required when type= THIRd_PERSON 
+            + value: `7b100a9c-daaa-490e-b88d-2a911059b0d2` (string, optional) - identifier of active person. It's required when type= THIRd_PERSON
             + alias: `husband` (string, optional) - it's required id type = THIRD_PERSON
     + object()
         + action: UPDATE (string, required)
@@ -9562,7 +9562,7 @@ If medical program has funding sourse NHS, fields `sell_amount`, `sell_price`, `
 ### `Minfin_Validation_Details`
 + `id`: `eeebb86d-5cba-43c9-885b-6482ecaf82` (string, required) - recommendation internal identifier
 + `minfin_request_id`: `9547da91-bfcf-4fef-9b41-05af690d7de0` (string, required) - minfin request identifier
-+ `resource_id`: `9547da91-bfcf-4fef-9b41-05af690d7de0` (string, required) - Person, employee or party unique identifier 
++ `resource_id`: `9547da91-bfcf-4fef-9b41-05af690d7de0` (string, required) - Person, employee or party unique identifier
 + `resource`: `PARTY` (string, required) - Type of resource
 + `recommendation_id`: `XXXXXXXXXXXXX02` (string, required) - recommendation identifier
 + `recommendation_result`: 101 (string, optional) - decision based on results of recommendation
@@ -10635,7 +10635,7 @@ status: `APPROVED` (string, required)
 + position: P164 (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: 'NEW' (string, required) 
++ status: 'NEW' (string, required)
 + party (Party_Update_v2)
 + doctor (DoctorNew, optional)
 
@@ -10741,7 +10741,7 @@ status: `APPROVED` (string, required)
         + `verification_status`: `VERIFIED` (string, required) - Party DRACS name change verification status according to `PARTY_VERIFICATION_STATUSES` dictionary. `VERIFIED` only is allowed.
         + `verification_reason`: `MANUAL` (string, required) - Verification reason according to `PARTY_VERIFICATION_STATUS_REASONS` dictionary. `MANUAL` is allowed only.
         + `verification_comment`: `Співробітник не замінював ПІБ` (string, optional) - Verification comment
- 
+
  + division_id: `e2f4d6a7-8b9c-4c8a-93e2-5c617d832b71` (string, optional) - Identifier of the division.
  + party_updated_at: `2024-12-01T12:34:56Z` (string) - Date and time when the party was last updated.
 
@@ -11409,7 +11409,7 @@ status: `APPROVED` (string, required)
 + updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### Address
-+ type: RESIDENCE (string, optional) - `Dictionary ADDRESS_TYPE`. 
++ type: RESIDENCE (string, optional) - `Dictionary ADDRESS_TYPE`.
 + country: UA (enum[string], required) - `Dictionary COUNTRY`
 + area: Житомирська (string, optional) - one of Ukraianian area
 + region: Бердичівський (string, optional) - district of area
@@ -11423,7 +11423,7 @@ status: `APPROVED` (string, required)
 + zip: 02090 (string, optional) - system of postal codes
 
 ### Address_v2
-+ type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`. 
++ type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`.
 + country: UA (enum[string], required) - `Dictionary COUNTRY`
 + area: Житомирська (string, required) - one of Ukraianian area
 + region: Бердичівський (string, optional) - district of area
@@ -11436,7 +11436,7 @@ status: `APPROVED` (string, required)
 + zip: 02090 (string, optional) - system of postal codes
 
 ### Address_v3
-+ type: RESIDENCE (string, optional) - `Dictionary ADDRESS_TYPE`. 
++ type: RESIDENCE (string, optional) - `Dictionary ADDRESS_TYPE`.
 + country: UA (enum[string], optional) - `Dictionary COUNTRY`
 + area: Житомирська (string, optional) - one of Ukraianian area
 + region: Бердичівський (string, optional) - district of area
@@ -11456,7 +11456,7 @@ status: `APPROVED` (string, required)
 + country: UA (enum[string], required) - `Dictionary COUNTRY`
 
 ### Address_person
-+ type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`. 
++ type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`.
 + country: UA (enum[string], required) - `Dictionary COUNTRY`
 + area: Житомирська (string, optional) - one of Ukraianian area
 + region: Бердичівський (string, optional) - district of area
@@ -11470,7 +11470,7 @@ status: `APPROVED` (string, required)
 + zip: 02090 (string, optional) - system of postal codes
 
 ### Address_person_v2
-+ type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`. 
++ type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`.
 + country: UA (enum[string], required) - `Dictionary COUNTRY`
 + area: Житомирська (string, optional) - one of Ukraianian area
 + region: Бердичівський (string, optional) - district of area
@@ -12526,7 +12526,7 @@ status: `APPROVED` (string, required)
     + `system`: `MEDICATION_UNIT` (string, required)
     + `code`: `ML` (string, required)
     + `value` : 4 (number, required)
-    
+
 ### `Manufacturer`
 + `name` : `ПАТ "Київський вітамінний завод"` (string, required)
 + `country` : `UA` (string, required) - `Dictionary COUNTRY`
@@ -12583,7 +12583,7 @@ status: `APPROVED` (string, required)
 + `ingredients` (array, required)
     + (object)
         + include `Ingredient_request`
-+ `drlz_sku_id`: `0404466792737630283703997321` (string, optional) - identifier of a product out of external DRLZ register 
++ `drlz_sku_id`: `0404466792737630283703997321` (string, optional) - identifier of a product out of external DRLZ register
 
 ### `Medication_Response`
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
@@ -12607,7 +12607,7 @@ status: `APPROVED` (string, required)
 + inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
-+ `drlz_sku_id`: `0404466792737630283703997321` (string, optional) - identifier of a product out of external DRLZ register 
++ `drlz_sku_id`: `0404466792737630283703997321` (string, optional) - identifier of a product out of external DRLZ register
 
 ### `Medication_Response_Short`
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
@@ -13013,7 +13013,7 @@ status: `APPROVED` (string, required)
 + `start_date`: `2019-01-01` (string, optional) - Active from date
 + `end_date`: `2019-06-30` (string, optional) - Active to date
 + `registry_number`: `REG-1111` (string, optional) - Registry number
-+ `drlz_sku_id`: `0404466792737630283703997321` (string, optional) - identifier of a product out of external DRLZ register 
++ `drlz_sku_id`: `0404466792737630283703997321` (string, optional) - identifier of a product out of external DRLZ register
 + `package_qty_divisible`: TRUE (boolean, required) - package divisible flag
 
 ### `Qualify_by_ID_Request_for_Medication_request_Responce`
@@ -13051,7 +13051,7 @@ status: `APPROVED` (string, required)
 + `care_plan_required`: true (boolean, required) - posibility to create medication request with reference on care plan
 + `employee_types_to_create_medication_request` (array, required) - posibility to create medication request for particular types of employees
     + `SPECIALIST` (string, required)
-    + `DOCTOR` (string, required)    
+    + `DOCTOR` (string, required)
 + `skip_mnn_in_treatment_period`: true (boolean, required) - posibility to create new medication request with the same mnn in one treatment period
 + `skip_employee_validation`: true (boolean, required) - posibility to create medication request by any user who has a scope
 + `speciality_types_allowed` (array, optional) - posibility to create medication request or care plan activity for particular specialities of employees
@@ -13763,7 +13763,7 @@ status: `APPROVED` (string, required)
 + `dispense_details` (array, fixed, required)
     + (object)
         + include `Medication_Dispense_Detail_Request`
-+ `payment_id`: 1239804 (string, optional) - receipt number for the paid medications. Should not be submitted if medical program requires digital sign, and it's optional if not requires 
++ `payment_id`: 1239804 (string, optional) - receipt number for the paid medications. Should not be submitted if medical program requires digital sign, and it's optional if not requires
 + `payment_amount`: 50 (number, optional) - receipt amount which was paid by patient (UAH). Should not be submitted if medical program requires digital sign, and should be if not requires and medical program has funding source NHS
 + note: `Some notes` (string, optional) - Some notes
 
@@ -14755,13 +14755,13 @@ status: `APPROVED` (string, required)
 + status: ACTIVE (string, optional)
     - ACTIVE
     - INACTIVE
-+ `updated_at`: `2022-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.  
++ `updated_at`: `2022-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
 ## `Equipment`
 ### `Equipment_base`
-+ type: `23143534` (string, required)- `code from dictionary -  EQUIPMENT_TYPE`            
++ type: `23143534` (string, required)- `code from dictionary -  EQUIPMENT_TYPE`
 + external_id: `123-ASD-#1` (string, required) - Identifier from external system
-+ udi (array, optional) - A set of unique identifiers assigned to the asset by the manufacturer 
++ udi (array, optional) - A set of unique identifiers assigned to the asset by the manufacturer
     + (object)
         + value: `IMEI 49015420323751` (string, required) - udi identifier
         + type: `default` (string, required) - `type of the udi identifier acording to dictionary EQUIPMENT_UDI_TYPE`
@@ -14880,7 +14880,7 @@ status: `APPROVED` (string, required)
     + `confidant_person` (array[`Confidant_Person_v2`], optional) - Should be set if this Person is disabled, underage, etc.
     + preferred_way_communication: email (enum, optional) - the way how a patient wants to be reached
         - email
-        - phone    
+        - phone
 + patient_signed: false (boolean, required) - Master person's evidence of sign the merge request.
 + `merge_person` (`Preperson_base`, required) - `Preperson data`
     + id: `7c3da506-804d-4550-8993-bf17f9ee0402` (string, required) - MPI identifier of the merge person.
@@ -14948,7 +14948,7 @@ status: `APPROVED` (string, required)
 ### `crud_licenses_get`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + include `License`
-+ legal_entity_id: `28d9c1be-08f0-403b-aa76-bff228c9904f` (string, required)    
++ legal_entity_id: `28d9c1be-08f0-403b-aa76-bff228c9904f` (string, required)
 + is_primary: true (boolean, required)
 
 ### `crud_licenses_post`
@@ -15121,7 +15121,7 @@ status: `APPROVED` (string, required)
 + `type`: `user_friendly` (enum, required) - Device name type. Dictionary `device_name_type`
     - user_friendly
     - registered
-    - patient_reported    
+    - patient_reported
 
 ### `Device_definition_package`
 + `packaging_type`: `undefined` (string, required) - Packaging type. Dictionary `device_definition_packaging_type`
@@ -15197,7 +15197,7 @@ status: `APPROVED` (string, required)
 + `code`: `_WHODAS_2.0` (string, required)
 + `system`: `eHealth/LOINC/observation_codes` (string, required)
 + `is_active`: true (boolean, required)
-+ `settings`: `{"CATEGORY": {"check": [{"code": "survey", "system": "eHealth/observation_categories"}]}, "RESULT_TYPE": {"check": "codeable_concept"}, "RESULT_BINDING": {"check": ["eHealth/LOINC/LL5900-7"]}, "COMPONENTS_UNIQUE": {"check": true}, "COMPONENTS_REQUIRED": {"check": [{"code": "SPINE_LEVEL", "system": "eHealth/custom/observation_components"}]}}` (string, required) 
++ `settings`: `{"CATEGORY": {"check": [{"code": "survey", "system": "eHealth/observation_categories"}]}, "RESULT_TYPE": {"check": "codeable_concept"}, "RESULT_BINDING": {"check": ["eHealth/LOINC/LL5900-7"]}, "COMPONENTS_UNIQUE": {"check": true}, "COMPONENTS_REQUIRED": {"check": [{"code": "SPINE_LEVEL", "system": "eHealth/custom/observation_components"}]}}` (string, required)
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + `updated_at`: `2018-08-02T10:45:16.000Z` (string, required)
